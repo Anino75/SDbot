@@ -1541,7 +1541,7 @@ async def rouletterusse(ctx,mise=None):
 	with open('economie.json','r') as f:
 		Eco = json.load(f)
 	try:
-		Eco["Mises"][str(ctx.user.id)]
+		Eco["Mises"][str(ctx.author.id)]
 		await ctx.reply(':warning: Vous avez déjà un jeu ouvert, si vous en avez encore besoin le voici',view=gains())
 		return
 	except:
@@ -2218,16 +2218,15 @@ async def debutquotas(ctx):
 	await mes.delete()
 	Elite = ctx.guild.get_role(993163816693141536)
 	Bad = ctx.guild.get_role(993163825773809754)
-	Elite = Elite.members.id
 	id = [[],[]]
 	for personne in Elite.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {ctx.user}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {ctx.author.mention}')
 		id[0].append(personne.id)
 	for personne in Bad.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {ctx.user}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {ctx.author.mention}')
 		id[1].append(personne.id)
 	quot["semaine"] += 1
-	quot["semaine"+str(quot[semaine])] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
+	quot["semaine"+str(quot["semaine"])] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
 	await ctx.reply('Le message à bien été envoyé')
@@ -2242,8 +2241,11 @@ async def renduquotas(ctx,divi,member:discord.Member=None):
 		return
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
-	quot["semaine"+str(quot[semaine])][divi]["af"].pop(member.id)
-	quot["semaine"+str(quot[semaine])][divi]["fait"] += member.id
+	if member.id not in quot["semaine"+str(quot["semaine"])][divi]["af"]:
+		await ctx.reply("Cette personne n'a pas de quotas a rendre")
+		return
+	quot["semaine"+str(quot["semaine"])][divi]["af"].remove(member.id)
+	quot["semaine"+str(quot["semaine"])][divi]["fait"].append(member.id)
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
 	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
