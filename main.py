@@ -2202,6 +2202,53 @@ async def ww(ctx,ll):
 		print("pb")
 	return lettre
 
+# =========== Quotas ===========
+
+@bot.command()
+async def debutquotas(ctx):
+	with open ('quotas.json','r') as f:
+		quot = json.load(f)
+	def check(m):
+		return m.author == ctx.author and m.channel == ctx.channel
+	mes = await ctx.reply('Quels sont les quotasde la SD ?')
+	SD = await bot.wait_for('message', timeout=600, check=check)
+	await mes.delete()
+	mes = await ctx.reply('Quels sont les quotasde la SD ?')
+	quota = await bot.wait_for('message', timeout=600, check=check)
+	await mes.delete()
+	Elite = ctx.guild.get_role(993163816693141536)
+	Bad = ctx.guild.get_role(993163825773809754)
+	Elite = Elite.members.id
+	id = [[],[]]
+	for personne in Elite.members:
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {ctx.user}')
+		id[0].append(personne.id)
+	for personne in Bad.members:
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {ctx.user}')
+		id[1].append(personne.id)
+	quot["semaine"] += 1
+	quot["semaine"+str(quot[semaine])] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
+	with open ('quotas.json','w') as f:
+		json.dump(quot,f,indent=6)
+	await ctx.reply('Le message à bien été envoyé')
+
+@bot.command()
+async def renduquotas(ctx,divi,member:discord.Member=None):
+	if divi != "SD" and divi != "BD":
+		await ctx.reply("Ce n'est pas une division valide !")
+		return
+	if not member:
+		await ctx.reply("Vous n'avez pas indiqué de membre")
+		return
+	with open ('quotas.json','r') as f:
+		quot = json.load(f)
+	quot["semaine"+str(quot[semaine])][divi]["af"].pop(member.id)
+	quot["semaine"+str(quot[semaine])][divi]["fait"] += member.id
+	with open ('quotas.json','w') as f:
+		json.dump(quot,f,indent=6)
+	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
+	await ctx.reply('Le message à bien été envoyé')
+
 # =========== Autre ===========
 
 class NewHelpCommand(commands.MinimalHelpCommand):
