@@ -2256,7 +2256,7 @@ async def renduquotas(ctx,divi,member:discord.Member=None):
 async def listequotas(ctx,semaine=None):
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
-	if not semaine:
+	if not semaine or semaine > quot["semaine"] or semaine<1:
 		semaine = quot["semaine"]
 	message = ""
 	for divi in quot["semaine"+str(semaine)].keys():
