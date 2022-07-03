@@ -1,0 +1,5 @@
+pycord
+toml
+datetime
+asyncio
+discord
