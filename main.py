@@ -2251,6 +2251,25 @@ async def renduquotas(ctx,divi,member:discord.Member=None):
 	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
 	await ctx.reply('Le message à bien été envoyé')
 
+
+@bot.command()
+async def listequotas(ctx,semaine=None):
+	with open ('quotas.json','r') as f:
+		quot = json.load(f)
+	if not semaine:
+		semaine = quot["semaine"]
+	message = ""
+	for divi in quot["semaine"+str(semaine)].keys():
+		message += f"\n__**{divi}**__\n**Non Rendu :**\n"
+		for personne in quot["semaine"+str(semaine)][divi]["af"]:
+			personne = bot.get_user(personne)
+			message += "> "+personne.mention+"\n"
+		message += "**Rendu :**\n"
+		for personne in quot["semaine"+str(semaine)][divi]["fait"]:
+			personne = bot.get_user(personne)
+			message += "> "+personne.mention+"\n"
+	await ctx.reply(embed=create_small_embed(message))
+
 # =========== Autre ===========
 
 class NewHelpCommand(commands.MinimalHelpCommand):
