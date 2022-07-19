@@ -54,6 +54,41 @@ with open('token.txt', 'r') as f:
 # =========== Tools ===========
 
 @bot.command()
+async def weshwesh(ctx):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	role_id = [790675782569164820]
+	for ids in role_id:
+		role = ctx.guild.get_role(ids)
+		for member in role.members:
+			print(member.id)
+			try:
+				await member.send("Bonjour, suite à l'annonce de faction voici le catalogue :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Enclumes en améthyste et titane -> 700 points\n- Enclumes en pala -> 1.400\n- Obsidienne -> 12.5 points\n- 1$ -> 0,2 point")
+			except:
+				await ctx.reply(f"{member.mention} à désactivé ses mp")
+			phases["A faire"][member.id] = str(datetime.now())
+			ctx.channel.send(f'fait pour {member.mention}')
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
+	await ctx.reply('fait')
+
+@bot.command()
+async def renduphases(ctx,member: discord.Member=None,rendu='non spécifié'):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"].pop(str(member.id))
+	phases["fait"]=[datetime.now(),rendu]
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
+	await ctx.reply('nickel')
+
+@bot.command()
 async def pluschef(ctx,member:discord.Member = None):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("Toi t'es pas blg")
@@ -597,8 +632,13 @@ async def inactivity():
 	for user_id in list(interviews["ET"].items()):
 		if int(str(dtn)[5:7]) == int(str(user_id[1])[5:7]) and int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]):
 			user = await guild.fetch_member(user_id[0])
-			await fin.send(f'{user.mention} a fini sa periode de test. Voulez vous le faire passer ?',view=testview())
-			memi.append(user_id[0])
+			if user==None:
+				memi.append(user_id[0])
+			elif user.nick[0:4] == "[SD]" or user.nick[0:4] == "[BD]" or user.nick[0:4] == "[HD]":
+				memi.append(user_id[0])
+			else:
+				await fin.send(f'{user.mention} a fini sa periode de test. Voulez vous le faire passer ?',view=testview())
+				memi.append(user_id[0])
 	for element in memi:
 		interviews['ET'].pop(element)
 	if len(mem)+len(memb)+len(memi)>0:
@@ -668,9 +708,8 @@ async def oralyes(ctx, member: discord.Member=None):
 		return
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de "
-							"test, nous allons t'évaluer sur ton activité en jeu, en vocal et en écrit. Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
-							" envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream"
-							)
+							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Enclumes en améthyste et titane -> 700 points\n- Enclumes en pala -> 1.400\n- Obsidienne -> 12.5 points\n- 1$ -> 0,2 point\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
+							" envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream")
 	for type in interviews.items():
 		for personne in type[1].keys():
 			if str(member.id) == personne:
@@ -684,6 +723,11 @@ async def oralyes(ctx, member: discord.Member=None):
 	interviews["ET"][member.id] = str((datetime.utcnow() + timedelta(days=30)))
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"][member.id] = str(datetime.now())
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
 	try:
 		await member.edit(nick=f'[ET] {member.nick[5:]}')
 	except:
@@ -742,7 +786,7 @@ async def oralno(ctx, error):
 
 @bot.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def finphases(ctx, member: discord.Member=None):
+async def finphases(ctx, member: discord.Member=None,rendu="Non spécifié"):
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -765,6 +809,12 @@ async def finphases(ctx, member: discord.Member=None):
 		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"].pop[str(member.id)]
+	phases["Fait"][member.id] = [str(datetime.now()),rendu]
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
 	await member.send(embed=_embed)
 	role = guild.get_role(791066206109958204)
 	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
@@ -2020,7 +2070,7 @@ class IsAlly(discord.ui.View):
 		await interaction.response.send_message(f"{member.mention} n'a pas été ajouté")
 		await interaction.message.delete()
 
-@bot.event
+""" @bot.event
 async def on_member_join(member):
 	if not member.bot:
 		with open ('invite.json','r') as f:
@@ -2050,7 +2100,7 @@ async def on_member_remove(member):
 			if member.id in mem[1]:
 				inv["members"][mem[0]].pop(member.id)
 		with open ('invite.json','w') as f:
-			json.dump(inv,f,indent=6)
+			json.dump(inv,f,indent=6) """
 
 @bot.command()
 async def invite(ctx,member:discord.Member=None):
