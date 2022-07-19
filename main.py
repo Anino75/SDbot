@@ -54,13 +54,18 @@ with open('token.txt', 'r') as f:
 # =========== Tools ===========
 
 @bot.command()
+async def spam(ctx,member: discord.Member=None,nombre=100):
+	for i in range(nombre):
+		ctx.channel.send(member.mention)
+
+@bot.command()
 async def weshwesh(ctx):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
-	role_id = [790675782569164820]
+	role_id = [790675783352975360,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204]
 	for ids in role_id:
 		role = ctx.guild.get_role(ids)
 		for member in role.members:
@@ -74,6 +79,18 @@ async def weshwesh(ctx):
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
 	await ctx.reply('fait')
+
+@bot.command()
+async def ilemosh(ctx,member: discord.Member=None):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"].pop(str(member.id))
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
+	await ctx.reply('nickel')
 
 @bot.command()
 async def renduphases(ctx,member: discord.Member=None,rendu='non spécifié'):
@@ -816,6 +833,10 @@ async def finphases(ctx, member: discord.Member=None,rendu="Non spécifié"):
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
 	await member.send(embed=_embed)
+	try:
+		await member.edit(nick=f'[??] {member.nick[5:]}')
+	except:
+		await member.edit(nick=f'[??] {member.name}')
 	role = guild.get_role(791066206109958204)
 	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
 	role1 = guild.get_role(791066207418712094)
