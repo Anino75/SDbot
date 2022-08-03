@@ -53,6 +53,27 @@ with open('token.txt', 'r') as f:
 
 # =========== Tools ===========
 
+@bot.event
+async def on_member_remove(member):
+	if not member.bot:
+		with open('phases.json', 'r') as f:
+			phases = json.load(f)
+		with open('Interview.json', 'r') as f:
+			interviews = json.load(f)
+		chanel = bot.get_channel(937312061833240586)
+		if str(member.id) in phases["A faire"].keys():
+			phases["A faire"].remove(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des phases')
+		if str(member.id) in interviews["Dates"].keys():
+			interviews["Dates"].remove(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
+		if str(member.id) in interviews["Wait"].keys():
+			interviews["Wait"].remove(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
+		if str(member.id) in interviews["Responded"].keys():
+			interviews["Responded"].remove(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
+
 @bot.command()
 async def spam(ctx,member: discord.Member=None,nombre=100):
 	if ctx.author.id != 790574682294190091:
@@ -96,17 +117,50 @@ async def ilemosh(ctx,member: discord.Member=None):
 	await ctx.reply('nickel')
 
 @bot.command()
-async def renduphases(ctx,member: discord.Member=None,rendu='non spécifié'):
+async def renduphases(ctx,member: discord.Member=None,*,rendu=None):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	if not rendu:
+		await ctx.reply("t'as pas mis le rendu blg")
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"].pop(str(member.id))
+	phases["Fait"][member.id]=[str(datetime.now()),rendu]
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
+	await member.send("Merci d'avoir rendu votre phase, elle est suffisante et vous n'aurez pas besoin de farmer plus. Attention : ne parlez pas de cette phase ni combien de points vous avez donné sous peine de sanctions !")
+	await ctx.reply('nickel')
+
+@bot.command()
+async def pati(ctx,id):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
-	phases["A faire"].pop(str(member.id))
-	phases["fait"]=[datetime.now(),rendu]
+	phases["A faire"].pop(str(id))
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
 	await ctx.reply('nickel')
+
+@bot.command()
+async def listephases(ctx,member: discord.Member=None,*,rendu='non spécifié'):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	af = ''
+	ff = ''
+	for personne in phases["A faire"].keys():
+		af+=f'<@{personne}>'
+	for personne in phases["Fait"].keys():
+		ff+=f'<@{personne}>'
+	await ctx.reply(f'Fait :\n{ff}')
+	if len(af) >= 2000:
+		await ctx.reply(f'A faire :\n{af[0:1900]}')
+		await ctx.reply(f'{af[1900:]}')
 
 @bot.command()
 async def pluschef(ctx,member:discord.Member = None):
@@ -498,6 +552,14 @@ class candid(discord.ui.View):
 		await ban.send(embed=create_small_embed(member.mention + 'est banni.e pendant deux semaines car sa candidature à été refusée',discord.Color.red()))
 		await interaction.message.delete()
 
+async def recru(recruid):
+	with open('Interview.json', 'r') as f:
+		interviews = json.load(f)
+	if recruid in interviews["Recruteur"].keys():
+		interviews["Recruteur"][recruid] += 1
+	else:
+		interviews["Recruteur"][recruid] = 1
+
 @bot.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
 async def refuse(ctx, member: discord.Member=None, *, raison="Le recruteur n'a pas spécifié de raison"):
@@ -513,6 +575,7 @@ async def refuse(ctx, member: discord.Member=None, *, raison="Le recruteur n'a p
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
 	await member.edit(nick='')
+	await recru(str(ctx.author.id))
 	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande refuse pour ' + member.mention+" Pour la raison suivante : "+raison))
 	await ban.send(embed=create_small_embed(member.mention + 'est banni.e pendant deux semaines car sa candidature à été refusée Pour la raison suivante : '+raison,discord.Color.red()))
@@ -557,6 +620,7 @@ async def accept(ctx, member: discord.Member=None):
 	await member.add_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
+	await recru(str(ctx.author.id))
 	log = bot.get_channel(831615469134938112)
 	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande accept pour ' + member.mention))
@@ -752,6 +816,7 @@ async def oralyes(ctx, member: discord.Member=None):
 		await member.edit(nick=f'[ET] {member.nick[5:]}')
 	except:
 		await member.edit(nick=f'[ET] {member.name}')
+	await recru(str(ctx.author.id))
 	role = ctx.guild.get_role(790675784901197905)
 	role1 = ctx.guild.get_role(791066206109958204)
 	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
@@ -791,6 +856,7 @@ async def oralno(ctx, member: discord.Member=None):
 		json.dump(interviews, f, indent=6)
 	await member.edit(nick=f'')
 	await member.send(embed=_embed)
+	await recru(str(ctx.author.id))
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
 	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
@@ -806,7 +872,7 @@ async def oralno(ctx, error):
 
 @bot.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def finphases(ctx, member: discord.Member=None,rendu="Non spécifié"):
+async def finphases(ctx, member: discord.Member=None,*,rendu="Non spécifié"):
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -831,7 +897,7 @@ async def finphases(ctx, member: discord.Member=None,rendu="Non spécifié"):
 			json.dump(interviews, f, indent=6)
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
-	phases["A faire"].pop[str(member.id)]
+	phases["A faire"].pop(str(member.id))
 	phases["Fait"][member.id] = [str(datetime.now()),rendu]
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
@@ -847,13 +913,6 @@ async def finphases(ctx, member: discord.Member=None,rendu="Non spécifié"):
 	log = bot.get_channel(831615469134938112)
 	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande finphases pour ' + member.mention))
-
-@finphases.error
-async def finphases(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 @bot.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
@@ -878,6 +937,14 @@ async def kickphases(ctx, member: discord.User=None, *, raison="Le recruteur n'a
 		json.dump(interviews, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
+	try:
+		with open('phases.json', 'r') as f:
+			phases = json.load(f)
+		phases["A faire"].pop(str(member.id))
+		with open('phases.json', 'w') as f:
+			json.dump(phases, f, indent=6)
+	except:
+		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
 	try:
 		await member.send(embed=_embed)
 		await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
@@ -914,9 +981,9 @@ async def warn(ctx, member : discord.Member=None, *, raison="Pas de raison fourn
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
-		wb['warns'][str(member.id)].append(raison)
+		wb['warns'][str(member.id)].append([raison,str(datetime.now())])
 	except:
-		wb['warns'][str(member.id)] = [raison]
+		wb['warns'][str(member.id)] = [[raison,str(datetime.now())]]
 	with open('warnblame.json', 'w') as f:
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
@@ -995,9 +1062,9 @@ async def blame(ctx, member : discord.Member=None, *, raison="Pas de raison four
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
-		wb['blames'][str(member.id)].append(raison)
+		wb['blames'][str(member.id)].append([raison,str(datetime.now())])
 	except:
-		wb['blames'][str(member.id)] = [raison]
+		wb['blames'][str(member.id)] = [[raison,str(datetime.now())]]
 	with open('warnblame.json', 'w') as f:
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
@@ -1174,7 +1241,7 @@ async def unban(ctx, error):
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
-@bot.command()
+@bot.command(aliases=['userinfo','sanction'])
 @commands.has_permissions(administrator=True)
 async def sanctions(ctx, member: discord.Member = None):
 		if not member:
@@ -1182,26 +1249,40 @@ async def sanctions(ctx, member: discord.Member = None):
 			return
 		with open('warnblame.json', 'r') as f:
 			wb = json.load(f)
-		sanctions = "**Warns :**\n"
-		try:
-			for i in range(len(wb['warns'][str(member.id)])):
-				sanctions += "["+str(i+1)+"] "+wb['warns'][str(member.id)][i] + "\n"
-		except:
-			sanctions+="Aucun warns"
-		sanctions+="\n\n**Blames :**\n"
-		try:
-			for i in range(len(wb['blames'][str(member.id)])):
-				sanctions += "[" + str(i + 1) + "] " + wb['blames'][str(member.id)][i] + "\n"
-		except:
-			sanctions+= "Aucun Blame"
-		await ctx.reply(embed=create_small_embed('Voici les sanction de ' + member.mention + " : \n\n" + sanctions))
+		with open('phases.json', 'r') as f:
+			ph = json.load(f)
+		msg = f"Mention : {member.mention}\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
+		if str(member.id) in ph["Fait"]:
+			msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0]}"
+		for element in wb.keys():
+			msg += f"\n\n**{element} :**"
+			try:
+				for i in range(len(wb[element][str(member.id)])):
+					msg += f"\n[{str(i+1)}] {wb[element][str(member.id)][i][0]} - *{wb[element][str(member.id)][i][1][8:10]}/{wb[element][str(member.id)][i][1][5:7]}/{wb[element][str(member.id)][i][1][0:4]}*"
+			except:
+				msg+=f"\nAucun {element}"
+		embed = discord.Embed(title=member.nick,description=msg)
+		embed.set_thumbnail(url=member.avatar.url)
+		await ctx.reply(embed=embed)
 
-@sanctions.error
-async def sanctions(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def addinfo(ctx, member: discord.Member = None,marq=None,*,info=None):
+		if not member:
+			await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
+			return
+		with open('warnblame.json', 'r') as f:
+			wb = json.load(f)
+		if marq != "neutre" and marq != "positive" and marq != "neutre":
+			info = marq+info
+			marq = "neutre"
+		if str(member.id) in wb[marq].keys():
+			wb[marq][member.id].append([info,str(datetime.now())])
+		else:
+			wb[marq][member.id] = [[info,str(datetime.now())]]
+		with open('warnblame.json', 'w') as f:
+			json.dump(wb, f, indent=6)
+		await ctx.reply(embed=create_small_embed("l'info à été enregistrée"))
 
 # =========== Tickets ===========
 

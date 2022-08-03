@@ -1,5 +1,273 @@
 {
-      "warns": {
+      "positive": {
+            "790574682294190091": [
+                  [
+                        "trop blg",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ]
       },
-      "blames": {}
+      "neutre": {},
+      "negative": {},
+      "warns": {
+            "866703168527663134": [
+                  [
+                        "ouverture de tickets fant\u00f4me",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "586959833983614979": [
+                  [
+                        "insulte un hg de sale chien (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "bonhomme amongus p\u00e9nis (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "calme toi tous le monde et pas en vacances et tu n'a pas \u00e0 donner des ordres aux joueurs/responsable ou chef + n'utilise pas de soundbord",
+                        "Divulgation d'infos",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "739911300301193286": [
+                  [
+                        "non respect des r\u00e8gles + comportements irrespectueux en voc (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "Non respect du r\u00e8glement (Pub Mp) (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "604946072707530775": [
+                  [
+                        "Abus de perms recruteur (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "insolence envers HG \u00e0 plusieurs reprise",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "propos discriminants",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "Propo d\u00e9placez divulgation d'information faction pour \"troll\" mauvais emploi du thermes coup d'\u00e9tat ect...",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "417268548810047489": [
+                  [
+                        "abus de Perm (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "745601888195575838": [
+                  [
+                        "histoire \u00e0 plusieurs reprise + rends pas du stuff depuis 2 semaines",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "803997946185515070": [
+                  [
+                        "pub mp (mise a jour de bases de donn\u00e9e)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "658679586275590155": [
+                  [
+                        "pub (mise a jour de base de donn\u00e9 )",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "716429127296483409": [
+                  [
+                        "foutage de gueule + provoc (mise a jour de base de donn\u00e9e)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "832628377403392042": [
+                  [
+                        "Pub Mp (mise a jour de bases de donn\u00e9e)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "318312854816161792": [
+                  [
+                        "abus de perm",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "587666873311821836": [
+                  [
+                        "abus de perm",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "924800267411668992": [
+                  [
+                        "pubmp",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "KEO83 T'as qu'\u00e0 pas usurper l'identit\u00e9 de quelqu'un !",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "587694474138746880": [
+                  [
+                        "provocation de truces + hg",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "deuxieme fois provocation de truces + hg + pars d\u00e8s qu'il fait une connerie pour pas qu'on lui mette une sanction",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "614921522296914000": [
+                  [
+                        "ouverture de ticket inutile",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "367341761271693313": [
+                  [
+                        "on warn pas les hg en tsum tsum c'est pas gentil",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "333651429090787328": [
+                  [
+                        "force sur le genre apr\u00e8s plusieurs mises en garde",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "667844274817335305": [
+                  [
+                        "Tp des inconnus sans aval des HG dans une base de faction",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "808003603629080626": [
+                  [
+                        "grossophobie",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "956643862145806376": [
+                  [
+                        "dissimulation de preuves et menaces envers <@667844274817335305>",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "653610011926200350": [
+                  [
+                        "provocation + insulte transphobes en mp",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "482500043396481024": [
+                  [
+                        "provocation + insulte transphobes en mp",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "500272194199224322": [
+                  [
+                        "spam",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "456419207966621697": [
+                  [
+                        "T\u2019as qu\u2019\u00e0 pas ursuper l\u2019identit\u00e9 de quelqu\u2019un",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "714096292485136454": [
+                  [
+                        "tentative de casser la sainte chaine sacr\u00e9e",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "343649063297875968": [
+                  [
+                        "Tente de r\u00e9cup\u00e9rer les co d'une base",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "702164009595699321": [
+                  [
+                        "Crie en vocal + donnes des ordres.",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "894969836499795971": [
+                  [
+                        "6/10",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ]
+      },
+      "blames": {
+            "586959833983614979": [
+                  [
+                        "Trop de sanctions (2 warns) (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "trop de sanctions (2 warns)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "739911300301193286": [
+                  [
+                        "Trop de sanctions (2 warns) (mise a jour de bases de donn\u00e9es)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "604946072707530775": [
+                  [
+                        "Trop de sanctions (2 warns)",
+                        "2022-08-03 15:47:55.923155"
+                  ],
+                  [
+                        "trop de sanctions",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "587694474138746880": [
+                  [
+                        "Trop de sanctions",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "741010920452653056": [
+                  [
+                        "Manque de respect et mauvaise foi alors que tu aurais tout simplement changer de faction (ou lire les annonces mais bon...)",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "702164009595699321": [
+                  [
+                        "insultes + abus abus de perm",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "584003218204262432": [
+                  [
+                        "menaces de mort",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ],
+            "790574682294190091": [
+                  [
+                        "exc\u00e8s de bot\u00e9",
+                        "2022-08-03 15:47:55.923155"
+                  ]
+            ]
+      }
 }
