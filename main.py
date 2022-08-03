@@ -55,6 +55,9 @@ with open('token.txt', 'r') as f:
 
 @bot.command()
 async def spam(ctx,member: discord.Member=None,nombre=100):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
 	for i in range(nombre):
 		ctx.channel.send(member.mention)
 
