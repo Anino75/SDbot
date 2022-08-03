@@ -53,6 +53,75 @@ with open('token.txt', 'r') as f:
 
 # =========== Tools ===========
 
+@bot.command()
+async def absence(ctx):
+	if 813928386946138153 in [x.id for x in ctx.author.roles]:
+		await ctx.reply('Vous êtes déjà absent.e !')
+		return
+	def check(m):
+		return m.author == ctx.author and m.channel == ctx.channel
+	await ctx.channel.send(f'Quel est la raison de votre absence ?')
+	msg = await bot.wait_for('message', timeout=180,check=check)
+	await ctx.channel.send(f"Jusqu'a quand durera votre absence ? (merci de mettre la date sous la forme JJ/MM/AAAA)")
+	tt = await bot.wait_for('message', timeout=180,check=check)
+	try:
+		if int(tt.content[0:2]) + int(tt.content[3:5]) + int(tt.content[6:10]) < 2100 and len(tt.content) == 10:
+			pass
+		else:
+			await ctx.reply("La date n'est pas valide, merci de recommencer avec une date valide")
+			return
+	except:
+		await ctx.reply("La date n'est pas valide, merci de recommencer avec une date valide")
+		return
+	with open('absence.json', 'r') as f:
+		ab = json.load(f)
+	if tt.content[0:10] in ab.keys():
+		ab[tt.content[0:10]][ctx.author.id] = msg.content
+	else:
+		ab[tt.content[0:10]] = {ctx.author.id:msg.content}
+	with open('absence.json', 'w') as f:
+		json.dump(ab, f, indent=6)
+	chanel = bot.get_channel(791452088370069525)
+	await chanel.send(f"{ctx.author} est absent jusqu'au {tt.content} pour {msg.content}")
+	role = ctx.guild.get_role(813928386946138153)
+	await ctx.author.add_roles(role)
+	await ctx.reply('Votre absence a bien été prise en compte')
+
+@bot.command()
+@commands.has_any_role(791066207418712094, 791066206437113897, 790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
+async def choixdivi(ctx,divi=None):
+	if divi != "SD" and divi != "BD" and divi != "HD":
+		await ctx.reply('La division que vous avez indiqué n\'est pas bonne, merci  d\'ecrire `*choixdivi SD` ou BD ou HD')
+	guild = ctx.guild
+	SD = guild.get_role(986333837065850952)
+	BD = guild.get_role(991601555209990174)
+	test = bot.get_channel(791452088370069525)
+	if SD.id in [x.id for x in ctx.author.roles]:
+		await ctx.author.remove_roles(SD)
+	if BD.id in [x.id for x in ctx.author.roles]:
+		await ctx.author.remove_roles(BD)
+	if divi == "SD":
+		await ctx.author.add_roles(SD)
+		await ctx.author.edit(nick=f'[SD] {ctx.author.nick[5:]}')
+	if divi == "BD":
+		await ctx.author.add_roles(BD)
+		await ctx.author.edit(nick=f'[BD] {ctx.author.nick[5:]}')
+	if divi == "HD":
+		await ctx.author.edit(nick=f'[HD] {ctx.author.nick[5:]}')
+	await test.send(f'{ctx.author.mention} est passé dans la division {divi}')
+	await ctx.reply(f'Vous etes passé dans la {divi}')
+
+async def abs():
+	with open('absence.json', 'r') as f:
+		ab = json.load(f)
+	date = f"{str(datetime.now)[0:4]}/{str(datetime.now)[5:7]}/{str(datetime.now)[8:10]}"
+	if date in ab.keys():
+		for personne in ab[date].keys():
+			personne = bot.get_member(personne)
+			role = bot.get_role(813928386946138153)
+			await personne.remove_roles(role)
+	await asyncio.sleep(36000)
+
 @bot.event
 async def on_member_remove(member):
 	if not member.bot:
@@ -73,6 +142,10 @@ async def on_member_remove(member):
 		if str(member.id) in interviews["Responded"].keys():
 			interviews["Responded"].remove(str(member.id))
 			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
+		with open('phases.json', 'w') as f:
+			json.dump(phases, f, indent=6)
+		with open('Interview.json', 'w') as f:
+			json.dump(interviews, f, indent=6)
 
 @bot.command()
 async def spam(ctx,member: discord.Member=None,nombre=100):
@@ -221,6 +294,7 @@ async def on_ready():
 	# functions
 	bot.loop.create_task(effectif())
 	bot.loop.create_task(inactivity())
+	bot.loop.create_task(abs())
 	#bot.loop.create_task(candids())
 	# print
 	field_placeholder = '+----------------------------------+'
