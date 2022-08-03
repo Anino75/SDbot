@@ -87,7 +87,12 @@ async def absence(ctx):
 	await ctx.author.add_roles(role)
 	await ctx.reply('Votre absence a bien été prise en compte')
 
+@absence.error
+async def absence(ctx, error):
+	await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+
 @bot.command()
+@commands.cooldown(1, 104800, commands.BucketType.user)
 @commands.has_any_role(791066207418712094, 791066206437113897, 790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
 async def choixdivi(ctx,divi=None):
 	if divi != "SD" and divi != "BD" and divi != "HD":
@@ -110,6 +115,15 @@ async def choixdivi(ctx,divi=None):
 		await ctx.author.edit(nick=f'[HD] {ctx.author.nick[5:]}')
 	await test.send(f'{ctx.author.mention} est passé dans la division {divi}')
 	await ctx.reply(f'Vous etes passé dans la {divi}')
+
+@choixdivi.error
+async def choixdivi(ctx, error):
+	if isinstance(error, commands.CommandOnCooldown):
+		await ctx.reply(f"Vous ne pouvez changer de division qu'une fois par semaine.")
+	elif isinstance(error, commands.MissingAnyRole):
+		await ctx.reply(embed=create_small_embed(':warning: Seuls les membres peuvent utiliser cette commande !',discord.Color.red()))
+	else:
+		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 async def abs():
 	with open('absence.json', 'r') as f:
@@ -2099,11 +2113,21 @@ async def endally(ctx,faction=None):
 				typ = type[0]
 				for id in fac[1].keys():
 					memberid = id
-	for personne in rela[typ][faction][memberid]:
-		member = ctx.guild.get_member(int(personne))
+	mem = ctx.guild.get_member(memberid)
+	try:
 		ally = ctx.guild.get_role(790675785412640768)
-		await member.remove_roles(ally)
-		await member.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
+		await mem.remove_roles(ally)
+		await mem.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
+	except:
+		pass
+	for personne in rela[typ][faction][memberid]:
+		try:
+			member = ctx.guild.get_member(int(personne))
+			ally = ctx.guild.get_role(790675785412640768)
+			await member.remove_roles(ally)
+			await member.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
+		except:
+			pass
 	rela[typ].pop(faction)
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
@@ -2116,6 +2140,7 @@ async def endally(ctx, error):
 		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+
 
 @bot.command()
 async def addmember(ctx,member:discord.Member=None,faction=None):
