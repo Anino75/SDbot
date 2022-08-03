@@ -162,7 +162,7 @@ async def on_member_remove(member):
 			json.dump(interviews, f, indent=6)
 
 @bot.command()
-async def spam(ctx,member: discord.Member=None,nombre=100):
+async def spam(ctx,member: discord.Member=None,nombre=30):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
@@ -657,7 +657,7 @@ async def listerecru(ctx):
 		interviews = json.load(f)
 	msg ='Voici la liste des recruteurs :'
 	for recrut in interviews["Recruteur"].keys():
-		msg += f"\n<@{recrut}> : {interviews["Recruteur"][recrut]}"
+		msg += f"\n<@{recrut}> : {interviews['Recruteur'][recrut]}"
 	await ctx.reply(msg)
 
 
