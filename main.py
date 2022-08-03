@@ -81,8 +81,8 @@ async def absence(ctx):
 		ab[tt.content[0:10]] = {ctx.author.id:msg.content}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
-	chanel = bot.get_channel(791452088370069525)
-	await chanel.send(f"{ctx.author} est absent jusqu'au {tt.content} pour {msg.content}")
+	chanel = bot.get_channel(794021749196718121)
+	await chanel.send(f"{ctx.author.mention} est absent jusqu'au {tt.content} pour {msg.content}")
 	role = ctx.guild.get_role(813928386946138153)
 	await ctx.author.add_roles(role)
 	await ctx.reply('Votre absence a bien été prise en compte')
