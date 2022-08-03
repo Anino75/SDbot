@@ -167,7 +167,7 @@ async def spam(ctx,member: discord.Member=None,nombre=100):
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
 	for i in range(nombre):
-		ctx.channel.send(member.mention)
+		await ctx.channel.send(member.mention)
 
 @bot.command()
 async def weshwesh(ctx):
@@ -647,6 +647,19 @@ async def recru(recruid):
 		interviews["Recruteur"][recruid] += 1
 	else:
 		interviews["Recruteur"][recruid] = 1
+	with open('Interview.json', 'w') as f:
+			json.dump(interviews, f, indent=6)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def listerecru(ctx):
+	with open('Interview.json', 'r') as f:
+		interviews = json.load(f)
+	msg ='Voici la liste des recruteurs :'
+	for recrut in interviews["Recruteur"].keys():
+		msg += f"\n<@{recrut}> : {interviews["Recruteur"][recrut]}"
+	await ctx.reply(msg)
+
 
 @bot.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
@@ -768,7 +781,7 @@ async def inactivity():
 	dtn = datetime.now()
 	mem = []
 	for user_id in interviews["Dates"].items():
-		if int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]) and int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]):
+		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
 			user = await bot.fetch_user(user_id[0])
 			try:
 				_embed = discord.Embed(title="Recrutements",
@@ -783,7 +796,7 @@ async def inactivity():
 		interviews['Dates'].pop(element)
 	memb = []
 	for user_id in list(interviews["Wait"].items()):
-		if int(str(dtn)[5:7]) == int(str(user_id[1])[5:7]) and int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]):
+		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
 			try:
 				user = await guild.fetch_member(user_id[0])
 				_embed2 = discord.Embed(title="Recrutements",
@@ -802,11 +815,9 @@ async def inactivity():
 	fin = guild.get_channel(937312061833240586)
 	memi = []
 	for user_id in list(interviews["ET"].items()):
-		if int(str(dtn)[5:7]) == int(str(user_id[1])[5:7]) and int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]):
-			user = await guild.fetch_member(user_id[0])
+		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
+			user = await bot.fetch_user(user_id[0])
 			if user==None:
-				memi.append(user_id[0])
-			elif user.nick[0:4] == "[SD]" or user.nick[0:4] == "[BD]" or user.nick[0:4] == "[HD]":
 				memi.append(user_id[0])
 			else:
 				await fin.send(f'{user.mention} a fini sa periode de test. Voulez vous le faire passer ?',view=testview())
@@ -1041,6 +1052,7 @@ async def kickphases(ctx, member: discord.User=None, *, raison="Le recruteur n'a
 		await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
 		role1 = guild.get_role(791066206109958204)
 		await member.remove_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+		await member.edit(nick="")
 	except:
 		await ctx.reply(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
 	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
@@ -1339,7 +1351,7 @@ async def sanctions(ctx, member: discord.Member = None):
 			wb = json.load(f)
 		with open('phases.json', 'r') as f:
 			ph = json.load(f)
-		msg = f"Mention : {member.mention}\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
+		msg = f"Mention : {member.mention} ({member.nick})\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
 		if str(member.id) in ph["Fait"]:
 			msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0][8:10]}/{ph['Fait'][str(member.id)][0][5:7]}/{ph['Fait'][str(member.id)][0][0:4]}"
 		for element in wb.keys():
@@ -1349,7 +1361,7 @@ async def sanctions(ctx, member: discord.Member = None):
 					msg += f"\n[{str(i+1)}] {wb[element][str(member.id)][i][0]} - *{wb[element][str(member.id)][i][1][8:10]}/{wb[element][str(member.id)][i][1][5:7]}/{wb[element][str(member.id)][i][1][0:4]}*"
 			except:
 				msg+=f"\nAucun {element}"
-		embed = discord.Embed(title=member.nick,description=msg)
+		embed = discord.Embed(title=member.name,description=msg)
 		embed.set_thumbnail(url=member.avatar.url)
 		await ctx.reply(embed=embed)
 
