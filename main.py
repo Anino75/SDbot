@@ -1253,7 +1253,7 @@ async def sanctions(ctx, member: discord.Member = None):
 			ph = json.load(f)
 		msg = f"Mention : {member.mention}\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
 		if str(member.id) in ph["Fait"]:
-			msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0]}"
+			msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0][8:10]}/{ph['Fait'][str(member.id)][0][5:7]}/{ph['Fait'][str(member.id)][0][0:4]}"
 		for element in wb.keys():
 			msg += f"\n\n**{element} :**"
 			try:
