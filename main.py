@@ -322,14 +322,6 @@ async def on_ready():
 	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
 	act = discord.Game(name="*help pour voir les commandes auxquelles vous avez accès")
 	await bot.change_presence(activity=act)
-	guild = bot.get_guild(790367917812088864)
-	with open('invite.json', 'r') as f:
-		inv = json.load(f)
-	inv["invites"] = {}
-	for invite in await guild.invites():
-		inv["invites"][invite.code] = invite.uses
-	with open('invite.json', 'w') as f:
-		json.dump(inv, f, indent=6)
 
 @bot.event
 async def on_invite_create(invite):
