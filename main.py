@@ -162,7 +162,7 @@ async def on_member_remove(member):
 			json.dump(interviews, f, indent=6)
 
 @bot.command()
-async def spam(ctx,member: discord.Member=None,nombre=30):
+async def spam(ctx,member: discord.Member=None,nombre=50):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
