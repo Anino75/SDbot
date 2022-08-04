@@ -6,6 +6,8 @@ import sys
 import time
 import traceback
 from datetime import datetime, timedelta
+import math
+#from sqlalchemy import true
 import chat_exporter
 import discord
 import toml
@@ -28,8 +30,8 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(PvPView())
 		self.add_view(NombreView())
 		self.add_view(Methode())
-		self.add_view(rouletteruss())
-		self.add_view(gains())
+		self.add_view(RouleR())
+		self.add_view(contijouer())
 		self.add_view(roulette())
 		self.add_view(rouleView())
 		self.add_view(regl())
@@ -471,12 +473,12 @@ async def prepare(ctx,prep=None):
 				   "Casque P4U3 -> 5.000$/u\n<:pala_chest:823931435781324841> "
 				   "Plastron P4U3 -> 6.000$/u\n<:pala_leggings:823931446032465962> "
 				   "Pantalon P4U3 -> 6.000$/u", view=PvPView())
-	if prep == 'rouletteR' or prep == 'tout' or prep == 'jeux':
+	if prep == 'RouleR' or prep == 'tout' or prep == 'jeux':
 		jeux = bot.get_channel(961592610412167270)
-		await jeux.send(embed = create_embed('Roulette Russe','Cliquez sur le bouton ci-dessous pour demarer une partie de roulette russe et tenter de **__multiplier par 5 votre mise !__**'),view=rouletteruss())
+		await jeux.send(embed = create_embed('Roulette Russe','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette russe et tenter de **__multiplier par 5 votre mise !__**'),view=RouleR())
 	if prep == 'rouletteA' or prep == 'tout' or prep == "jeux":
 		jeux = bot.get_channel(961592610412167270)
-		await jeux.send(embed = create_embed('Roulette Américaine','Cliquez sur le bouton ci-dessous pour demarer une partie de roulette américaine et tenter de **__multiplier par 36 votre mise !__**'),view=roulette())
+		await jeux.send(embed = create_embed('Roulette Américaine','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette américaine et tenter de **__multiplier par 36 votre mise !__**'),view=roulette())
 	if prep == 'ally' or prep == 'tout':
 		with open('rela.json', 'r') as f:
 			rela = json.load(f)
@@ -1496,7 +1498,7 @@ async def money(ctx,member:discord.User=None):
 	await ctx.reply(member.mention + " à actuelement " + str(Eco["Comptes"][str(member.id)]) + "$ sur son compte")
 
 @bot.command(aliases=['adminpay',"admingive",'add','give'])
-@commands.has_any_role(791426367362433066, 798301141094891620, 790675782569164820)
+@commands.has_any_role(790675781789155329, 798301141094891620, 790675782569164820)
 async def adminaddmoney(ctx,member:discord.Member=None,money=0):
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
@@ -1520,7 +1522,7 @@ async def adminaddmoney(ctx, error):
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 @bot.command(aliases=['remove'])
-@commands.has_any_role(791426367362433066, 798301141094891620, 790675782569164820)
+@commands.has_any_role(790675781789155329, 798301141094891620, 790675782569164820)
 async def adminremovemoney(ctx,member:discord.Member=None,money=0):
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
@@ -1756,129 +1758,97 @@ async def livre(ctx, error):
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
-class rouletteruss(discord.ui.View):
+class RouleR(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
-	@discord.ui.button(label='Jouer à la Roulette Russe', style=discord.ButtonStyle.green, custom_id='debutroulette')
-	async def Roullette(self, interaction: discord.Interaction, button: discord.ui.Button):
+	@discord.ui.button(label='Miser 100$', style=discord.ButtonStyle.green, custom_id='100')
+	async def mise1(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await gains(self,interaction,100,0)
+	@discord.ui.button(label='Miser 1.000$', style=discord.ButtonStyle.green, custom_id='1000')
+	async def mise2(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await gains(self,interaction,1000,0)
+	@discord.ui.button(label='Miser 10.000$', style=discord.ButtonStyle.green, custom_id='10000')
+	async def mise3(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await gains(self,interaction,10000,0)
+	@discord.ui.button(label='Miser 50.000$', style=discord.ButtonStyle.green, custom_id='50000')
+	async def mise4(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await gains(self,interaction,50000,0)
+	@discord.ui.button(label='Miser 100.000$', style=discord.ButtonStyle.green, custom_id='100000')
+	async def mise5(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await gains(self,interaction,100000,0)
+
+async def gains(self,interaction,mise,chiffre):
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	if chiffre == 0: #initialisation
 		await compte(interaction.user)
-		with open('economie.json','r') as f:
-			Eco = json.load(f)
-		try:
-			Eco["Mises"][str(interaction.user.id)]
-			await interaction.response.send_message(':warning: Vous avez déjà un jeu ouvert !',ephemeral=True)
-			return
-		except:
-			pass
-		jeu = bot.get_channel(961597988613025812)
-		await interaction.response.send_message("Vous avez une partie en cours dans le channel "+jeu.mention,ephemeral=True)
-		await jeu.send(interaction.user.mention+' Combien voulez-vous miser ?')
-		def check(m):
-			return m.author == interaction.user and m.channel == jeu
-		mise = await bot.wait_for('message', timeout=None, check=check)
-		try:
-			mise = int(mise.content)
-		except:
-			jeu.send(":warning: Ceci n'est pas un chiffre, veuillez recommencer avec un chiffre")
-			return
 		if Eco["Comptes"][str(interaction.user.id)] < mise:
-			await jeu.send(":warning: Vous n'avez pas assez d'argent pour miser ca !")
+			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent pour miser ca !")
 			return
 		Eco["Comptes"][str(interaction.user.id)] -= mise
-		Eco["Mises"][str(interaction.user.id)] = [0,mise]
-		await jeu.send('Confirmez vous votre partie avec une mise de '+str(mise)+' ?',view=gains())
 		with open('economie.json', 'w') as f:
 			json.dump(Eco, f, indent=6)
+	chance = random.randint(1, 6-chiffre)
+	if 1 == chance: #perdu
+		embed = discord.Embed(
+					title='Vous avez perdu...',
+					description='Vous pouvez toujours retenter votre chance !',
+					timestamp=datetime.utcnow(),
+				)
+		embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
+		await interaction.response.send_message(embed=embed,ephemeral=True)
+		return
 
-@bot.command(aliases=['RR'])
-async def rouletterusse(ctx,mise=None):
-	await compte(ctx.author)
-	with open('economie.json','r') as f:
-		Eco = json.load(f)
-	try:
-		Eco["Mises"][str(ctx.author.id)]
-		await ctx.reply(':warning: Vous avez déjà un jeu ouvert, si vous en avez encore besoin le voici',view=gains())
-		return
-	except:
-		pass
-	jeu = bot.get_channel(961597988613025812)
-	if not mise:
-		await jeu.send(ctx.author.mention+' Combien voulez-vous miser ?')
-		def check(m):
-			return m.author == ctx.author and m.channel == jeu
-		mise = await bot.wait_for('message', timeout=None, check=check)
-	try:
-		mise = int(mise.content)
-	except:
-		jeu.send(":warning: Ceci n'est pas un chiffre, veuillez recommencer avec un chiffre")
-		return
-	if Eco["Comptes"][str(ctx.author.id)] < mise:
-		await jeu.send(":warning: Vous n'avez pas assez d'argent pour miser ca !")
-		return
-	Eco["Comptes"][str(ctx.author.id)] -= mise
-	Eco["Mises"][str(ctx.author.id)] = [0,mise]
-	await jeu.send('Confirmez vous votre partie avec une mise de '+str(mise)+' ?',view=gains())
-	with open('economie.json', 'w') as f:
-		json.dump(Eco, f, indent=6)
+	multip=[115/100,135/115,175/135,250/175,500/250]
+	mise = mise*multip[chiffre]
+	gainmise = [115/100,135/100,175/100,250/100,500/100]
 
-class gains(discord.ui.View):
+	if chiffre == 4: #Max possible
+		embed = discord.Embed(
+			title='JACKPOT !',
+			description=f"Vous avez gagné {mise}$ ! Vous avez touché le maximum d'argent possible !",
+			timestamp = datetime.utcnow()
+			)
+		embed.set_thumbnail(url='https://c.tenor.com/YjPBups7H48AAAAC/6m-rain.gif')
+		Eco["Comptes"][str(interaction.user.id)] += mise
+		with open('economie.json', 'w') as f:
+			json.dump(Eco, f, indent=6)
+		await interaction.response.send_message(embed=embed,ephemeral=True)
+	else: #gain sans 
+		dep = math.log10(mise/gainmise[chiffre])-1
+		if dep == 4:
+			dep = 5
+		embed = discord.Embed(
+				title='Vous avez gagné !',
+				description=f"Vous avez gagné __**{round(mise)}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{round(mise*multip[chiffre+1])}$**__ ? \n Mise de depart : {round(mise/gainmise[chiffre])} ({round(dep)}), Vous avez déjà tiré {chiffre+1} fois.",
+				timestamp = datetime.utcnow()
+				)
+		embed.set_thumbnail(url='https://c.tenor.com/YjPBups7H48AAAAC/6m-rain.gif')
+		await interaction.response.send_message(embed=embed, view=contijouer(),ephemeral=True)
+
+class contijouer(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
-	@discord.ui.button(label='Jouer à la Roulette Russe', style=discord.ButtonStyle.green, custom_id='roulette')
-	async def Roulette(self, interaction: discord.Interaction, button: discord.ui.Button):
-		with open('economie.json', 'r') as f:
-			Eco = json.load(f)
-		if str(interaction.user.id) not in Eco["Mises"].keys():
-			await interaction.response.send_message(":warning: Vous n'avez pas commencé de parties de Roulette Russe !",ephemeral=True)
-			return
-		chance = random.randint(1, 6-Eco["Mises"][str(interaction.user.id)][0])
-		multip = [115/100,27/23,35/27,10/7,2]
-		if 1 == chance:
-			Eco["Mises"].pop(str(interaction.user.id))
-			embed = discord.Embed(
-				title='Vous avez perdu...',
-				description='Vous pouvez toujours retenter votre chance !',
-			)
-			embed.timestamp = datetime.utcnow()
-			embed.set_footer(text='', icon_url='')  # \u200b to remove text
-			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
-			await interaction.response.send_message(embed=embed)
-		elif Eco["Mises"][str(interaction.user.id)][0] == 4:
-			Eco["Mises"][str(interaction.user.id)][1] = Eco["Mises"][str(interaction.user.id)][0]*2
-			embed = discord.Embed(
-				title='JACKPOT !',
-				description='Vous avez gagné ' + str(Eco["Mises"][str(interaction.user.id)][1])+
-			"$ ! Vous avez touché le maximum d'argent possible !"
-			)
-			embed.timestamp = datetime.utcnow()
-			embed.set_footer(text='', icon_url='')  # \u200b to remove text
-			embed.set_thumbnail(url='https://c.tenor.com/YjPBups7H48AAAAC/6m-rain.gif')
-			Eco["Comptes"][str(interaction.user.id)] += Eco["Mises"][str(interaction.user.id)][1]
-			await interaction.response.send_message(embed=embed)
-		else:
-			Eco["Mises"][str(interaction.user.id)] = [Eco["Mises"][str(interaction.user.id)][0]+1, round(multip[Eco["Mises"][str(interaction.user.id)][0]] * Eco["Mises"][str(interaction.user.id)][1])]
-			embed = discord.Embed(
-				title='Vous avez gagné !',
-				description='Vous avez gagné ' + str(Eco["Mises"][str(interaction.user.id)][1])+
-			"$ !\nTenterez vous de rejouer afin d'augmenter votre gain à " + str(round(Eco["Mises"][str(interaction.user.id)][1] * multip[Eco["Mises"][str(interaction.user.id)][0]-1])) + "$ ?"
-				)
-			embed.timestamp = datetime.utcnow()
-			embed.set_footer(text='', icon_url='')  # \u200b to remove text
-			embed.set_thumbnail(url='https://c.tenor.com/YjPBups7H48AAAAC/6m-rain.gif')
-			await interaction.response.send_message(embed=embed, view=gains())
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
+	@discord.ui.button(label='Continuer à jouer', style=discord.ButtonStyle.green, custom_id='conti')
+	async def contiroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
+		mise = [0,100,1000,10000,50000,100000]
+		gainmise = [0,115/100,135/100,175/100,250/100,500/100]
+		chiffre = int(interaction.message.embeds[0].description[-7])
+		mise = mise[int(interaction.message.embeds[0].description[-31])]*gainmise[chiffre]
+		await gains(self,interaction,mise,chiffre)
 		await interaction.message.delete()
 	@discord.ui.button(label='Ne pas jouer', style=discord.ButtonStyle.red, custom_id='arret')
 	async def Arretroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
+		""" mise = [0,100,1000,10000,50000,100000]
+		gainmise = [0,115/100,135/100,175/100,250/100,500/100]
+		chiffre = int(interaction.message.embeds[0].description[-7])
+		mise = mise[int(interaction.message.embeds[0].description[-31])]*gainmise[chiffre]
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		if str(interaction.user.id) not in Eco["Mises"].keys():
-			await interaction.response.send_message(":warning: Vous n'avez pas commencé de parties de Roulette Russe !")
-			return
-		await interaction.response.send_message('Vous avez gagné '+str(Eco["Mises"][str(interaction.user.id)][1])+"$ !")
-		Eco["Comptes"][str(interaction.user.id)] += Eco["Mises"][str(interaction.user.id)][1]
-		Eco["Mises"].pop(str(interaction.user.id))
+		Eco["Comptes"][str(interaction.user.id)] += round(mise)
+		with open('economie.json', 'w') as f:
+			json.dump(Eco, f, indent=6) """
+		await interaction.message.delete()
 
 class Machineasous(discord.ui.View):
 	def __init__(self):
@@ -2024,7 +1994,7 @@ async def reset(ctx,res=None):
 		}
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
-	ctx.reply("Tout s'est bien passé")
+	await ctx.reply("Tout s'est bien passé")
 
 @reset.error
 async def reset(ctx, error):
