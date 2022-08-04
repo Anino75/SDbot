@@ -1302,7 +1302,7 @@ async def ban(ctx, member:discord.Member=None,*,raison="Pas de raison spécifié
 		return
 	guild = ctx.guild
 	embed_ = discord.Embed(
-		description="Vous avez été banni de la SweetDream pour la raison suivante : "+raison+"\nModérateur : "+ctx.author.mention,
+		description=f"Vous avez été banni de la SweetDream pour la raison suivante : {raison}\nModérateur : {ctx.author.mention}",
 		color=discord.Color.red()
 	)
 	try:
