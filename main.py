@@ -83,7 +83,7 @@ async def absence(ctx):
 		ab[tt.content[0:10]] = {ctx.author.id:msg.content}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
-	chanel = bot.get_channel(794021749196718121)
+	chanel = bot.get_channel(790719427800858634)
 	await chanel.send(f"{ctx.author.mention} est absent jusqu'au {tt.content} pour {msg.content}")
 	role = ctx.guild.get_role(813928386946138153)
 	await ctx.author.add_roles(role)
@@ -1004,7 +1004,7 @@ async def finphases(ctx, member: discord.Member=None,*,rendu="Non spécifié"):
 	role1 = guild.get_role(791066207418712094)
 	await member.add_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
 	log = bot.get_channel(831615469134938112)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
 @bot.command()
