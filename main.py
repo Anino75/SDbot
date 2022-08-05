@@ -147,16 +147,16 @@ async def on_member_remove(member):
 			interviews = json.load(f)
 		chanel = bot.get_channel(937312061833240586)
 		if str(member.id) in phases["A faire"].keys():
-			phases["A faire"].remove(str(member.id))
+			phases["A faire"].pop(str(member.id))
 			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des phases')
 		if str(member.id) in interviews["Dates"].keys():
-			interviews["Dates"].remove(str(member.id))
+			interviews["Dates"].pop(str(member.id))
 			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
 		if str(member.id) in interviews["Wait"].keys():
-			interviews["Wait"].remove(str(member.id))
+			interviews["Wait"].pop(str(member.id))
 			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
 		if str(member.id) in interviews["Responded"].keys():
-			interviews["Responded"].remove(str(member.id))
+			interviews["Responded"].pop(str(member.id))
 			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
 		with open('phases.json', 'w') as f:
 			json.dump(phases, f, indent=6)
@@ -1720,9 +1720,9 @@ async def claim(ctx, error):
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 @bot.command()
-@commands.has_any_role(960180290683293766 or 798301141094891620 or 790675782569164820)
+@commands.has_any_role(960180290683293766 or 821787385636585513 or 790675782569164820)
 async def livre(ctx):
-	if ctx.channel.name[:7] != 'commande':
+	if ctx.channel.name[:8] != 'commande':
 		await ctx.reply(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
 	with open('economie.json', 'r') as f:
@@ -1746,7 +1746,7 @@ async def livre(ctx):
 @livre.error
 async def livre(ctx, error):
 	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les responsables market peuvent utiliser cette commande !',discord.Color.red()))
+		await ctx.reply(embed=create_small_embed(':warning: Seuls les vendeurs peuvent utiliser cette commande !',discord.Color.red()))
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
