@@ -1831,7 +1831,7 @@ class contijouer(discord.ui.View):
 		await interaction.message.delete()
 	@discord.ui.button(label='Ne pas jouer', style=discord.ButtonStyle.red, custom_id='arret')
 	async def Arretroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
-		""" mise = [0,100,1000,10000,50000,100000]
+		mise = [0,100,1000,10000,50000,100000]
 		gainmise = [0,115/100,135/100,175/100,250/100,500/100]
 		chiffre = int(interaction.message.embeds[0].description[-7])
 		mise = mise[int(interaction.message.embeds[0].description[-31])]*gainmise[chiffre]
@@ -1839,7 +1839,7 @@ class contijouer(discord.ui.View):
 			Eco = json.load(f)
 		Eco["Comptes"][str(interaction.user.id)] += round(mise)
 		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6) """
+			json.dump(Eco, f, indent=6)
 		await interaction.message.delete()
 
 class Machineasous(discord.ui.View):
