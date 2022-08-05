@@ -1732,11 +1732,11 @@ async def livre(ctx):
 		io.BytesIO(transcript.encode()),
 		filename=f"transcript-{ctx.channel.name}.html",
 	)
-	if Eco["commande"][ctx.channel.name[-4:]][4] == "\n\n**Déjà payée**":
+	if Eco["commande"][ctx.channel.name[-4:]][4]== "\n\n**Déjà payée**":
 		Eco["Comptes"][str(ctx.author.id)] += Eco["commande"][ctx.channel.name[-4:]][2]
 		await ctx.author.send("Vous avez été payé")
-	Eco["commande"].pop([ctx.channel.name[-4:]][4])
 	Eco['Auteurs'][Eco["commande"][ctx.channel.name[-4:]][0]] -= 1
+	Eco["commande"].pop(ctx.channel.name[-4:])
 	log = bot.get_channel(819580672310116356)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
