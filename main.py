@@ -66,7 +66,7 @@ async def absence(ctx):
 	await ctx.channel.send(f"Jusqu'a quand durera votre absence ? (merci de mettre la date sous la forme JJ/MM/AAAA)")
 	tt = await bot.wait_for('message', timeout=180,check=check)
 	try:
-		if int(tt.content[0:2]) + int(tt.content[3:5]) + int(tt.content[6:10]) < 2100 and len(tt.content) == 10:
+		if int(tt.content[0:2]) + int(tt.content[3:5]) + int(tt.content[6:10]) < 2100 and len(tt.content) == 10 and tt.content[0:2]<int(str(datetime.now())[0:2]) and tt.content[3:5]<int(str(datetime.now())[3:5]) and tt.content[6:10]<int(str(datetime.now())[6:10]):
 			pass
 		else:
 			await ctx.reply("La date n'est pas valide, merci de recommencer avec une date valide")
@@ -129,12 +129,16 @@ async def choixdivi(ctx, error):
 async def abs():
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
-	date = f"{str(datetime.now)[0:4]}/{str(datetime.now)[5:7]}/{str(datetime.now)[8:10]}"
+	date = f"{str(datetime.now())[8:10]}/{str(datetime.now())[5:7]}/{str(datetime.now())[0:4]}"
+	guild=bot.get_guild(790367917812088864)
 	if date in ab.keys():
 		for personne in ab[date].keys():
-			personne = bot.get_member(personne)
-			role = bot.get_role(813928386946138153)
+			personne = guild.get_member(int(personne))
+			role = guild.get_role(813928386946138153)
 			await personne.remove_roles(role)
+		ab.pop(date)
+	with open('absence.json', 'w') as f:
+		json.dump(ab, f, indent=6)
 	await asyncio.sleep(36000)
 
 @bot.event
