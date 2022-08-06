@@ -20,7 +20,6 @@ config = toml.load(open('config.toml'))
 PREFIX = config['Prefix']
 intents = discord.Intents().all()
 
-
 class PersistentViewBot(commands.Bot):
 	def __init__(self):
 		super().__init__(command_prefix=commands.when_mentioned_or(PREFIX), help_command=None, case_insensitive=True, intents=intents)
