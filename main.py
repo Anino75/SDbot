@@ -11,7 +11,7 @@ import math
 import chat_exporter
 import discord
 import toml
-from discord.ext import commands
+from discord.ext import commands, tasks
 import mysql.connector
 
 debug = True
@@ -126,6 +126,7 @@ async def choixdivi(ctx, error):
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
+@tasks.loop(seconds = 36000)
 async def abs():
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
@@ -139,7 +140,6 @@ async def abs():
 		ab.pop(date)
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
-	await asyncio.sleep(36000)
 
 @bot.event
 async def on_member_remove(member):
@@ -311,10 +311,10 @@ def get_left_space(str1_, str2_):
 async def on_ready():
 	print(f'[{datetime.now().strftime("%Y:%m:%d %H:%M:%S")}]', 'Bot is online!')
 	# functions
-	bot.loop.create_task(effectif())
-	bot.loop.create_task(inactivity())
-	bot.loop.create_task(abs())
-	#bot.loop.create_task(candids())
+	effectif.start()
+	inactivity.start()
+	abs.start()
+	candids.start()
 	# print
 	field_placeholder = '+----------------------------------+'
 	fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
@@ -499,6 +499,7 @@ async def prepare(ctx,prep=None):
 
 # =========== Effectif ===========
 
+@tasks.loop(seconds = 3600)
 async def effectif():
 	guild = bot.get_guild(790367917812088864)
 	channel = await bot.fetch_channel(937006102653071452)
@@ -507,29 +508,26 @@ async def effectif():
 				'Membres +': [790675783549976579, 790675783693500456, 790675784120401932],
 				'Membres': [790675784225521734, 791066206437113897, 791066207418712094]}
 	abs_role = guild.get_role(813928386946138153)
-	while True:
-		message = await channel.fetch_message(937008348597997628)
-		_embed = discord.Embed(
-			title='Voici notre effectif:',
-			description='',
-			color=discord.Color.magenta()
-		)
-		roles = {x: [] for x in role_ids}
-		for r_ids_obj in list(role_ids.items()):
-			for r_id in r_ids_obj[1]:
-				if debug: print(r_id)
-				r = guild.get_role(r_id)
-				roles[r_ids_obj[0]].append(r)
-		if debug: print(roles)
-		for roles_obj in list(roles.items()):
-			_embed.description += f"\n**{roles_obj[0]} :**\n\n"
-			for role in roles_obj[1]:
-				v_field = ", ".join([x.mention for x in role.members if abs_role.id not in [r.id for r in x.roles]])
-
+	message = await channel.fetch_message(937008348597997628)
+	_embed = discord.Embed(
+		title='Voici notre effectif:',
+		description='',
+		color=discord.Color.magenta()
+	)
+	roles = {x: [] for x in role_ids}
+	for r_ids_obj in list(role_ids.items()):
+		for r_id in r_ids_obj[1]:
+			if debug: print(r_id)
+			r = guild.get_role(r_id)
+			roles[r_ids_obj[0]].append(r)
+	if debug: print(roles)
+	for roles_obj in list(roles.items()):
+		_embed.description += f"\n**{roles_obj[0]} :**\n\n"
+		for role in roles_obj[1]:
+			v_field = ", ".join([x.mention for x in role.members if abs_role.id not in [r.id for r in x.roles]])
 				# _embed.add_field(name=role.name, value=v_field if v_field != '' else ' - ')
-				_embed.description += f"{role.mention} : {v_field}\n\n"
-		await message.edit(embed=_embed)
-		await asyncio.sleep(3600)
+			_embed.description += f"{role.mention} : {v_field}\n\n"
+	await message.edit(embed=_embed)
 
 # =========== Recrutements ===========
 
@@ -538,104 +536,121 @@ async def effectif():
 #                                                 discord.Color.red()))
 #        return
 
-"""async def candids():
-	print('test')
-	mydb = mysql.connector.connect(
+@tasks.loop(seconds=60)
+async def candids():
+	mydb=mysql.connector.connect(
 		host="web49.lws-hosting.com",
-		user="cp1873034p22_blbl",
-		password="3Do4Ysz6D2",
-		database="cp1873034p22_Candid"
-	)
-	print('ok')
+		database="cp1873034p22_Candid",
+		user = "cp1873034p22_tt",
+		password="L3y.Y[2Zr[PQ",)
 	mycursor = mydb.cursor()
-	mycursor.execute("SELECT * FROM Candidatures")
+	mycursor.execute("SELECT * FROM Candids")
 	myresult = mycursor.fetchall()
-	print(myresult)
-	with open('candid.json', 'r') as f:
+	with open('candid.json','r') as f:
 		candids = json.load(f)
-	if (len(myresult) - candids["nb"]) != 0:
-		if myresult[-i-1][0] in candids["ban"]:
-			pass
-		else:
-			guild = bot.get_guild(790367917812088864)
-			rep = guild.get_channel(793804078366851092)
-			for i in range(len(myresult) - candids["nb"]):
-				if myresult[-i-1][0] in candids["id"].keys() and int(str(datetime.now())[5:7]) <= int(str(candids["id"][myresult[-i-1][0]][5:7])) and int(str(datetime.now())[8:10]) <= int(str(candids["id"][myresult[-i-1][0]][8:10])):
-					await rep.send(embed=create_small_embed(f"<@{myresult[-i-1][0]}> à tenté de faire une double candidature"))
-				else:
+	if len(myresult) > candids['nb']:
+		for i in range(len(myresult) - candids["nb"]):
+			if myresult[-i-1][0] in candids["ban"]:
+				pass
+			else:
+				guild = bot.get_guild(790367917812088864)
+				rep = guild.get_channel(793804078366851092)
+				try:
+					guild = bot.get_guild(790367917812088864)
+					member = guild.get_member(int(myresult[-i-1][0]))
+					role = guild.get_role(986686680146772038)
+					for h in range(len(myresult)):
+						print(myresult[h][0])
+					msg = f'**Pseudo discord :**\n<@{myresult[-i-1][0]}>\n**Pseudo Minecraft :**\n{myresult[-i-1][1]}\n**Anciens Pseudos :**\n{myresult[-i-1][2]}\n**Problèmes orthographe :**\n{myresult[-i-1][3]}\n**Présentation IRL :**\n{myresult[-i-1][4]}\n**Comment et depuis quand connaissez vous minecraft ?**\n{myresult[-i-1][5]}\n**Commant connaissez vous paladium, avancement et prédilections**\n{myresult[-i-1][6]}\n**Des sanctions sur Paladium :**\n{myresult[-i-1][7]}\n**Pourquoi la SweetDream ?**\n{myresult[-i-1][8]}\n**Anciennes factions :**\n{myresult[-i-1][9]}\n**Objectif sur paladium :**\n{myresult[-i-1][10]}\n**Disponibilités :**\n{myresult[-i-1][11]}'
+					for j in range(math.ceil(len(msg)/2000)):
+						if len(msg)<j*2000:
+							message = discord.Embed(title=f'Candidature {len(myresult)-(len(myresult) - candids["nb"]-i)}',description=msg[j*2000:])
+						else:
+							message = discord.Embed(title=f'Candidature {len(myresult)-(len(myresult) - candids["nb"]-i)}',description=msg[j*2000:(j+1)*2000])
+						if j == 0:
+							await rep.send(embed=message,view=candid())
+						else:
+							await rep.send(embed=message)
+					await member.add_roles(role)
+					await member.edit(nick=f'[CE] {myresult[-i-1][1]}')
+					await member.send('Nous avons bien reçu votre candidature.')
+				except:
 					try:
-						guild = bot.get_guild(790367917812088864)
-						member = guild.get_member(myresult[-i-1][0])
-						role = guild.get_role(986686680146772038)
-						await member.add_roles(role)
-						await member.edit(nick=f'[CE] {myresult[-i-1][1]}')
-						message = discord.embed(title=f'Candidature {len(candids[id.keys()])}',description=f'**Pseudo discord :**\n<@{myresult[-i-1][0]}>')
-						await rep.send(embed=message,view=candid())
+						user = bot.get_user(myresult[-i-1][0])
+						await user.send("Vous n'avez pas rejoint le serveur discord et votre candidature n'a donc pas pu être traitée ! Veuillez rejoindre : https://discord.gg/D9tTGvt7az et recommencer")
 					except:
-						try:
-							user = bot.get_user(myresult[-i-1][0])
-							await user.send("Vous n'avez pas rejoint le serveur discord et votre candidature n'a donc pas pu être traitée ! Veuillez rejoindre : https://discord.gg/D9tTGvt7az et recommencer")
-						except:
-							pass
-		candids["nb"] += i
+						pass
+		candids["nb"] += i+1
 		with open('candid.json', 'w') as f:
 			json.dump(candids, f, indent=6)
-	asyncio.sleep(60)"""
 			
+async def acccandid(member,author):
+	with open('Interview.json', 'r') as f:
+		interviews = json.load(f)
+	for type in interviews.items():
+		for personne in type[1].keys():
+			if str(member.id) == personne:
+				return ":warning: Cet utilisateur a deja été accepté !"
+	guild = bot.get_guild(790367917812088864)
+	_embed = discord.Embed(title = "Recrutements",
+							description ="Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour "
+							f"le passer il faudra aller dans le <#811651536622977074> et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas "
+							"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
+							)
+	interviews['Dates'][member.id] = str(datetime.utcnow() + timedelta(days=14))
+	try:
+		await member.edit(nick=f'[CA] {member.nick[5:]}')
+	except:
+		await member.edit(nick=f'[CA] {member.name}')
+	try:
+		await member.send(embed=_embed)
+	except:
+		return f"Votre message n'a pas pu etre envoyé car {member.mention} à fermé ses mp"
+	role = guild.get_role(790675784901197905)
+	role2 = guild.get_role(986686680146772038)
+	await member.remove_roles(role2, reason=f'Fait par {str(author)[:16]}')
+	await member.add_roles(role, reason=f'Fait par {str(author)[:16]}')
+	with open('Interview.json', 'w') as f:
+		json.dump(interviews, f, indent=6)
+	await recru(str(author.id))
+	log = bot.get_channel(831615469134938112)
+	await log.send(embed=create_small_embed(author.mention + ' à éxécuté la commande accept pour ' + member.mention))
+	return f'Le message a bien été envoyé à {member.mention}'
+
+async def refcandid(member,author,raison):
+	_embed = discord.Embed(title = "Recrutements",
+							description ="Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas "
+										 "été acceptée pour la raison suivante "+(raison)+".\nTu pourras retenter ta "
+										"chance dans 2 semaines. \nCordialement,\nLe Staff Recrutement SweetDream"
+							)
+	await member.send(embed=_embed)
+	log = bot.get_channel(831615469134938112)
+	await member.edit(nick='')
+	await recru(str(author.id))
+	await log.send(embed=create_small_embed(author.mention + ' à éxécuté la commande refuse pour ' + member.mention+" Pour la raison suivante : "+raison))
+	return f'Le message a bien été envoyé à {member.mention}'
+
 
 class candid(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Accepter', style=discord.ButtonStyle.green, custom_id='passer')
 	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
-		print(interaction.message.content[24:42])
-		guild = interaction.guild
 		for embed in interaction.message.embeds:
-			member = bot.get_user(int(embed.description[24:42]))
-		with open('Interview.json', 'r') as f:
-			interviews = json.load(f)
-		ead = guild.get_channel(790706486426861578)
-		for type in interviews.items():
-			for personne in type[1].keys():
-				if str(member.id) == personne:
-					await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur a deja été accepté !", discord.Color.red()))
-					return
-		_embed = discord.Embed(title = "Recrutements",
-				description ="Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour "
-				f"le passer il faudra aller dans le {ead.mention} et ping un recruteur. Tu auras une semaine pour venir dans passer ton entretien, si tu n'es pas "
-				"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
-				)
-		interviews['Dates'][member.id] = str(datetime.utcnow() + timedelta(days=7))
-		await member.send(embed=_embed)
-		role = guild.get_role(790675784901197905)
-		await member.add_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
-		with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
-		log = bot.get_channel(831615469134938112)
-		await member.edit(nick=f'[CA] {member.nick[5:]}')
-		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-		await log.send(embed=create_small_embed(interaction.user.mention + ' à accepté ' + member.mention))
+			member = interaction.guild.get_member(int(embed.description[23:41]))
 		await interaction.message.edit(view=None)
+		await interaction.response.send_message(embed=create_small_embed(await acccandid(member,interaction.user)))
 	@discord.ui.button(label='Refuser', style=discord.ButtonStyle.red, custom_id='refuser')
 	async def refuse(self,interaction: discord.Interaction, button: discord.ui.Button):
-		member = bot.get_user(int(interaction.message.content[32:50]))
+		for embed in interaction.message.embeds:
+			member = interaction.guild.get_member(int(embed.description[23:41]))
 		channel = bot.get_channel(811651953003855882)
 		def check(m):
 			return m.author == member and m.channel == channel
 		await channel.send(f'{interaction.user.mention} pourquoi voulez vous refuser {member.mention} ?')
 		msg = await bot.wait_for('message', timeout=None,check=check)
-		_embed = discord.Embed(title = "Recrutements",
-							description ="Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas "
-										 f"été acceptée pour la raison suivante : {msg.content}.\nTu pourras retenter ta chance dans 2 semaines.\nCordialement,\nLe Staff Recrutement SweetDream"
-							)
-		await member.send(embed=_embed)
-		log = bot.get_channel(831615469134938112)
-		ban = bot.get_channel(801163722650419200)
-		await member.edit(nick='')
-		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande refuse pour ' + member.mention))
-		await ban.send(embed=create_small_embed(member.mention + 'est banni.e pendant deux semaines car sa candidature à été refusée',discord.Color.red()))
-		await interaction.message.delete()
+		await interaction.response.send_message(embed=create_small_embed(await refcandid(member,interaction.user,msg.content)))
+		await interaction.message.edit(view=None)
 
 async def recru(recruid):
 	with open('Interview.json', 'r') as f:
@@ -664,19 +679,9 @@ async def refuse(ctx, member: discord.Member=None, *, raison="Le recruteur n'a p
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
-	_embed = discord.Embed(title = "Recrutements",
-							description ="Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas "
-										 "été acceptée pour la raison suivante "+(raison)+".\nTu pourras retenter ta "
-										"chance dans 2 semaines. \nCordialement,\nLe Staff Recrutement SweetDream"
-							)
-	await member.send(embed=_embed)
 	log = bot.get_channel(831615469134938112)
-	ban = bot.get_channel(801163722650419200)
-	await member.edit(nick='')
-	await recru(str(ctx.author.id))
 	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande refuse pour ' + member.mention+" Pour la raison suivante : "+raison))
-	await ban.send(embed=create_small_embed(member.mention + 'est banni.e pendant deux semaines car sa candidature à été refusée Pour la raison suivante : '+raison,discord.Color.red()))
+	await log.send(await refcandid(member,ctx.author,raison))
 
 @refuse.error
 async def refuse(ctx, error):
@@ -691,37 +696,7 @@ async def accept(ctx, member: discord.Member=None):
 	if not member:
 		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	ead = ctx.guild.get_channel(790706486426861578)
-	for type in interviews.items():
-		for personne in type[1].keys():
-			if str(member.id) == personne:
-				await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur a deja été accepté !", discord.Color.red()))
-				return
-	guild = ctx.guild
-	_embed = discord.Embed(title = "Recrutements",
-							description ="Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour "
-							f"le passer il faudra aller dans le {ead.mention} et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas "
-							"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
-							)
-	interviews['Dates'][member.id] = str(datetime.utcnow() + timedelta(days=14))
-	try:
-		await member.edit(nick=f'[CA] {member.nick[5:]}')
-	except:
-		await member.edit(nick=f'[CA] {member.name}')
-	try:
-		await member.send(embed=_embed)
-	except:
-		await ctx.reply(f"Votre message n'a pas pu etre envoyé car {member.mention} à fermé ses mp")
-	role = guild.get_role(790675784901197905)
-	await member.add_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
-	with open('Interview.json', 'w') as f:
-		json.dump(interviews, f, indent=6)
-	await recru(str(ctx.author.id))
-	log = bot.get_channel(831615469134938112)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande accept pour ' + member.mention))
+	await ctx.reply(embed=create_small_embed(await acccandid(member,ctx.author)))
 
 @accept.error
 async def accept(ctx, error):
@@ -771,7 +746,9 @@ async def addtime(ctx, error):
 	else:
 		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
+@tasks.loop(seconds = 3600)
 async def inactivity():
+	print('bb')
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	guild = bot.get_guild(790367917812088864)
@@ -824,7 +801,6 @@ async def inactivity():
 	if len(mem)+len(memb)+len(memi)>0:
 		with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
-	await asyncio.sleep(60)
 
 class testview(discord.ui.View):
 	def __init__(self):
@@ -1654,10 +1630,35 @@ async def commandefinie(guild,channel):
 	vendeur = guild.get_role(960180290683293766)
 	await AP.send(vendeur.mention,embed=embed_)
 	await channel.send(embed=embed_)
+""" <:heal_II:1005914803438628886> 
+<:fire_resistance:1005914778042110075> 
+<:hang_glider:968964169644785704> 
+<:heal_stick:1005914806949257317> 
+<:stick_of_god:1005914868404211852> 
+<:arc_en_paladium:1005914758161125557>
+<:livres:823938415279865857> """
 
 class PvP(discord.ui.Select):
 	def __init__(self):
 		options = [
+			discord.SelectOption(label='Casque P4U3',description='4.500$/u',emoji="<:casque:968964169120505856> "),
+			discord.SelectOption(label='Plastron P4U3',description='4.500$/u',emoji="<:plastron:968964169170825316> "),
+			discord.SelectOption(label='Pantalon P4U3',description='4.500$/u',emoji="<:pantalon:968964169854517259> "),
+			discord.SelectOption(label='Bottes P4U3',description='4.500$/u',emoji="<:bottes:968964167144964236> "),
+			discord.SelectOption(label='Épée S5F2U3',description='5.000$/u',emoji="<:epee_pala:823934747251572737>"),
+			discord.SelectOption(label='Full P4U3',description='18.000$/u',emoji="<:full_p4:968964170815012924> "),
+			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
+			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
+			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
+			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
+			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
+			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
+			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
+			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
+			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
+			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
+			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
+			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
 			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
 			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
 			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
@@ -2447,8 +2448,8 @@ async def debutquotas(ctx):
 	mes = await ctx.reply('Quels sont les quotasde la SD ?')
 	quota = await bot.wait_for('message', timeout=600, check=check)
 	await mes.delete()
-	Elite = ctx.guild.get_role(993163816693141536)
-	Bad = ctx.guild.get_role(993163825773809754)
+	Elite = ctx.guild.get_role(986333837065850952)
+	Bad = ctx.guild.get_role(991601555209990174)
 	id = [[],[]]
 	for personne in Elite.members:
 		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {ctx.author.mention}')
@@ -2557,17 +2558,6 @@ bot.help_command = NewHelpCommand()
 
 @bot.event
 async def on_message(message):
-#	channel = bot.get_channel(791452088370069525)
-#	user = None
-#	if message.channel == channel:
-#		print(message.embeds)
-#		for embed in message.embeds:
-#			print(embed)
-#			print(embed.description)
-#			user = bot.get_user(int(embed.description[2:20]))
-#		if user == None:
-#			await channel.send(f'')
-#		await channel.send(f'Acceptez vous la candidature de {user.mention} ?',view=candid())
 	if message.author == bot.user:
 		return
 	with open('Interview.json', 'r') as f:
