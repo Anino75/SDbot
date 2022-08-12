@@ -93,7 +93,7 @@ async def absence(ctx, error):
 	await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 @bot.command()
-@commands.cooldown(1, 104800, commands.BucketType.user)
+@commands.cooldown(1, 604800, commands.BucketType.user)
 @commands.has_any_role(791066207418712094, 791066206437113897, 790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
 async def choixdivi(ctx,divi=None):
 	if divi != "SD" and divi != "BD" and divi != "HD":
@@ -2494,12 +2494,18 @@ async def listequotas(ctx,semaine=None):
 	for divi in quot["semaine"+str(semaine)].keys():
 		message += f"\n__**{divi}**__\n**Non Rendu :**\n"
 		for personne in quot["semaine"+str(semaine)][divi]["af"]:
-			personne = bot.get_user(personne)
-			message += "> "+personne.mention+"\n"
+			try:
+				pers = bot.get_user(personne)
+				message += "> "+pers.mention+"\n"
+			except:
+				await ctx.reply(f'il y a un soucis avec {personne}')
 		message += "**Rendu :**\n"
 		for personne in quot["semaine"+str(semaine)][divi]["fait"]:
-			personne = bot.get_user(personne)
-			message += "> "+personne.mention+"\n"
+			try:
+				pers = bot.get_user(personne)
+				message += "> "+pers.mention+"\n"
+			except:
+				await ctx.reply(f'il y a un soucis avec {personne}')
 	await ctx.reply(embed=create_small_embed(message))
 
 # =========== Autre ===========
