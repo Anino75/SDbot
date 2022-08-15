@@ -58,7 +58,7 @@ with open('token.txt', 'r') as f:
 class event(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
-	@discord.ui.button(label='Prendre le role participant event', style=discord.ButtonStyle.green, custom_id='rol',emoji='confe')
+	@discord.ui.button(label='Prendre le role participant event', style=discord.ButtonStyle.green, custom_id='rol',emoji='🎉')
 	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
 		role = interaction.guild.get_role(942036519290535936)
 		if role in interaction.user.roles:
