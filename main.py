@@ -37,6 +37,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(IsAlly())
 		self.add_view(testview())
 		self.add_view(candid())
+		self.add_view(event())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -53,6 +54,25 @@ with open('token.txt', 'r') as f:
 	TOKEN = f.read()
 
 # =========== Tools ===========
+
+class event(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label='Prendre le role participant event', style=discord.ButtonStyle.green, custom_id='rol',emoji='confe')
+	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
+		role = interaction.guild.get_role(942036519290535936)
+		if role in interaction.user.roles:
+			await interaction.response.send_message("Vous avez déjà le rôle <@&942036519290535936> !",ephemeral=True)
+			return
+		await interaction.user.add_roles(role)
+		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
+
+@bot.command()
+async def prepevent(ctx):
+	if ctx.author.id != 790574682294190091:
+		await ctx.reply("t'es pas la grande maitresse supreme toi")
+		return
+	await ctx.chanel.send('Cliquer sur le bouton pour recevoir le role <@&942036519290535936>',view=event())
 
 @bot.command()
 async def absence(ctx):
