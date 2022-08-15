@@ -72,7 +72,7 @@ async def prepevent(ctx):
 	if ctx.author.id != 790574682294190091:
 		await ctx.reply("t'es pas la grande maitresse supreme toi")
 		return
-	await ctx.chanel.send('Cliquer sur le bouton pour recevoir le role <@&942036519290535936>',view=event())
+	await ctx.channel.send('Cliquer sur le bouton pour recevoir le role <@&942036519290535936>',view=event())
 
 @bot.command()
 async def absence(ctx):
