@@ -13,6 +13,8 @@ import discord
 import toml
 from discord.ext import commands, tasks
 import mysql.connector
+import typing
+from typing import Optional
 
 debug = True
 SERVER = True
@@ -38,6 +40,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(testview())
 		self.add_view(candid())
 		self.add_view(event())
+		self.add_view(page())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -55,6 +58,11 @@ with open('token.txt', 'r') as f:
 
 # =========== Tools ===========
 
+@bot.command()
+async def sync(ctx):
+    synced = await ctx.bot.tree.sync()
+    await ctx.send(f"Synced {len(synced)} commands")
+
 class event(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
@@ -67,84 +75,65 @@ class event(discord.ui.View):
 		await interaction.user.add_roles(role)
 		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
-@bot.command()
-async def prepevent(ctx):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
-		return
-	await ctx.channel.send('Cliquer sur le bouton pour recevoir le role <@&942036519290535936>',view=event())
-
-@bot.command()
-async def absence(ctx):
-	if 813928386946138153 in [x.id for x in ctx.author.roles]:
-		await ctx.reply('Vous êtes déjà absent.e !')
+@bot.tree.command()
+async def absence(interaction: discord.Interaction) -> None:
+	if 813928386946138153 in [x.id for x in interaction.user.roles]:
+		await interaction.response.send_message('Vous êtes déjà absent.e !')
 		return
 	def check(m):
-		return m.author == ctx.author and m.channel == ctx.channel
-	await ctx.channel.send(f'Quel est la raison de votre absence ?')
+		return m.user == interaction.user and m.channel == interaction.channel
+	await interaction.channel.send(f'Quelle est la raison de votre absence ?')
 	msg = await bot.wait_for('message', timeout=180,check=check)
-	await ctx.channel.send(f"Jusqu'a quand durera votre absence ? (merci de mettre la date sous la forme JJ/MM/AAAA)")
+	await interaction.channel.send(f"Jusqu'a quand durera votre absence ? (merci de mettre la date sous la forme JJ/MM/AAAA)")
 	tt = await bot.wait_for('message', timeout=180,check=check)
 	try:
 		if int(tt.content[0:2]) + int(tt.content[3:5]) + int(tt.content[6:10]) < 2100 and len(tt.content) == 10 and int(tt.content[0:2])>=int(str(datetime.now())[8:10]) and int(tt.content[3:5])>=int(str(datetime.now())[5:7]) and int(tt.content[6:10])>=int(str(datetime.now())[0:4]):
 			pass
 		else:
-			await ctx.reply("La date n'est pas valide, merci de recommencer avec une date valide")
+			await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
 			return
 	except:
-		await ctx.reply("La date n'est pas valide, merci de recommencer avec une date valide")
+		await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
 		return
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
 	if tt.content[0:10] in ab.keys():
-		ab[tt.content[0:10]][ctx.author.id] = msg.content
+		ab[tt.content[0:10]][interaction.user.id] = msg.content
 	else:
-		ab[tt.content[0:10]] = {ctx.author.id:msg.content}
+		ab[tt.content[0:10]] = {interaction.user.id:msg.content}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
 	chanel = bot.get_channel(790719427800858634)
-	await chanel.send(f"{ctx.author.mention} est absent jusqu'au {tt.content} pour {msg.content}")
-	role = ctx.guild.get_role(813928386946138153)
-	await ctx.author.add_roles(role)
-	await ctx.reply('Votre absence a bien été prise en compte')
+	await chanel.send(f"{interaction.user.mention} est absent jusqu'au {tt.content} pour {msg.content}")
+	role = interaction.guild.get_role(813928386946138153)
+	await interaction.user.add_roles(role)
+	await interaction.response.send_message('Votre absence a bien été prise en compte')
 
-@absence.error
-async def absence(ctx, error):
-	await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.cooldown(1, 604800, commands.BucketType.user)
 @commands.has_any_role(791066207418712094, 791066206437113897, 790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
-async def choixdivi(ctx,divi=None):
+async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
 	if divi != "SD" and divi != "BD" and divi != "HD":
-		await ctx.reply('La division que vous avez indiqué n\'est pas bonne, merci  d\'ecrire `*choixdivi SD` ou BD ou HD')
-	guild = ctx.guild
+		await interaction.response.send_message('La division que vous avez indiqué n\'est pas bonne, merci  d\'ecrire `*choixdivi SD` ou BD ou HD')
+		return
+	guild = interaction.guild
 	SD = guild.get_role(986333837065850952)
 	BD = guild.get_role(991601555209990174)
 	test = bot.get_channel(791452088370069525)
-	if SD.id in [x.id for x in ctx.author.roles]:
-		await ctx.author.remove_roles(SD)
-	if BD.id in [x.id for x in ctx.author.roles]:
-		await ctx.author.remove_roles(BD)
+	if SD.id in [x.id for x in interaction.user.roles]:
+		await interaction.user.remove_roles(SD)
+	if BD.id in [x.id for x in interaction.user.roles]:
+		await interaction.user.remove_roles(BD)
 	if divi == "SD":
-		await ctx.author.add_roles(SD)
-		await ctx.author.edit(nick=f'[SD] {ctx.author.nick[5:]}')
+		await interaction.user.add_roles(SD)
+		await interaction.user.edit(nick=f'[SD] {interaction.user.nick[5:]}')
 	if divi == "BD":
-		await ctx.author.add_roles(BD)
-		await ctx.author.edit(nick=f'[BD] {ctx.author.nick[5:]}')
+		await interaction.user.add_roles(BD)
+		await interaction.user.edit(nick=f'[BD] {interaction.user.nick[5:]}')
 	if divi == "HD":
-		await ctx.author.edit(nick=f'[HD] {ctx.author.nick[5:]}')
-	await test.send(f'{ctx.author.mention} est passé dans la division {divi}')
-	await ctx.reply(f'Vous etes passé dans la {divi}')
-
-@choixdivi.error
-async def choixdivi(ctx, error):
-	if isinstance(error, commands.CommandOnCooldown):
-		await ctx.reply(f"Vous ne pouvez changer de division qu'une fois par semaine.")
-	elif isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les membres peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+		await interaction.user.edit(nick=f'[HD] {interaction.user.nick[5:]}')
+	await test.send(f'{interaction.user.mention} est passé dans la division {divi}')
+	await interaction.response.send_message(f'Vous etes passé dans la {divi}')
 
 @tasks.loop(seconds = 36000)
 async def abs():
@@ -160,6 +149,111 @@ async def abs():
 		ab.pop(date)
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
+
+@tasks.loop(seconds = 60)
+async def voc():
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	guild = bot.get_guild(790367917812088864)
+	dtn = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+	if dtn not in voc.keys():
+		voc[dtn] = {}
+	for channel in guild.voice_channels:
+		if len(channel.members)>1:
+			for member in channel.members:
+				if str(member.id) in voc["total"].keys():
+					voc["total"][str(member.id)] += 1
+				else:
+					voc["total"][str(member.id)] = 1
+				if str(member.id) in voc["credit"].keys():
+					voc["credit"][str(member.id)] += 1
+				else:
+					voc["credit"][str(member.id)] = 1
+				if str(member.id) in voc[dtn].keys():
+					voc[dtn][str(member.id)] += 1
+				else:
+					voc[dtn][str(member.id)] = 1
+	with open("voc.json",'w') as f:
+		json.dump(voc, f, indent=6)
+
+@bot.tree.command()
+async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
+	if total_ou_mois == "mois":
+		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+	elif total_ou_mois != "total":
+		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`')
+		return
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	if str(interaction.user.id) not in voc[total_ou_mois]:
+		await interaction.response.send_message('''Vous n'êtes jamais venu en voc !''')
+		return
+	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {sorted(voc[total_ou_mois].values(),reverse=True).index(voc[total_ou_mois][str(interaction.user.id)])+1}')
+	
+@bot.tree.command()
+async def admintempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
+	if total_ou_mois == "mois":
+		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+	elif total_ou_mois != "total":
+		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`')
+		return
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	msg = ''
+	s = sorted(voc[total_ou_mois], key=lambda memb: voc[total_ou_mois][memb],reverse=True)
+	if len(voc[total_ou_mois].keys()) < 20:
+		for i in range(len(voc[total_ou_mois].keys())):
+			msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
+	else:
+		for i in range(20):
+			msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
+	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=("Total :\n" if total_ou_mois == "total" else "Mois :\n")+msg),view=page())
+
+class page(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Page précédente", style=discord.ButtonStyle.red, custom_id='prec')
+	async def prec(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for element in interaction.message.embeds:
+			tir = int(element.title[-1])
+			if element.description[0:5] == "Total":
+				total_ou_mois = "total"
+			else:
+				total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+		if tir == 1:
+			await interaction.response.send_message('Vous êtes déjà à la première page')
+			return
+		with open('voc.json','r') as f:
+			voc = json.load(f)
+		msg = ''
+		s = sorted(voc[total_ou_mois], key=lambda memb: voc[total_ou_mois][memb],reverse=True)
+		for i in range((tir-2)*20,(tir-1)*20):
+			msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
+		await interaction.message.edit(embed=discord.Embed(title=f'Page {tir-1}',description=("Total :\n" if total_ou_mois == "total" else "Mois :\n")+msg))
+		await interaction.response.send_message('Message modifié',ephemeral=True)
+	@discord.ui.button(label="Page suivante", style=discord.ButtonStyle.green, custom_id='suiv')
+	async def suiv(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for element in interaction.message.embeds:
+			tir = int(element.title[-1])
+			if element.description[0:5] == "Total":
+				total_ou_mois = "total"
+			else:
+				total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+		with open('voc.json','r') as f:
+			voc = json.load(f)
+		if tir*20 >= len(voc[total_ou_mois].keys()):
+			await interaction.response.send_message('Vous êtes déjà à la dernière page')
+			return
+		msg = ''
+		s = sorted(voc[total_ou_mois], key=lambda memb: voc[total_ou_mois][memb],reverse=True)
+		if len(voc[total_ou_mois].keys()) > tir*20:
+			for i in range((tir)*20,len(voc)):
+				msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
+		else:
+			for i in range((tir)*20,(tir+1)*20):
+				msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
+		await interaction.message.edit(embed=discord.Embed(title=f'Page {tir+1}',description=("Total :\n" if total_ou_mois == "total" else "Mois :\n")+msg))
+		await interaction.response.send_message('Message modifié',ephemeral=True)
 
 @bot.event
 async def on_member_remove(member):
@@ -186,55 +280,55 @@ async def on_member_remove(member):
 		with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 
-@bot.command()
-async def spam(ctx,member: discord.Member=None,nombre=50):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def spam(interaction: discord.Interaction,member: discord.Member,nombre: typing.Optional[int]):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	for i in range(nombre):
-		await ctx.channel.send(member.mention)
+		await interaction.channel.send(member.mention)
 
-@bot.command()
-async def weshwesh(ctx):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def weshwesh(interaction: discord.Interaction):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
 	role_id = [790675783352975360,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204]
 	for ids in role_id:
-		role = ctx.guild.get_role(ids)
+		role = interaction.guild.get_role(ids)
 		for member in role.members:
 			print(member.id)
 			try:
 				await member.send("Bonjour, suite à l'annonce de faction voici le catalogue :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Source de Fake Water -> 40 points (1500 sources max par personne)\n- Enclumes en améthyste et titane -> 700 points\n- Enclumes en pala -> 1.400\n- Obsidienne -> 12.5 points\n- 1$ -> 0,2 point")
 			except:
-				await ctx.reply(f"{member.mention} à désactivé ses mp")
+				await interaction.response.send_message(f"{member.mention} à désactivé ses mp")
 			phases["A faire"][member.id] = str(datetime.now())
-			ctx.channel.send(f'fait pour {member.mention}')
+			interaction.channel.send(f'fait pour {member.mention}')
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
-	await ctx.reply('fait')
+	await interaction.response.send_message('fait')
 
-@bot.command()
-async def ilemosh(ctx,member: discord.Member=None):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def ilemosh(interaction: discord.Interaction,member: discord.Member):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
 	phases["A faire"].pop(str(member.id))
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
-	await ctx.reply('nickel')
+	await interaction.response.send_message('nickel')
 
-@bot.command()
-async def renduphases(ctx,member: discord.Member=None,*,rendu=None):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def renduphases(interaction: discord.Interaction,member: discord.Member,*,rendu:str):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	if not rendu:
-		await ctx.reply("t'as pas mis le rendu blg")
+		await interaction.response.send_message("t'as pas mis le rendu blg")
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
 	phases["A faire"].pop(str(member.id))
@@ -242,24 +336,24 @@ async def renduphases(ctx,member: discord.Member=None,*,rendu=None):
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
 	await member.send("Merci d'avoir rendu votre phase, elle est suffisante et vous n'aurez pas besoin de farmer plus. Attention : ne parlez pas de cette phase ni combien de points vous avez donné sous peine de sanctions !")
-	await ctx.reply('nickel')
+	await interaction.response.send_message('nickel')
 
-@bot.command()
-async def pati(ctx,id):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def pati(interaction: discord.Interaction,id:str):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
 	phases["A faire"].pop(str(id))
 	with open('phases.json', 'w') as f:
 		json.dump(phases, f, indent=6)
-	await ctx.reply('nickel')
+	await interaction.response.send_message('nickel')
 
-@bot.command()
-async def listephases(ctx,member: discord.Member=None,*,rendu='non spécifié'):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("t'es pas la grande maitresse supreme toi")
+@bot.tree.command()
+async def listephases(interaction: discord.Interaction):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
 	with open('phases.json', 'r') as f:
 		phases = json.load(f)
@@ -269,33 +363,33 @@ async def listephases(ctx,member: discord.Member=None,*,rendu='non spécifié'):
 		af+=f'<@{personne}>'
 	for personne in phases["Fait"].keys():
 		ff+=f'<@{personne}>'
-	await ctx.reply(f'Fait :\n{ff}')
+	await interaction.response.send_message(f'Fait :\n{ff}')
 	if len(af) >= 2000:
-		await ctx.reply(f'A faire :\n{af[0:1900]}')
-		await ctx.reply(f'{af[1900:]}')
+		await interaction.channel.send(f'A faire :\n{af[0:1900]}')
+		await interaction.channel.send(f'{af[1900:]}')
 
-@bot.command()
-async def pluschef(ctx,member:discord.Member = None):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("Toi t'es pas blg")
+@bot.tree.command()
+async def pluschef(interaction: discord.Interaction,member:discord.Member):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("Toi t'es pas blg")
 		return
 	else:
-		role = ctx.guild.get_role(790675782569164820)
+		role = interaction.guild.get_role(790675782569164820)
 		await member.add_roles(role)
-		await ctx.reply('Vos désirs sont des ordres grande maitresse supreme')
+		await interaction.response.send_message('Vos désirs sont des ordres grande maitresse supreme')
 
-@bot.command()
-async def moinschef(ctx,member:discord.Member = None):
-	if ctx.author.id != 790574682294190091:
-		await ctx.reply("Toi t'es pas blg")
+@bot.tree.command()
+async def moinschef(interaction: discord.Interaction,member:discord.Member):
+	if interaction.user.id != 790574682294190091:
+		await interaction.response.send_message("Toi t'es pas blg")
 		return
 	else:
-		role = ctx.guild.get_role(790675782569164820)
+		role = interaction.guild.get_role(790675782569164820)
 		await member.remove_roles(role)
-		await ctx.reply('Vos désirs sont des ordres grande maitresse supreme')
+		await interaction.response.send_message('Vos désirs sont des ordres grande maitresse supreme')
 
-@bot.command()
-async def jj(ctx):
+@bot.tree.command()
+async def jj(interaction: discord.Interaction):
 	with open('inac.json', 'r') as f:
 		ina = json.load(f)
 	e = discord.Embed(title = f'Inac', description = f'Voici toutes les personnes qui ont répondu au sondage')
@@ -305,11 +399,7 @@ async def jj(ctx):
 			tt = bot.get_user(pers)
 			st += f'{tt.mention}\n'
 		e.add_field(name = f'{typ[0]} - {str(len(typ[1]))}', value = st ,inline = False)
-	await ctx.reply(embed=e)
-
-@bot.command()
-async def say(ctx):
-	await ctx.message.channel.send('I can do almost everything you want with this bot \n(unfortunatly it cannot make coffee)')
+	await interaction.response.send_message(embed=e)
 
 class regl(discord.ui.View):
 	def __init__(self):
@@ -335,6 +425,7 @@ async def on_ready():
 	inactivity.start()
 	abs.start()
 	candids.start()
+	voc.start()
 	# print
 	field_placeholder = '+----------------------------------+'
 	fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
@@ -346,21 +437,6 @@ async def on_ready():
 	act = discord.Game(name="*help pour voir les commandes auxquelles vous avez accès")
 	await bot.change_presence(activity=act)
 
-@bot.event
-async def on_invite_create(invite):
-	with open('invite.json', 'r') as f:
-		inv = json.load(f)
-	inv["invites"][invite.code] = invite.uses
-	with open('invite.json', 'w') as f:
-		json.dump(inv, f, indent=6)
-
-@bot.event
-async def on_invite_delete(invite):
-	with open('invite.json', 'r') as f:
-		inv = json.load(f)
-	inv["invites"].pop(invite.code)
-	with open('invite.json', 'w') as f:
-		json.dump(inv, f, indent=6)
 
 async def del_message(message):
 	try:
@@ -368,14 +444,13 @@ async def del_message(message):
 	except:
 		pass
 
-@bot.command()
-async def embed(ctx,channelid,*,message):
-	if 790675782569164820 not in [x.id for x in ctx.author.roles] and 821787385636585513 not in [x.id for x in ctx.author.roles]:
-		await ctx.reply(embed=create_small_embed('Seuls les HG peuvent utiliser cette commande !'))
+@bot.tree.command()
+async def embed(interaction: discord.Interaction,channel:discord.TextChannel,*,message:str):
+	if 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in interaction.user.roles]:
+		await interaction.response.send_message(embed=create_small_embed('Seuls les HG peuvent utiliser cette commande !'))
 		return
-	channel = bot.get_channel(channelid)
 	await channel.send(embed=create_small_embed(message))
-	await ctx.reply(embed=create_small_embed("Message envoyé !"))
+	await interaction.response.send_message(embed=create_small_embed("Message envoyé !"))
 
 def create_embed(title=None, description=None, color=discord.Color.blue()):
 	embed = discord.Embed(
@@ -395,9 +470,10 @@ def create_small_embed(description=None, color=discord.Color.blue()):
 	)
 	return embed
 
-@bot.command()
-async def editally(ctx):
+@bot.tree.command()
+async def editally(interaction: discord.Interaction):
 	await edditally()
+	await interaction.response.send_message('Fait')
 
 async def edditally():
 	channel = bot.get_channel(797862044765388830)
@@ -422,14 +498,14 @@ async def edditally():
 	await message.edit(embed=create_embed('Relations Factions',
 										f'Voici ici la liste de toutes nos relations :\n\n**Ally :**{ally}\n\n**Truces :**{truces}\n\n**Pacte de non agression :**{pna}'))
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def prepare(ctx,prep=None):
+async def prepare(interaction: discord.Interaction,prep:str):
 	if prep == 'reg' or prep == 'tout':
-		reg = ctx.guild.get_channel(948647836466151434)
-		chef = ctx.guild.get_role(790675782569164820)
-		rev = ctx.guild.get_role(821787385636585513)
-		ally = ctx.guild.get_role(790675785412640768)
+		reg = interaction.guild.get_channel(948647836466151434)
+		chef = interaction.guild.get_role(790675782569164820)
+		rev = interaction.guild.get_role(821787385636585513)
+		ally = interaction.guild.get_role(790675785412640768)
 		await reg.send(embed=discord.Embed(title="Bienvenue a tous.tes sur les serveur de la SweetDream, voici notre règlement :"
 										   ,description="__**Loi Française**__\n"
 														"Ce serveur est sous la loi française, retrouvez tous les articles de lois ici : https://www.legifrance.gouv.fr/\n"
@@ -515,7 +591,7 @@ async def prepare(ctx,prep=None):
 			pna = "Nous n'avons aucun pacte de non agression pour l'instant"
 		await relat.send(embed=create_embed('Relations Factions',
 											  f'Voici ici la liste de toutes nos relations :\n\n**Ally :**\n{ally}\n\n**Truces :**\n{truces}\n\n**Pacte de non agression :**\n{pna}'))
-	await ctx.reply("Tout s'est bien passé !")
+	await interaction.response.send_message("Tout s'est bien passé !")
 
 # =========== Effectif ===========
 
@@ -551,8 +627,8 @@ async def effectif():
 
 # =========== Recrutements ===========
 
-#    if 791426367362433066 not in [x.id for x in ctx.author.roles]:
-#        await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',
+#    if 791426367362433066 not in [x.id for x in interaction.user.roles]:
+#        await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',
 #                                                 discord.Color.red()))
 #        return
 
@@ -604,7 +680,7 @@ async def candids():
 		with open('candid.json', 'w') as f:
 			json.dump(candids, f, indent=6)
 			
-async def acccandid(member,author):
+async def acccandid(member:discord.Member,author):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	for type in interviews.items():
@@ -682,54 +758,40 @@ async def recru(recruid):
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def listerecru(ctx):
+async def listerecru(interaction: discord.Interaction):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	msg ='Voici la liste des recruteurs :'
 	for recrut in interviews["Recruteur"].keys():
 		msg += f"\n<@{recrut}> : {interviews['Recruteur'][recrut]}"
-	await ctx.reply(msg)
+	await interaction.response.send_message(msg)
 
 
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def refuse(ctx, member: discord.Member=None, *, raison="Le recruteur n'a pas spécifié de raison"):
+async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
 	log = bot.get_channel(831615469134938112)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(await refcandid(member,ctx.author,raison))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(await refcandid(member,interaction.user,raison))
 
-@refuse.error
-async def refuse(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def accept(ctx, member: discord.Member=None):
+async def accept(interaction: discord.Interaction, member: discord.Member):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
-	await ctx.reply(embed=create_small_embed(await acccandid(member,ctx.author)))
+	await interaction.response.send_message(embed=create_small_embed(await acccandid(member,interaction.user)))
 
-@accept.error
-async def accept(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(790675781789155329, 821787385636585513, 790675782569164820)
-async def addtime(ctx, member: discord.Member=None, time_string=None):
+async def addtime(interaction: discord.Interaction, member: discord.Member, time_string:typing.Optional[str]):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
@@ -745,7 +807,7 @@ async def addtime(ctx, member: discord.Member=None, time_string=None):
 	try:
 		interviews[b].pop(a)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
 	interviews['Dates'][member.id] = str((datetime.utcnow() + timedelta(minutes=0, days=time)))
 	log = bot.get_channel(831615469134938112)
@@ -756,15 +818,8 @@ async def addtime(ctx, member: discord.Member=None, time_string=None):
 						   "Cordialement,\nLe Staff Recrutement SweetDream."
 						   )
 	await member.send(embed=_embed)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande addtime pour ' + member.mention))
-
-@addtime.error
-async def addtime(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les responsables recrutement peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande addtime pour ' + member.mention))
 
 @tasks.loop(seconds = 3600)
 async def inactivity():
@@ -874,13 +929,13 @@ class testview(discord.ui.View):
 		await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
 		await interaction.message.delete()
 
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def oralyes(ctx, member: discord.Member=None):
+async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de "
@@ -894,7 +949,7 @@ async def oralyes(ctx, member: discord.Member=None):
 	try:
 		interviews[b].pop(a)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
 	interviews["ET"][member.id] = str((datetime.utcnow() + timedelta(days=30)))
 	with open('Interview.json', 'w') as f:
@@ -908,32 +963,32 @@ async def oralyes(ctx, member: discord.Member=None):
 		await member.edit(nick=f'[ET] {member.nick[5:]}')
 	except:
 		await member.edit(nick=f'[ET] {member.name}')
-	await recru(str(ctx.author.id))
-	role = ctx.guild.get_role(790675784901197905)
-	role1 = ctx.guild.get_role(791066206109958204)
-	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
-	await member.add_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await recru(str(interaction.user.id))
+	role = interaction.guild.get_role(790675784901197905)
+	role1 = interaction.guild.get_role(791066206109958204)
+	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
+	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	log = bot.get_channel(831615469134938112)
 	await member.send(embed=_embed)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
 
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def oralno(ctx, member: discord.Member=None):
+async def oralno(interaction: discord.Interaction, member: discord.Member):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
-	guild = ctx.guild
+	guild = interaction.guild
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Bonjour,\nMalheureusement ton entretien oral n'a pas été accepté mais tu "
 										 "pourras refaire une candidature écrite dans 2 semaines. \nCordialement,\n"
 										 "Le staff Recrutement SweetDream."
 							)
 	role = guild.get_role(790675784901197905)
-	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	for type in interviews.items():
 		for personne in type[1].keys():
 			if str(member.id) == personne:
@@ -942,35 +997,28 @@ async def oralno(ctx, member: discord.Member=None):
 	try:
 		interviews[b].pop(a)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
 	await member.edit(nick=f'')
 	await member.send(embed=_embed)
-	await recru(str(ctx.author.id))
+	await recru(str(interaction.user.id))
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande oralno pour ' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralno pour ' + member.mention))
 	await ban.send(embed=create_small_embed(member.mention + 'est banni pendant deux semaines car iel à été refusé.e en entretien',discord.Color.red()))
 
-@oralno.error
-async def oralno(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def finphases(ctx, member: discord.Member=None,*,rendu="Non spécifié"):
+async def finphases(interaction: discord.Interaction, member: discord.Member,*,rendu:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
-	guild = ctx.guild
+	guild = interaction.guild
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Bravo, tu es désormais un.e membre officiel de la faction ! Tu as accès aux "
 										 "salons de faction. N'hésites pas a être actif.ve en vocal et en écrit pour "
@@ -984,7 +1032,7 @@ async def finphases(ctx, member: discord.Member=None,*,rendu="Non spécifié"):
 	try:
 		interviews[b].pop(a)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 	with open('phases.json', 'r') as f:
@@ -999,19 +1047,19 @@ async def finphases(ctx, member: discord.Member=None,*,rendu="Non spécifié"):
 	except:
 		await member.edit(nick=f'[??] {member.name}')
 	role = guild.get_role(791066206109958204)
-	await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(791066207418712094)
-	await member.add_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	log = bot.get_channel(831615469134938112)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande finphases pour ' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
+	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(791426367362433066, 821787385636585513, 790675782569164820)
-async def kickphases(ctx, member: discord.User=None, *, raison="Le recruteur n'a pas spécifié de raison"):
+async def kickphases(interaction: discord.Interaction, member: discord.User, *, raison:str):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
-	guild = ctx.guild
+	guild = interaction.guild
 	_embed = discord.Embed(title="Recrutements",
 						   description="Bonjour,\nTu as été kick des phases pour la raison suivante : "+raison+" Tu pourras"
 										" retenter ta chance en faisant une nouvelle candidature écrite dans 2 semaines.\n"
@@ -1024,7 +1072,7 @@ async def kickphases(ctx, member: discord.User=None, *, raison="Le recruteur n'a
 	try:
 		interviews[b].pop(a)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
 	log = bot.get_channel(831615469134938112)
@@ -1036,40 +1084,33 @@ async def kickphases(ctx, member: discord.User=None, *, raison="Le recruteur n'a
 		with open('phases.json', 'w') as f:
 			json.dump(phases, f, indent=6)
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
 	try:
 		await member.send(embed=_embed)
-		await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
+		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 		member = guild.get_member(member.id)
 		role = guild.get_role(790675784901197905)
-		await member.remove_roles(role, reason=f'Fait par {str(ctx.author)[:16]}')
+		await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 		role1 = guild.get_role(791066206109958204)
-		await member.remove_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+		await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 		await member.edit(nick="")
 	except:
-		await ctx.reply(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
-	await log.send(embed=create_small_embed(ctx.author.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
+		await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
+	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
 	await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
-
-@kickphases.error
-async def kickphases(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les recruteurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
 
 # =========== Staff ===========
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def warn(ctx, member : discord.Member=None, *, raison="Pas de raison fournie"):
+async def warn(interaction: discord.Interaction, member : discord.Member, *, raison:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
 		return
 	_embed = discord.Embed(title="Warn",
 						   description="Bonjour,\nTu as été averti.e pour la raison suivante : "+raison+
-									   "\nModérateur :"+ctx.author.mention
+									   "\nModérateur :"+interaction.user.mention
 						   )
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
@@ -1081,22 +1122,14 @@ async def warn(ctx, member : discord.Member=None, *, raison="Pas de raison fourn
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été warn par ' +ctx.author.mention+" pour "+raison))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(member.mention+ ' à été warn par ' +interaction.user.mention+" pour "+raison))
 
-@warn.error
-async def warn(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def unwarn(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de raison fournie"):
-	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
-												 discord.Color.red()))
+async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
+	if member.id == interaction.user.id:
+		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
 	try:
 		nbw=int(nbw)-1
@@ -1105,7 +1138,7 @@ async def unwarn(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de 
 			raison = str(nbw)+raison
 	_embed = discord.Embed(title="Unwarn",
 						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison+
-									   "\nModérateur :"+ctx.author.mention
+									   "\nModérateur :"+interaction.user.mention
 						   )
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
@@ -1115,31 +1148,24 @@ async def unwarn(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de 
 			wb['warns'].pop(str(member.id))
 		else:
 			if nbw==None:
-				await ctx.reply(embed=create_small_embed('Ce membre a plusieurs sanction, merci de préciser laquelle vous souhaitez retirer'))
+				await interaction.response.send_message(embed=create_small_embed('Ce membre a plusieurs sanction, merci de préciser laquelle vous souhaitez retirer'))
 				return
 			wb['warns'][str(member.id)].pop(nbw)
 	except:
-		await ctx.reply(embed=create_small_embed("Ce membre n'a aucun warn a retirer !"))
+		await interaction.response.send_message(embed=create_small_embed("Ce membre n'a aucun warn a retirer !"))
 		return
 	with open('warnblame.json', 'w') as f:
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été unwarn par ' +ctx.author.mention+" pour "+raison))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(member.mention+ ' à été unwarn par ' +interaction.user.mention+" pour "+raison))
 
-@unwarn.error
-async def unwarn(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def blame(ctx, member : discord.Member=None, *, raison="Pas de raison fournie"):
+async def blame(interaction: discord.Interaction, member : discord.Member, *, raison:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
 		return
 	_embed = discord.Embed(title="Blame",
@@ -1150,7 +1176,7 @@ async def blame(ctx, member : discord.Member=None, *, raison="Pas de raison four
 															" derank de la faction ainsi qu'une punition de** 10 000 "
 															"obsidian, deux stacks de blocs de pala et 200 000$\n**Au "
 															"bout de 3 blâmes vous serez temporairement banni de la "
-															"faction pour un mois**\nModérateur : "+ctx.author.mention
+															"faction pour un mois**\nModérateur : "+interaction.user.mention
 						   )
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
@@ -1162,22 +1188,14 @@ async def blame(ctx, member : discord.Member=None, *, raison="Pas de raison four
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été blamé par ' +ctx.author.mention+" pour "+raison))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(member.mention+ ' à été blamé par ' +interaction.user.mention+" pour "+raison))
 
-@blame.error
-async def blame(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def unblame(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de raison fournie"):
-	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
-												 discord.Color.red()))
+async def unblame(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
+	if member.id == interaction.user.id:
+		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
 	try:
 		nbw=int(nbw)-1
@@ -1186,7 +1204,7 @@ async def unblame(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de
 			raison = str(nbw)+raison
 	_embed = discord.Embed(title="Blame",
 						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison+
-									   "\nModérateur :"+ctx.author.mention
+									   "\nModérateur :"+interaction.user.mention
 						   )
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
@@ -1196,34 +1214,27 @@ async def unblame(ctx, member : discord.Member=None, nbw=None, *, raison="Pas de
 			wb['blames'].pop(str(member.id))
 		else:
 			if nbw==None:
-				await ctx.reply(embed=create_small_embed('Ce membre a plusieurs sanction, merci de préciser laquelle vous souhaitez retirer'))
+				await interaction.response.send_message(embed=create_small_embed('Ce membre a plusieurs sanction, merci de préciser laquelle vous souhaitez retirer'))
 				return
 			wb['blames'][str(member.id)].pop(nbw)
 	except:
-		await ctx.reply(embed=create_small_embed("Ce membre n'a aucun warn a retirer !"))
+		await interaction.response.send_message(embed=create_small_embed("Ce membre n'a aucun warn a retirer !"))
 		return
 	with open('warnblame.json', 'w') as f:
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await ctx.reply(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été unblame par ' +ctx.author.mention+" pour "+raison))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await log.send(embed=create_small_embed(member.mention+ ' à été unblame par ' +interaction.user.mention+" pour "+raison))
 
-@unblame.error
-async def unblame(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def rankup(ctx, member:discord.Member=None):
+async def rankup(interaction: discord.Interaction, member:discord.Member):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
 		return
-	guild = ctx.guild
+	guild = interaction.guild
 	Roles = {9:790675782338740235,8:790675782364037131,7:790675783352975360,6:790675783549976579,5:790675783693500456,
 			 4:790675784120401932,3:790675784225521734,2:791066206437113897, 1:791066207418712094}
 	for x in Roles.items():
@@ -1231,34 +1242,27 @@ async def rankup(ctx, member:discord.Member=None):
 		if rol in member.roles:
 			role = x[0]
 	if not role:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'existe pas ou ne peux pas etre rankup !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'existe pas ou ne peux pas etre rankup !",
 												 discord.Color.red()))
 		return
 	role1 = guild.get_role(Roles[role])
-	await member.remove_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(Roles[role+1])
-	await member.add_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	embed_ = create_small_embed("Félicitation à "+member.mention+" qui passe "+role1.mention+" !",discord.Color.gold())
 	rankup = guild.get_channel(791991289007570974)
 	await rankup.send(embed=embed_)
 	await member.send("Félicitation à toi, tu passes "+role1.name+" !")
-	await ctx.reply("Le rankup a bien été effectué")
+	await interaction.response.send_message("Le rankup a bien été effectué")
 
-@rankup.error
-async def rankup(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def derank(ctx, member:discord.Member=None,*,raison="Pas de raison spécifiée"):
+async def derank(interaction: discord.Interaction, member:discord.Member,*,raison:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
 		return
-	guild = ctx.guild
+	guild = interaction.guild
 	Roles = {9:790675782338740235,8:790675782364037131,7:790675783352975360,6:790675783549976579,5:790675783693500456,
 			 4:790675784120401932,3:790675784225521734,2:791066206437113897, 1:791066207418712094}
 	for x in Roles.items():
@@ -1266,34 +1270,27 @@ async def derank(ctx, member:discord.Member=None,*,raison="Pas de raison spécif
 		if rol in member.roles:
 			role = x[0]
 	if not role:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'existe pas ou ne peux pas etre rankup !",
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'existe pas ou ne peux pas etre rankup !",
 												 discord.Color.red()))
 		return
 	role1 = guild.get_role(Roles[role])
-	await member.remove_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(Roles[role-1])
-	await member.add_roles(role1, reason=f'Fait par {str(ctx.author)[:16]}')
+	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	await member.send("Tu viens de te faire dérank pour la raison suivante : "+raison)
 	log = bot.get_channel(944296375007477811)
-	await log.send(embed=create_small_embed(member.mention + ' à été unblame par ' + ctx.author.mention + " pour " + raison))
-	await ctx.reply("Le derank a bien été effectué")
+	await log.send(embed=create_small_embed(member.mention + ' à été unblame par ' + interaction.user.mention + " pour " + raison))
+	await interaction.response.send_message("Le derank a bien été effectué")
 
-@derank.error
-async def derank(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def ban(ctx, member:discord.Member=None,*,raison="Pas de raison spécifiée"):
+async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
-	guild = ctx.guild
+	guild = interaction.guild
 	embed_ = discord.Embed(
-		description=f"Vous avez été banni de la SweetDream pour la raison suivante : {raison}\nModérateur : {ctx.author.mention}",
+		description=f"Vous avez été banni de la SweetDream pour la raison suivante : {raison}\nModérateur : {interaction.user.mention}",
 		color=discord.Color.red()
 	)
 	try:
@@ -1304,41 +1301,26 @@ async def ban(ctx, member:discord.Member=None,*,raison="Pas de raison spécifié
 		message =f"Le message n'a pas pu être envoyé à {member.mention} mais il a bien été banni"
 	await guild.ban(member,reason=raison)
 	log = bot.get_channel(944296375007477811)
-	await log.send(embed=create_small_embed(member.mention + ' à été ban par ' + ctx.author.mention + " pour " + raison))
-	await ctx.reply(embed=create_small_embed(message))
+	await log.send(embed=create_small_embed(member.mention + ' à été ban par ' + interaction.user.mention + " pour " + raison))
+	await interaction.response.send_message(embed=create_small_embed(message))
 
-@ban.error
-async def ban(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def unban(ctx, member:discord.User=None,*,raison="Pas de raison spécifiée"):
-	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
-												 discord.Color.red()))
+async def unban(interaction: discord.Interaction, member:discord.User,*,raison:str):
+	if member.id == interaction.user.id:
+		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
-	guild = ctx.guild
+	guild = interaction.guild
 	await guild.unban(member,reason=raison)
 	log = bot.get_channel(944296375007477811)
-	await log.send(embed=create_small_embed(member.mention + ' à été unban par ' + ctx.author.mention + " pour " + raison))
-	await ctx.reply(embed=create_small_embed(member.mention+"à bien été déban"))
+	await log.send(embed=create_small_embed(member.mention + ' à été unban par ' + interaction.user.mention + " pour " + raison))
+	await interaction.response.send_message(embed=create_small_embed(member.mention+"à bien été déban"))
 
-@unban.error
-async def unban(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command(aliases=['userinfo','sanction'])
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def sanctions(ctx, member: discord.Member = None):
+async def sanctions(interaction: discord.Interaction, member: discord.Member):
 		if not member:
-			await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
+			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 			return
 		with open('warnblame.json', 'r') as f:
 			wb = json.load(f)
@@ -1356,26 +1338,26 @@ async def sanctions(ctx, member: discord.Member = None):
 				msg+=f"\nAucun {element}"
 		embed = discord.Embed(title=member.name,description=msg)
 		embed.set_thumbnail(url=member.avatar.url)
-		await ctx.reply(embed=embed)
+		await interaction.response.send_message(embed=embed)
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def addinfo(ctx, member: discord.Member = None,marq=None,*,info=None):
+async def addinfo(interaction: discord.Interaction, member: discord.Member,positive_negative_neutre:str,*,info:str):
 		if not member:
-			await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
+			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 			return
 		with open('warnblame.json', 'r') as f:
 			wb = json.load(f)
-		if marq != "neutre" and marq != "positive" and marq != "neutre":
-			info = marq+info
-			marq = "neutre"
-		if str(member.id) in wb[marq].keys():
-			wb[marq][member.id].append([info,str(datetime.now())])
+		if positive_negative_neutre != "neutre" and positive_negative_neutre != "positive" and positive_negative_neutre != "neutre":
+			info = positive_negative_neutre+info
+			positive_negative_neutre = "neutre"
+		if str(member.id) in wb[positive_negative_neutre].keys():
+			wb[positive_negative_neutre][str(member.id)].append([info,str(datetime.now())])
 		else:
-			wb[marq][member.id] = [[info,str(datetime.now())]]
+			wb[positive_negative_neutre][str(member.id)] = [[info,str(datetime.now())]]
 		with open('warnblame.json', 'w') as f:
 			json.dump(wb, f, indent=6)
-		await ctx.reply(embed=create_small_embed("l'info à été enregistrée"))
+		await interaction.response.send_message(embed=create_small_embed("l'info à été enregistrée"))
 
 # =========== Tickets ===========
 
@@ -1428,37 +1410,37 @@ class fermerticket(discord.ui.View):
 		await log.send(file=transcript_file)
 		await interaction.channel.delete()
 
-@bot.command()
-async def close(ctx):
-	if 790675782569164820 not in [x.id for x in ctx.author.roles] and 821787385636585513 not in [x.id for x in
-																										 ctx.author.roles]:
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent fermer un ticket !', discord.Color.red()))
+@bot.tree.command()
+async def close(interaction: discord.Interaction):
+	if 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in
+																										 interaction.user.roles]:
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les HG peuvent fermer un ticket !', discord.Color.red()))
 		return
 	with open('tickets.json', 'r') as f:
 		ticket = json.load(f)
-	transcript = await chat_exporter.export(ctx.channel)
+	transcript = await chat_exporter.export(interaction.channel)
 	transcript_file = discord.File(
 		io.BytesIO(transcript.encode()),
-		filename=f"transcript-{ctx.channel.name}.html",
+		filename=f"transcript-{interaction.channel.name}.html",
 	)
-	ticket['auteurs'].pop(ctx.channel.name[-4:])
+	ticket['auteurs'].pop(interaction.channel.name[-4:])
 	log = bot.get_channel(790721209305792553)
 	with open('tickets.json', 'w') as f:
 		json.dump(ticket, f, indent=6)
 	await log.send(file=transcript_file)
-	await ctx.channel.delete()
+	await interaction.channel.delete()
 
 # =========== Economie ===========
 
-@bot.command(aliases=["createaccount","openaccount","ouvrircompte"])
-async def creercompte(ctx):
+@bot.tree.command()
+async def creercompte(interaction: discord.Interaction):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
 	try:
-		await ctx.reply(embed=create_small_embed(":warning: Vous avez déjà ouvert un compte avec "+str(Eco["Comptes"][str(ctx.author.id)])+"$ dessus !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous avez déjà ouvert un compte avec "+str(Eco["Comptes"][str(interaction.user.id)])+"$ dessus !",discord.Color.red()))
 	except:
-		await compte(ctx.author)
-		await ctx.reply("Votre compte à été crée")
+		await compte(interaction.user)
+		await interaction.response.send_message("Votre compte à été crée")
 
 async def compte(member):
 	with open('economie.json', 'r') as f:
@@ -1473,26 +1455,26 @@ async def compte(member):
 		log = bot.get_channel(959867855350931486)
 		await log.send(embed=create_small_embed(member.mention + ' à ouvert son compte'))
 
-@bot.command(aliases=['balance',"bal"])
-async def money(ctx,member:discord.User=None):
+@bot.tree.command()
+async def money(interaction: discord.Interaction,member:discord.User):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
 	if not member:
-		await compte(ctx.author)
-		await ctx.reply("Vous avez actuelement "+str(Eco["Comptes"][str(ctx.author.id)])+"$ sur votre compte")
+		await compte(interaction.user)
+		await interaction.response.send_message("Vous avez actuelement "+str(Eco["Comptes"][str(interaction.user.id)])+"$ sur votre compte")
 		return
-	if 790675782569164820 not in [x.id for x in ctx.author.roles] and 821787385636585513 not in [x.id for x in
-																										 ctx.author.roles]:
-		await ctx.reply(embed=create_small_embed(":warning: Seuls les HG peuvent voir l'argent des autres !", discord.Color.red()))
+	if 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in
+																										 interaction.user.roles]:
+		await interaction.response.send_message(embed=create_small_embed(":warning: Seuls les HG peuvent voir l'argent des autres !", discord.Color.red()))
 		return
 	await compte(member)
-	await ctx.reply(member.mention + " à actuelement " + str(Eco["Comptes"][str(member.id)]) + "$ sur son compte")
+	await interaction.response.send_message(member.mention + " à actuelement " + str(Eco["Comptes"][str(member.id)]) + "$ sur son compte")
 
-@bot.command(aliases=['adminpay',"admingive",'add','give'])
+@bot.tree.command()
 @commands.has_any_role(790675781789155329, 798301141094891620, 790675782569164820)
-async def adminaddmoney(ctx,member:discord.Member=None,money=0):
+async def give(interaction: discord.Interaction,member:discord.Member,money:int):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	await compte(member)
 	with open('economie.json', 'r') as f:
@@ -1500,23 +1482,16 @@ async def adminaddmoney(ctx,member:discord.Member=None,money=0):
 	Eco["Comptes"][str(member.id)] += int(money)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
-	await member.send(embed=create_small_embed(ctx.author.mention+" Vous a crédité de "+str(money)+"$"))
-	await ctx.reply(embed=create_small_embed("L'argent à bien été crédité"))
+	await member.send(embed=create_small_embed(interaction.user.mention+" Vous a crédité de "+str(money)+"$"))
+	await interaction.response.send_message(embed=create_small_embed("L'argent à bien été crédité"))
 	log = bot.get_channel(959867855350931486)
-	await log.send(embed=create_small_embed(member.mention + ' à été crédité de '+str(money)+"$ par "+ctx.author.mention))
+	await log.send(embed=create_small_embed(member.mention + ' à été crédité de '+str(money)+"$ par "+interaction.user.mention))
 
-@adminaddmoney.error
-async def adminaddmoney(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les responsables market peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command(aliases=['remove'])
+@bot.tree.command()
 @commands.has_any_role(790675781789155329, 798301141094891620, 790675782569164820)
-async def adminremovemoney(ctx,member:discord.Member=None,money=0):
+async def remove(interaction: discord.Interaction,member:discord.Member,money:int):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
 	await compte(member)
 	with open('economie.json', 'r') as f:
@@ -1524,39 +1499,32 @@ async def adminremovemoney(ctx,member:discord.Member=None,money=0):
 	Eco["Comptes"][str(member.id)] -= int(money)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
-	await member.send(embed=create_small_embed(ctx.author.mention+" Vous a privé de "+str(money)+"$"))
-	await ctx.reply(embed=create_small_embed("L'argent à bien été retiré"))
+	await member.send(embed=create_small_embed(interaction.user.mention+" Vous a privé de "+str(money)+"$"))
+	await interaction.response.send_message(embed=create_small_embed("L'argent à bien été retiré"))
 	log = bot.get_channel(959867855350931486)
-	await log.send(embed=create_small_embed(member.mention + ' à été privé de '+str(money)+"$ par "+ctx.author.mention))
+	await log.send(embed=create_small_embed(member.mention + ' à été privé de '+str(money)+"$ par "+interaction.user.mention))
 
-@adminremovemoney.error
-async def adminremovemoney(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les responsables market peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
-async def pay(ctx,member:discord.Member=None,money=0):
+@bot.tree.command()
+async def pay(interaction: discord.Interaction,member:discord.Member,money:int):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
-	await compte(ctx.author)
+	await compte(interaction.user)
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
-	if Eco["Comptes"][str(ctx.author.id)] < money:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas assez d'argent !", discord.Color.red()))
+	if Eco["Comptes"][str(interaction.user.id)] < money:
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas assez d'argent !", discord.Color.red()))
 		return
 	await compte(member)
-	Eco["Comptes"][str(ctx.author.id)] -= int(money)
+	Eco["Comptes"][str(interaction.user.id)] -= int(money)
 	Eco["Comptes"][str(member.id)] += int(money)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
-	await member.send(embed=create_small_embed(ctx.author.mention+" Vous a donné "+str(money)+"$"))
-	await ctx.author.send(embed=create_small_embed("Vous avez donné " + str(money) + "$ à "+member.mention))
-	await ctx.reply(embed=create_small_embed("Le virement à bien été effectué"))
+	await member.send(embed=create_small_embed(interaction.user.mention+" Vous a donné "+str(money)+"$"))
+	await interaction.user.send(embed=create_small_embed("Vous avez donné " + str(money) + "$ à "+member.mention))
+	await interaction.response.send_message(embed=create_small_embed("Le virement à bien été effectué"))
 	log = bot.get_channel(959867855350931486)
-	await log.send(embed=create_small_embed(ctx.author.mention+" à donné "+str(money)+"$ à "+member.mention))
+	await log.send(embed=create_small_embed(interaction.user.mention+" à donné "+str(money)+"$ à "+member.mention))
 
 class Methode(discord.ui.View):
 	def __init__(self):
@@ -1722,57 +1690,43 @@ class PvPView(discord.ui.View):
 		super().__init__(timeout=None)
 		self.add_item(PvP())
 
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(960180290683293766 or 798301141094891620 or 790675782569164820)
-async def claim(ctx):
+async def claim(interaction: discord.Interaction):
 	try:
-		int(ctx.channel.name[-4:])
+		int(interaction.channel.name[-4:])
 	except:
-		await ctx.reply(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
-	await compte(ctx.author)
-	vendeur = ctx.guild.get_role(960180290683293766)
-	await ctx.channel.set_permissions(ctx.author,read_messages=True, send_messages=True)
-	await ctx.channel.set_permissions(vendeur,overwrite= None)
-	await ctx.reply("Vous avez bien pris en charge cette commande")
+	await compte(interaction.user)
+	vendeur = interaction.guild.get_role(960180290683293766)
+	await interaction.channel.set_permissions(interaction.user,read_messages=True, send_messages=True)
+	await interaction.channel.set_permissions(vendeur,overwrite= None)
+	await interaction.response.send_message("Vous avez bien pris en charge cette commande")
 
-@claim.error
-async def claim(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les responsables market peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_any_role(960180290683293766 or 821787385636585513 or 790675782569164820)
-async def livre(ctx):
-	if ctx.channel.name[:8] != 'commande':
-		await ctx.reply(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
+async def livre(interaction: discord.Interaction):
+	if interaction.channel.name[:8] != 'commande':
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
-	transcript = await chat_exporter.export(ctx.channel)
+	transcript = await chat_exporter.export(interaction.channel)
 	transcript_file = discord.File(
 		io.BytesIO(transcript.encode()),
-		filename=f"transcript-{ctx.channel.name}.html",
+		filename=f"transcript-{interaction.channel.name}.html",
 	)
-	if Eco["commande"][ctx.channel.name[-4:]][4]== "\n\n**Déjà payée**":
-		Eco["Comptes"][str(ctx.author.id)] += Eco["commande"][ctx.channel.name[-4:]][2]
-		await ctx.author.send("Vous avez été payé")
-	Eco['Auteurs'][Eco["commande"][ctx.channel.name[-4:]][0]] -= 1
-	Eco["commande"].pop(ctx.channel.name[-4:])
+	if Eco["commande"][interaction.channel.name[-4:]][4]== "\n\n**Déjà payée**":
+		Eco["Comptes"][str(interaction.user.id)] += Eco["commande"][interaction.channel.name[-4:]][2]
+		await interaction.user.send("Vous avez été payé")
+	Eco['Auteurs'][Eco["commande"][interaction.channel.name[-4:]][0]] -= 1
+	Eco["commande"].pop(interaction.channel.name[-4:])
 	log = bot.get_channel(819580672310116356)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
 	await log.send(file=transcript_file)
-	await ctx.channel.delete()
-
-@livre.error
-async def livre(ctx, error):
-	if isinstance(error, commands.MissingAnyRole):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les vendeurs peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+	await interaction.channel.delete()
 
 class RouleR(discord.ui.View):
 	def __init__(self):
@@ -1997,9 +1951,9 @@ class rouleView(discord.ui.View):
 		super().__init__(timeout=None)
 		self.add_item(roule())
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def reset(ctx,res=None):
+async def reset(interaction: discord.Interaction,res:str):
 	if res == 'eco' or res == 'tout':
 		Eco = {
 			"Comptes": {},
@@ -2010,25 +1964,18 @@ async def reset(ctx,res=None):
 		}
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
-	await ctx.reply("Tout s'est bien passé")
-
-@reset.error
-async def reset(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+	await interaction.response.send_message("Tout s'est bien passé")
 
 # =========== Relation Faction ===========
 
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def addpna(ctx,faction=None,member:discord.Member=None):
+async def addpna(interaction: discord.Interaction,faction:str,member:discord.Member):
 	if not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
@@ -2036,72 +1983,51 @@ async def addpna(ctx,faction=None,member:discord.Member=None):
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
 	await edditally()
-	await ctx.reply(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
+	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
 
-@addpna.error
-async def addpna(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def addtruce(ctx,faction=None,member:discord.Member=None):
+async def addtruce(interaction: discord.Interaction,faction:str,member:discord.Member):
 	if not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
 	rela["truce"][faction] = {member.id:[]}
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
-	role = ctx.guild.get_role(790675785412640768)
+	role = interaction.guild.get_role(790675785412640768)
 	await member.add_roles(role)
 	await edditally()
-	await ctx.reply(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
+	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
 
-@addtruce.error
-async def addtruce(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def addally(ctx,faction=None,member:discord.Member=None):
+async def addally(interaction: discord.Interaction,faction:str,member:discord.Member):
 	if not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
 	rela["ally"][faction] = {member.id:[]}
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
-	role = ctx.guild.get_role(790675785412640768)
+	role = interaction.guild.get_role(790675785412640768)
 	await member.add_roles(role)
 	await edditally()
-	await ctx.reply(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
+	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
 
-@addally.error
-async def addally(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.has_permissions(administrator=True)
-async def endally(ctx,faction=None):
+async def endally(interaction: discord.Interaction,faction:str):
 	if not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
@@ -2111,17 +2037,17 @@ async def endally(ctx,faction=None):
 				typ = type[0]
 				for id in fac[1].keys():
 					memberid = id
-	mem = ctx.guild.get_member(memberid)
+	mem = interaction.guild.get_member(memberid)
 	try:
-		ally = ctx.guild.get_role(790675785412640768)
+		ally = interaction.guild.get_role(790675785412640768)
 		await mem.remove_roles(ally)
 		await mem.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
 	except:
 		pass
 	for personne in rela[typ][faction][memberid]:
 		try:
-			member = ctx.guild.get_member(int(personne))
-			ally = ctx.guild.get_role(790675785412640768)
+			member = interaction.guild.get_member(int(personne))
+			ally = interaction.guild.get_role(790675785412640768)
 			await member.remove_roles(ally)
 			await member.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
 		except:
@@ -2130,79 +2056,63 @@ async def endally(ctx,faction=None):
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
 	await edditally()
-	await ctx.reply(embed=create_small_embed('Vous avez retiré cette faction de la liste avec succès'))
+	await interaction.response.send_message(embed=create_small_embed('Vous avez retiré cette faction de la liste avec succès'))
 
-@endally.error
-async def endally(ctx, error):
-	if isinstance(error, commands.MissingPermissions):
-		await ctx.reply(embed=create_small_embed(':warning: Seuls les HG peuvent utiliser cette commande !',discord.Color.red()))
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-
-@bot.command()
-async def addmember(ctx,member:discord.Member=None,faction=None):
+@bot.tree.command()
+async def addmember(interaction: discord.Interaction,member:discord.Member,faction:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de membre à ajouter !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de membre à ajouter !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
 	for type in rela.items():
 		for fac in type[1].items():
-			if str(ctx.author.id) in fac[1].keys():
+			if str(interaction.user.id) in fac[1].keys():
 				faction = fac[0]
 				typ = type[0]
 	if not typ or not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
 		return
-	if member.id in rela[typ][faction][str(ctx.author.id)]:
-		await ctx.reply('Cette personne est déjà dans notre base de donnée.')
+	if member.id in rela[typ][faction][str(interaction.user.id)]:
+		await interaction.response.send_message('Cette personne est déjà dans notre base de donnée.')
 	else:
-		rela[typ][faction][str(ctx.author.id)].append(member.id)
+		rela[typ][faction][str(interaction.user.id)].append(member.id)
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
-	role = ctx.guild.get_role(790675785412640768)
+	role = interaction.guild.get_role(790675785412640768)
 	await member.add_roles(role)
-	await ctx.reply(embed=create_small_embed(f'Vous avez ajouté {member.mention} à votre faction avec succès'))
+	await interaction.response.send_message(embed=create_small_embed(f'Vous avez ajouté {member.mention} à votre faction avec succès'))
 
-@addmember.error
-async def addmember(ctx, error):
-	await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
-async def removemember(ctx,member:discord.Member=None,faction=None):
+@bot.tree.command()
+async def removemember(interaction: discord.Interaction,member:discord.Member,faction:str):
 	if not member:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de membre à ajouter !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de membre à ajouter !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
 	for type in rela.items():
 		for fac in type[1].items():
-			if str(ctx.author.id) in fac[1].keys():
+			if str(interaction.user.id) in fac[1].keys():
 				faction = fac[0]
 				typ = type[0]
 	if not typ or not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
 		return
-	if member.id in rela[typ][faction][str(ctx.author.id)]:
-		rela[typ][faction][str(ctx.author.id)].remove(member.id)
+	if member.id in rela[typ][faction][str(interaction.user.id)]:
+		rela[typ][faction][str(interaction.user.id)].remove(member.id)
 	else:
-		await ctx.reply("Cette personne n'est pas dans notre base de donnée.")
+		await interaction.response.send_message("Cette personne n'est pas dans notre base de donnée.")
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
-	role = ctx.guild.get_role(790675785412640768)
+	role = interaction.guild.get_role(790675785412640768)
 	await member.remove_roles(role)
-	await ctx.reply(embed=create_small_embed(f'Vous avez enlevé {member.mention} de votre faction avec succès'))
+	await interaction.response.send_message(embed=create_small_embed(f'Vous avez enlevé {member.mention} de votre faction avec succès'))
 
-@removemember.error
-async def addmember(ctx, error):
-	await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
-
-@bot.command()
+@bot.tree.command()
 @commands.cooldown(1, 86400, commands.BucketType.user)
-async def askally(ctx,faction=None):
+async def askally(interaction: discord.Interaction,faction:str):
 	if not faction:
-		await ctx.reply(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
@@ -2223,17 +2133,10 @@ async def askally(ctx,faction=None):
 	except:
 		pass
 	if member == None:
-		await ctx.reply(":warning: Vous n'etes pas en alliance ou avez spécifié la mauvaise faction !")
+		await interaction.response.send_message(":warning: Vous n'etes pas en alliance ou avez spécifié la mauvaise faction !")
 		return
-	await member.send(f'{ctx.author.mention} est il de votre faction ?',view=IsAlly())
-	await ctx.reply(embed=create_small_embed(f'Vous avez demandé à {member.mention} de rejoindre la {faction} avec succès'))
-
-@askally.error
-async def askally(ctx, error):
-	if isinstance(error, commands.CommandOnCooldown):
-		await ctx.reply(f"Afin d'éviter de spammer nos truces, cette commande n'est accèssible qu'une fois par jour.")
-	else:
-		await ctx.reply(embed=create_small_embed(":warning: Une erreur inconnue s'est produite, veuillez mp Anino75",discord.Color.red()))
+	await member.send(f'{interaction.user.mention} est il de votre faction ?',view=IsAlly())
+	await interaction.response.send_message(embed=create_small_embed(f'Vous avez demandé à {member.mention} de rejoindre la {faction} avec succès'))
 
 class IsAlly(discord.ui.View):
 	def __init__(self):
@@ -2304,24 +2207,24 @@ async def on_member_remove(member):
 		with open ('invite.json','w') as f:
 			json.dump(inv,f,indent=6) """
 
-@bot.command()
-async def invite(ctx,member:discord.Member=None):
+@bot.tree.command()
+async def invite(interaction: discord.Interaction,member:discord.Member):
 	if not member:
-		member = ctx.author
+		member = interaction.user
 	with open ('invite.json','r') as f:
 		inv = json.load(f)
 	invi = 0
 	roles = [791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235]
 	for members in inv["members"][str(member.id)]:
-		members = ctx.guild.get_member(members)
+		members = interaction.guild.get_member(members)
 		for role in roles:
-			role = ctx.guild.get_role(role)
+			role = interaction.guild.get_role(role)
 			if role in members.roles:
 				invi += 1
-	await ctx.reply(f'{member} a actuellement {invi} invitations complétées')
+	await interaction.response.send_message(f'{member} a actuellement {invi} invitations complétées')
 
-@bot.command()
-async def invtop(ctx):
+@bot.tree.command()
+async def invtop(interaction: discord.Interaction):
 	with open ('invite.json','r') as f:
 		inv = json.load(f)
 	roles = [791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235]
@@ -2329,9 +2232,9 @@ async def invtop(ctx):
 	for memberid in inv["members"].keys():
 		invi = 0
 		for invit in inv["members"][memberid]:
-			member = ctx.guild.get_member(int(invit))
+			member = interaction.guild.get_member(int(invit))
 			for role in roles:
-				role = ctx.guild.get_role(role)
+				role = interaction.guild.get_role(role)
 				if role in member.roles:
 					invi += 1
 		invitations.append([int(memberid),invi])
@@ -2360,21 +2263,21 @@ async def invtop(ctx):
 		tr = bot.get_user(int(clas[2][0])).mention
 	except:
 		tr = 'Aucun'
-	await ctx.reply(embed=create_small_embed(f'Voici notre classement :\n\n1er : {pr}\ninvites : {clas[0][1]}\n\n2eme : {dx}\ninvites : {clas[1][1]}\n\n1er : {tr}\ninvites : {clas[2][1]}\n\n'))
+	await interaction.response.send_message(embed=create_small_embed(f'Voici notre classement :\n\n1er : {pr}\ninvites : {clas[0][1]}\n\n2eme : {dx}\ninvites : {clas[1][1]}\n\n1er : {tr}\ninvites : {clas[2][1]}\n\n'))
 
 # =========== Fun ===========
 
-@bot.command()
-async def aleacrush(ctx,member:discord.Member = None):
+@bot.tree.command()
+async def aleacrush(interaction: discord.Interaction,member:discord.Member):
 	if not member:
-		member = ctx.author
-	guild = ctx.guild
+		member = interaction.user
+	guild = interaction.guild
 	member2 = guild.members[random.randint(0,len(guild.members))]
-	await ctx.reply(embed=create_small_embed(f'{member.mention}, Vous êtes tombé sous le charme de {member2.mention}'))
+	await interaction.response.send_message(embed=create_small_embed(f'{member.mention}, Vous êtes tombé sous le charme de {member2.mention}'))
 
-@bot.command()
+@bot.tree.command()
 @commands.cooldown(1, 30, commands.BucketType.user)
-async def pendu(ctx):
+async def pendu(interaction: discord.Interaction):
 	with open('liste_francais.txt','r',encoding="latin-1") as f:
 		liste = f.readlines()
 	f = 0
@@ -2383,51 +2286,51 @@ async def pendu(ctx):
 	trouv = ['- ']*(len(mot)-1)
 	util = []
 	mot.pop(-1)
-	message = await ctx.reply(" ".join(trouv))
+	message = await interaction.response.send_message(" ".join(trouv))
 	while f<10:
-		let = await ctx.reply('\nVeuillez donner une lettre')
-		lettre = (await waiting(ctx)).content
+		let = await interaction.response.send_message('\nVeuillez donner une lettre')
+		lettre = (await waiting(interaction)).content
 		if lettre in util:
-			await ctx.reply('Vous avez déjà utilisé cette lettre !')
+			await interaction.response.send_message('Vous avez déjà utilisé cette lettre !')
 		else:
 			if lettre in mot:
 				for i in range(len(mot)):
 					if mot[i] == lettre:
 						trouv[i] = lettre
 			else:
-				await ctx.reply("Votre lettre n'est pas dans le mot")
+				await interaction.response.send_message("Votre lettre n'est pas dans le mot")
 				f += 1
 			util.append(lettre)
 		await message.delete()
-		message = await ctx.reply(content=pend[f]+"\n"+' '.join(trouv))
+		message = await interaction.response.send_message(content=pend[f]+"\n"+' '.join(trouv))
 		if trouv == mot:
-			await ctx.reply('Vous avez gagné ! Félicitations !')
+			await interaction.response.send_message('Vous avez gagné ! Félicitations !')
 			return
 		await let.delete()
-	await ctx.reply(f"Vous avez perdu ! Le mot était {''.join(mot)}")
+	await interaction.response.send_message(f"Vous avez perdu ! Le mot était {''.join(mot)}")
 
-async def waiting(ctx):
+async def waiting(interaction: discord.Interaction):
 	def check(m):
-		return m.author == ctx.author and m.channel == ctx.channel
+		return m.author == interaction.user and m.channel == interaction.channel
 	lettre = await bot.wait_for('message', timeout=600, check=check)
 	if len(lettre.content)>1 or ord(lettre.content)<97 or ord(lettre.content)>122:
-		await ctx.reply("Veuillez n'indiquer qu'une seule lettre minuscule")
-		lettre = await waiting(ctx)
+		await interaction.response.send_message("Veuillez n'indiquer qu'une seule lettre minuscule")
+		lettre = await waiting(interaction)
 	return lettre
 
-@bot.command()
-async def motus(ctx):
+@bot.tree.command()
+async def motus(interaction: discord.Interaction):
 	with open('liste_francais.txt','r',encoding="latin-1") as f:
 		liste = f.readlines()
 	mot = list(liste[random.randint(0,len(liste))].upper())
 	mot.pop(-1)
 	print(mot)
-	message = await ctx.reply(f"Veuillez indiquer des mots en {len(mot)} lettres\n")
+	message = await interaction.response.send_message(f"Veuillez indiquer des mots en {len(mot)} lettres\n")
 	for j in range(5):
-		let = await ctx.reply('\nVeuillez donner un mot')
-		motu = list(((await ww(ctx,len(mot))).content).upper())
+		let = await interaction.response.send_message('\nVeuillez donner un mot')
+		motu = list(((await ww(interaction,len(mot))).content).upper())
 		if motu == mot:
-			await ctx.reply('Vous avez gagné ! Félicitations !')
+			await interaction.response.send_message('Vous avez gagné ! Félicitations !')
 			await message.edit(content=message.content+'\n***__'+'__*** ***__'.join(motu)+'__***')
 			return
 		for i in range(len(motu)):
@@ -2437,75 +2340,75 @@ async def motus(ctx):
 				motu[i] = f'__{motu[i]}__'
 		desc = message.content+"\n"+' '.join(motu)
 		await message.delete()
-		message = await ctx.reply(desc)
+		message = await interaction.response.send_message(desc)
 		await let.delete()
-	await ctx.reply(f"Vous avez perdu ! Le mot était {''.join(mot)}")
+	await interaction.response.send_message(f"Vous avez perdu ! Le mot était {''.join(mot)}")
 
-async def ww(ctx,ll):
+async def ww(interaction: discord.Interaction,ll):
 	with open('liste_francais.txt','r',encoding="latin-1") as f:
 		liste = f.readlines()
 	def check(m):
-		return m.author == ctx.author and m.channel == ctx.channel
+		return m.author == interaction.user and m.channel == interaction.channel
 	lettre = await bot.wait_for('message', timeout=600, check=check)
 	if len(lettre.content)!=ll:
-		await ctx.reply(f"Veuillez n'indiquer que des mots francais de {ll} lettres")
-		lettre = await ww(ctx,ll)
+		await interaction.response.send_message(f"Veuillez n'indiquer que des mots francais de {ll} lettres")
+		lettre = await ww(interaction,ll)
 	if (lettre.content+'\n') not in liste:
 		print("pb")
 	return lettre
 
 # =========== Quotas ===========
 
-@bot.command()
-async def debutquotas(ctx):
+@bot.tree.command()
+async def debutquotas(interaction: discord.Interaction):
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
 	def check(m):
-		return m.author == ctx.author and m.channel == ctx.channel
-	mes = await ctx.reply('Quels sont les quotasde la SD ?')
+		return m.author == interaction.user and m.channel == interaction.channel
+	mes = await interaction.response.send_message('Quels sont les quotasde la SD ?')
 	SD = await bot.wait_for('message', timeout=600, check=check)
 	await mes.delete()
-	mes = await ctx.reply('Quels sont les quotasde la SD ?')
+	mes = await interaction.response.send_message('Quels sont les quotasde la SD ?')
 	quota = await bot.wait_for('message', timeout=600, check=check)
 	await mes.delete()
-	Elite = ctx.guild.get_role(986333837065850952)
-	Bad = ctx.guild.get_role(991601555209990174)
+	Elite = interaction.guild.get_role(986333837065850952)
+	Bad = interaction.guild.get_role(991601555209990174)
 	id = [[],[]]
 	for personne in Elite.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {ctx.author.mention}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {interaction.user.mention}')
 		id[0].append(personne.id)
 	for personne in Bad.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {ctx.author.mention}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {interaction.user.mention}')
 		id[1].append(personne.id)
 	quot["semaine"] += 1
 	quot["semaine"+str(quot["semaine"])] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
-	await ctx.reply('Le message à bien été envoyé')
+	await interaction.response.send_message('Le message à bien été envoyé')
 
-@bot.command()
-async def renduquotas(ctx,divi,member:discord.Member=None):
+@bot.tree.command()
+async def renduquotas(interaction: discord.Interaction,divi:str,member:discord.Member):
 	if divi != "SD" and divi != "BD":
-		await ctx.reply("Ce n'est pas une division valide !")
+		await interaction.response.send_message("Ce n'est pas une division valide !")
 		return
 	if not member:
-		await ctx.reply("Vous n'avez pas indiqué de membre")
+		await interaction.response.send_message("Vous n'avez pas indiqué de membre")
 		return
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
 	if member.id not in quot["semaine"+str(quot["semaine"])][divi]["af"]:
-		await ctx.reply("Cette personne n'a pas de quotas a rendre")
+		await interaction.response.send_message("Cette personne n'a pas de quotas a rendre")
 		return
 	quot["semaine"+str(quot["semaine"])][divi]["af"].remove(member.id)
 	quot["semaine"+str(quot["semaine"])][divi]["fait"].append(member.id)
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
 	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
-	await ctx.reply('Le message à bien été envoyé')
+	await interaction.response.send_message('Le message à bien été envoyé')
 
 
-@bot.command()
-async def listequotas(ctx,semaine=None):
+@bot.tree.command()
+async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[str]):
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
 	if not semaine or semaine > quot["semaine"] or semaine<1:
@@ -2518,15 +2421,15 @@ async def listequotas(ctx,semaine=None):
 				pers = bot.get_user(personne)
 				message += "> "+pers.mention+"\n"
 			except:
-				await ctx.reply(f'il y a un soucis avec {personne}')
+				await interaction.response.send_message(f'il y a un soucis avec {personne}')
 		message += "**Rendu :**\n"
 		for personne in quot["semaine"+str(semaine)][divi]["fait"]:
 			try:
 				pers = bot.get_user(personne)
 				message += "> "+pers.mention+"\n"
 			except:
-				await ctx.reply(f'il y a un soucis avec {personne}')
-	await ctx.reply(embed=create_small_embed(message))
+				await interaction.response.send_message(f'il y a un soucis avec {personne}')
+	await interaction.response.send_message(embed=create_small_embed(message))
 
 # =========== Autre ===========
 
