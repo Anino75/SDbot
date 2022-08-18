@@ -1103,6 +1103,19 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 
 @bot.tree.command()
 @commands.has_permissions(administrator=True)
+async def lock(interaction: discord.Interaction):
+	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False,)})
+	await interaction.response.send_message(create_small_embed('''Ce channel à été **lock** par un membre du staff. Vous ne pouvez donc plus y parler jusqu'a ce qu'il soit unlock.\nIl peut avoir été lock pour plusieurs raisons mais généralement il s'agit d'une prévention (afin d'éviter que la discussion actuelle ne dégénère).\nMerci de votre comprehension,\nLe staff Sweetdream'''))
+
+@bot.tree.command()
+@commands.has_permissions(administrator=True)
+async def lock(interaction: discord.Interaction):
+	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=None,)})
+	await interaction.response.send_message(create_small_embed('''Le channel à été unlock'''))
+
+
+@bot.tree.command()
+@commands.has_permissions(administrator=True)
 async def warn(interaction: discord.Interaction, member : discord.Member, *, raison:str):
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
@@ -2387,6 +2400,15 @@ async def debutquotas(interaction: discord.Interaction):
 	await interaction.response.send_message('Le message à bien été envoyé')
 
 @bot.tree.command()
+async def enleverquotas(interaction: discord.Interaction):
+	with open ('quotas.json','r') as f:
+		quot = json.load(f)
+	quot["semaine"+quot["semaine"]]
+	with open ('quotas.json','w') as f:
+		json.dump(quot,f,indent=6)
+	await interaction.response.send_message('Le message à bien été envoyé')
+
+@bot.tree.command()
 async def renduquotas(interaction: discord.Interaction,divi:str,member:discord.Member):
 	if divi != "SD" and divi != "BD":
 		await interaction.response.send_message("Ce n'est pas une division valide !")
@@ -2421,14 +2443,14 @@ async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[s
 				pers = bot.get_user(personne)
 				message += "> "+pers.mention+"\n"
 			except:
-				await interaction.response.send_message(f'il y a un soucis avec {personne}')
+				await interaction.channel.send(f'il y a un soucis avec {personne}')
 		message += "**Rendu :**\n"
 		for personne in quot["semaine"+str(semaine)][divi]["fait"]:
 			try:
 				pers = bot.get_user(personne)
 				message += "> "+pers.mention+"\n"
 			except:
-				await interaction.response.send_message(f'il y a un soucis avec {personne}')
+				await interaction.channel.send(f'il y a un soucis avec {personne}')
 	await interaction.response.send_message(embed=create_small_embed(message))
 
 # =========== Autre ===========
