@@ -113,11 +113,9 @@ async def absence(interaction: discord.Interaction) -> None:
 @bot.tree.command()
 @commands.cooldown(1, 604800, commands.BucketType.user)
 async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
-	roles = [791066207418712094, 791066206437113897, 790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] and 791066207418712094 not in [x.id for x in interaction.user.roles] and 791066206437113897 not in [x.id for x in interaction.user.roles] and 790675784225521734 not in [x.id for x in interaction.user.roles] and 790675784120401932 not in [x.id for x in interaction.user.roles] and 790675783693500456 not in [x.id for x in interaction.user.roles] and 790675783549976579 not in [x.id for x in interaction.user.roles] and 790675783352975360 not in [x.id for x in interaction.user.roles] and 790675782364037131 not in [x.id for x in interaction.user.roles] and 790675782338740235 not in [x.id for x in interaction.user.roles]:
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if divi != "SD" and divi != "BD" and divi != "HD":
 		await interaction.response.send_message('La division que vous avez indiqué n\'est pas bonne, merci  d\'ecrire `*choixdivi SD` ou BD ou HD')
 		return
@@ -506,11 +504,9 @@ async def edditally():
 
 @bot.tree.command()
 async def prepare(interaction: discord.Interaction,prep:str):
-	roles = [960180290683293766, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if prep == 'reg' or prep == 'tout':
 		reg = interaction.guild.get_channel(948647836466151434)
 		chef = interaction.guild.get_role(790675782569164820)
@@ -770,11 +766,9 @@ async def recru(recruid):
 
 @bot.tree.command()
 async def listerecru(interaction: discord.Interaction):
-	roles = [960180290683293766, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	msg ='Voici la liste des recruteurs :'
@@ -785,11 +779,9 @@ async def listerecru(interaction: discord.Interaction):
 
 @bot.tree.command()
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
@@ -799,11 +791,9 @@ async def refuse(interaction: discord.Interaction, member: discord.Member, *, ra
 
 @bot.tree.command()
 async def accept(interaction: discord.Interaction, member: discord.Member):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -811,11 +801,9 @@ async def accept(interaction: discord.Interaction, member: discord.Member):
 
 @bot.tree.command()
 async def addtime(interaction: discord.Interaction, member: discord.Member, time_string:typing.Optional[str]):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -957,11 +945,9 @@ class testview(discord.ui.View):
 
 @bot.tree.command()
 async def oralyes(interaction: discord.Interaction, member: discord.Member):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	if not member:
@@ -1005,11 +991,9 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 
 @bot.tree.command()
 async def oralno(interaction: discord.Interaction, member: discord.Member):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -1046,11 +1030,9 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 
 @bot.tree.command()
 async def finphases(interaction: discord.Interaction, member: discord.Member,*,rendu:str):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -1094,11 +1076,9 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 
 @bot.tree.command()
 async def kickphases(interaction: discord.Interaction, member: discord.User, *, raison:str):
-	roles = [791426367362433066, 821787385636585513, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 791426367362433066 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	guild = interaction.guild
@@ -1145,32 +1125,26 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 
 @bot.tree.command()
 async def lock(interaction: discord.Interaction):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False,)})
 	await interaction.response.send_message(create_small_embed('''Ce channel à été **lock** par un membre du staff. Vous ne pouvez donc plus y parler jusqu'a ce qu'il soit unlock.\nIl peut avoir été lock pour plusieurs raisons mais généralement il s'agit d'une prévention (afin d'éviter que la discussion actuelle ne dégénère).\nMerci de votre comprehension,\nLe staff Sweetdream'''))
 
 @bot.tree.command()
 async def unlock(interaction: discord.Interaction):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=None,)})
 	await interaction.response.send_message(create_small_embed('''Le channel à été unlock'''))
 
 
 @bot.tree.command()
 async def warn(interaction: discord.Interaction, member : discord.Member, *, raison:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1194,11 +1168,9 @@ async def warn(interaction: discord.Interaction, member : discord.Member, *, rai
 
 @bot.tree.command()
 async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if member.id == interaction.user.id:
 		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
@@ -1234,11 +1206,9 @@ async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:
 
 @bot.tree.command()
 async def blame(interaction: discord.Interaction, member : discord.Member, *, raison:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1268,11 +1238,9 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 
 @bot.tree.command()
 async def unblame(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if member.id == interaction.user.id:
 		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
@@ -1308,11 +1276,9 @@ async def unblame(interaction: discord.Interaction, member : discord.Member, nbw
 
 @bot.tree.command()
 async def rankup(interaction: discord.Interaction, member:discord.Member):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1340,11 +1306,9 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 
 @bot.tree.command()
 async def derank(interaction: discord.Interaction, member:discord.Member,*,raison:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1371,11 +1335,9 @@ async def derank(interaction: discord.Interaction, member:discord.Member,*,raiso
 
 @bot.tree.command()
 async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
@@ -1397,11 +1359,9 @@ async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:s
 
 @bot.tree.command()
 async def unban(interaction: discord.Interaction, member:discord.User,*,raison:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if member.id == interaction.user.id:
 		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
@@ -1413,11 +1373,9 @@ async def unban(interaction: discord.Interaction, member:discord.User,*,raison:s
 
 @bot.tree.command()
 async def sanctions(interaction: discord.Interaction, member: discord.Member):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 		if not member:
 			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 			return
@@ -1441,11 +1399,9 @@ async def sanctions(interaction: discord.Interaction, member: discord.Member):
 
 @bot.tree.command()
 async def addinfo(interaction: discord.Interaction, member: discord.Member,positive_negative_neutre:str,*,info:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 		if not member:
 			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 			return
@@ -1575,11 +1531,9 @@ async def money(interaction: discord.Interaction,member:discord.User):
 
 @bot.tree.command()
 async def give(interaction: discord.Interaction,member:discord.Member,money:int):
-	roles = [790675781789155329, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 960180290683293766 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -1596,11 +1550,9 @@ async def give(interaction: discord.Interaction,member:discord.Member,money:int)
 
 @bot.tree.command()
 async def remove(interaction: discord.Interaction,member:discord.Member,money:int):
-	roles = [790675781789155329, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 960180290683293766 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -1803,11 +1755,9 @@ class PvPView(discord.ui.View):
 
 @bot.tree.command()
 async def claim(interaction: discord.Interaction):
-	roles = [960180290683293766, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 960180290683293766 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	try:
 		int(interaction.channel.name[-4:])
 	except:
@@ -1821,11 +1771,9 @@ async def claim(interaction: discord.Interaction):
 
 @bot.tree.command()
 async def livre(interaction: discord.Interaction):
-	roles = [960180290683293766, 798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 960180290683293766 not in [x.id for x in interaction.user.roles] and 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if interaction.channel.name[:8] != 'commande':
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
@@ -2072,11 +2020,9 @@ class rouleView(discord.ui.View):
 
 @bot.tree.command()
 async def reset(interaction: discord.Interaction,res:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if res == 'eco' or res == 'tout':
 		Eco = {
 			"Comptes": {},
@@ -2093,11 +2039,9 @@ async def reset(interaction: discord.Interaction,res:str):
 
 @bot.tree.command()
 async def addpna(interaction: discord.Interaction,faction:str,member:discord.Member):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not faction:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
@@ -2114,11 +2058,9 @@ async def addpna(interaction: discord.Interaction,faction:str,member:discord.Mem
 
 @bot.tree.command()
 async def addtruce(interaction: discord.Interaction,faction:str,member:discord.Member):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not faction:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
@@ -2137,11 +2079,9 @@ async def addtruce(interaction: discord.Interaction,faction:str,member:discord.M
 
 @bot.tree.command()
 async def addally(interaction: discord.Interaction,faction:str,member:discord.Member):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not faction:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
@@ -2160,11 +2100,9 @@ async def addally(interaction: discord.Interaction,faction:str,member:discord.Me
 
 @bot.tree.command()
 async def endally(interaction: discord.Interaction,faction:str):
-	roles = [798301141094891620, 790675782569164820]
-	for t in roles:
-		if t not in [x.id for x in interaction.user.roles]:
-			await interaction.response.send_message('''Vous n'avez pas accès à cette commande''')
-			return
+	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		return
 	if not faction:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
 		return
