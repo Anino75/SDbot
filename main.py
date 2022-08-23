@@ -1071,6 +1071,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews[b].pop(a)
 	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		return
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 	with open('phases.json', 'r') as f:
@@ -1089,10 +1090,12 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	role1 = guild.get_role(791066207418712094)
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	log = bot.get_channel(831615469134938112)
+	await recru(interaction.user)
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_permissions
 async def kickphases(interaction: discord.Interaction, member: discord.User, *, raison:str):
 	roles = [791426367362433066, 821787385636585513, 790675782569164820]
 	for t in roles:
@@ -1114,7 +1117,7 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 	try:
 		interviews[b].pop(a)
 	except:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
 	log = bot.get_channel(831615469134938112)
@@ -1126,7 +1129,7 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		with open('phases.json', 'w') as f:
 			json.dump(phases, f, indent=6)
 	except:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
+		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
 	try:
 		await member.send(embed=_embed)
 		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
