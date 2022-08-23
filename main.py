@@ -11,7 +11,6 @@ from urllib import response
 #from sqlalchemy import true
 import chat_exporter
 import discord
-import toml
 from discord.ext import commands, tasks
 import mysql.connector
 import typing
@@ -19,13 +18,11 @@ from typing import Optional
 
 debug = True
 SERVER = True
-config = toml.load(open('config.toml'))
-PREFIX = config['Prefix']
 intents = discord.Intents().all()
 
 class PersistentViewBot(commands.Bot):
 	def __init__(self):
-		super().__init__(command_prefix=commands.when_mentioned_or(PREFIX), help_command=None, case_insensitive=True, intents=intents)
+		super().__init__(command_prefix=commands.when_mentioned_or('SD'), help_command=None, case_insensitive=True, intents=intents)
 	async def setup_hook(self) -> None:
 		self.add_view(PersistentView())
 		self.add_view(fermerticket())
@@ -76,14 +73,13 @@ class event(discord.ui.View):
 		await interaction.user.add_roles(role)
 		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
-@bot.tree.command()
-async def absence(interaction: discord.Interaction,raison:str,duree:str) -> None:
-	'''Merci de mettre la durée sous la forme JJ/MM/AAAA'''
+async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
+	"""Merci de mettre la date sous la forme JJ/MM/AAAA"""
 	if 813928386946138153 in [x.id for x in interaction.user.roles]:
 		await interaction.response.send_message('Vous êtes déjà absent.e !')
 		return
 	try:
-		if int(duree[0:2]) + int(duree[3:5]) + int(duree[6:10]) < 2100 and len(duree) == 10 and int(duree[0:2])>=int(str(datetime.now())[8:10]) and int(duree[3:5])>=int(str(datetime.now())[5:7]) and int(duree[6:10])>=int(str(datetime.now())[0:4]):
+		if int(date[0:2]) + int(date[3:5]) + int(date[6:10]) < 2100 and len(date) == 10 and int(date[0:2])>=int(str(datetime.now())[8:10]) and int(date[3:5])>=int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4]):
 			pass
 		else:
 			await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
@@ -93,14 +89,14 @@ async def absence(interaction: discord.Interaction,raison:str,duree:str) -> None
 		return
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
-	if duree[0:10] in ab.keys():
-		ab[duree[0:10]][interaction.user.id] = raison
+	if date[0:10] in ab.keys():
+		ab[date[0:10]][interaction.user.id] = raison
 	else:
-		ab[duree[0:10]] = {interaction.user.id:raison}
+		ab[date[0:10]] = {interaction.user.id:raison}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
 	chanel = bot.get_channel(790719427800858634)
-	await chanel.send(f"{interaction.user.mention} est absent jusqu'au {duree} pour {raison}")
+	await chanel.send(f"{interaction.user.mention} est absent jusqu'au {date} pour {raison}")
 	role = interaction.guild.get_role(813928386946138153)
 	await interaction.user.add_roles(role)
 	await interaction.response.send_message('Votre absence a bien été prise en compte')
@@ -582,10 +578,7 @@ async def prepare(interaction: discord.Interaction,prep:str):
 			" la réaction. Les HG pourront répondre à vos questions."), view=PersistentView())
 	if prep == 'PvP' or prep == 'tout' or prep == 'market':
 		PvP = bot.get_channel(819576587846418432)
-		await PvP.send("**Armures:**\n<:pala_helmet:823931428109680640> "
-				   "Casque P4U3 -> 5.000$/u\n<:pala_chest:823931435781324841> "
-				   "Plastron P4U3 -> 6.000$/u\n<:pala_leggings:823931446032465962> "
-				   "Pantalon P4U3 -> 6.000$/u", view=PvPView())
+		await PvP.send(await edimarket("PvP"), view=PvPView())
 	if prep == 'RouleR' or prep == 'tout' or prep == 'jeux':
 		jeux = bot.get_channel(961592610412167270)
 		await jeux.send(embed = create_embed('Roulette Russe','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette russe et tenter de **__multiplier par 5 votre mise !__**'),view=RouleR())
@@ -614,6 +607,14 @@ async def prepare(interaction: discord.Interaction,prep:str):
 		await relat.send(embed=create_embed('Relations Factions',
 											  f'Voici ici la liste de toutes nos relations :\n\n**Ally :**\n{ally}\n\n**Truces :**\n{truces}\n\n**Pacte de non agression :**\n{pna}'))
 	await interaction.response.send_message("Tout s'est bien passé !")
+
+async def edimarket(item):
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	msg = ""
+	for tt in Eco["items"][item].items():
+		msg += f'{tt[1][2]} {tt[1][0]} -> {tt[1][1]}$/u\n'
+	return msg
 
 # =========== Effectif ===========
 
@@ -853,7 +854,6 @@ async def addtime(interaction: discord.Interaction, member: discord.Member, time
 
 @tasks.loop(seconds = 3600)
 async def inactivity():
-	print('bb')
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	guild = bot.get_guild(790367917812088864)
@@ -1069,6 +1069,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews[b].pop(a)
 	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		return
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 	with open('phases.json', 'r') as f:
@@ -1111,7 +1112,7 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 	try:
 		interviews[b].pop(a)
 	except:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
+		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
 	with open('Interview.json', 'w') as f:
 		json.dump(interviews, f, indent=6)
 	log = bot.get_channel(831615469134938112)
@@ -1123,7 +1124,7 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		with open('phases.json', 'w') as f:
 			json.dump(phases, f, indent=6)
 	except:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
+		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
 	try:
 		await member.send(embed=_embed)
 		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
@@ -1631,20 +1632,14 @@ class Nombre(discord.ui.Select):
 	async def callback(self, interaction: discord.Interaction):
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		if str(interaction.user.id) != Eco["commande"][interaction.channel.name[-4:]][0]:
-			await interaction.response.send_message(":warning: Vous n'êtes pas l'auteur de ce ticket !",ephemeral=True)
-			return
+		#prix = Eco["items"]["PvP"][][1]
 		await interaction.channel.purge()
 		if self.values[0] == 'Plus que 5':
 			await interaction.channel.send("Veuillez indiquer combien d'Items vous souhaitez prendre")
 			nb = await chiffrecommande(interaction.user,interaction.channel)
 		else:
 			nb = int(self.values[0])
-		Eco["commande"][interaction.channel.name[-4:]][2] = str(int(Eco["commande"][interaction.channel.name[-4:]][2])*nb)
-		Eco["commande"][interaction.channel.name[-4:]].append(str(nb))
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
-		await interaction.channel.send("Souhaitez vous payer en jeu ou avez votre solde ?",view=Methode())
+		await interaction.channel.send(f"Souhaitez vous payer en jeu ou avez votre solde ? (ID : {interaction.message.content[-4:-1]}, Nombre : {nb})",view=Methode())
 
 async def chiffrecommande(member,channel):
 	def check(m):
@@ -1675,72 +1670,47 @@ async def commandefinie(guild,channel):
 	vendeur = guild.get_role(960180290683293766)
 	await AP.send(vendeur.mention,embed=embed_)
 	await channel.send(embed=embed_)
-""" <:heal_II:1005914803438628886> 
-<:fire_resistance:1005914778042110075> 
-<:hang_glider:968964169644785704> 
-<:heal_stick:1005914806949257317> 
-<:stick_of_god:1005914868404211852> 
-<:arc_en_paladium:1005914758161125557>
-<:livres:823938415279865857> """
 
 class PvP(discord.ui.Select):
 	def __init__(self):
-		options = [
-			discord.SelectOption(label='Casque P4U3',description='4.500$/u',emoji="<:casque:968964169120505856> "),
-			discord.SelectOption(label='Plastron P4U3',description='4.500$/u',emoji="<:plastron:968964169170825316> "),
-			discord.SelectOption(label='Pantalon P4U3',description='4.500$/u',emoji="<:pantalon:968964169854517259> "),
-			discord.SelectOption(label='Bottes P4U3',description='4.500$/u',emoji="<:bottes:968964167144964236> "),
-			discord.SelectOption(label='Épée S5F2U3',description='5.000$/u',emoji="<:epee_pala:823934747251572737>"),
-			discord.SelectOption(label='Full P4U3',description='18.000$/u',emoji="<:full_p4:968964170815012924> "),
-			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
-			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
-			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
-			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
-			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
-			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
-			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
-			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
-			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
-			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
-			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
-			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
-			discord.SelectOption(label='Casque P4U3',description='5.000$/u',emoji="<:pala_helmet:823931428109680640>"),
-			discord.SelectOption(label='Plastron P4U3',description='6.000$/u',emoji="<:pala_chest:823931435781324841>"),
-			discord.SelectOption(label='Pantalon P4U3',description='6.000$/u',emoji="<:pala_leggings:823931446032465962>"),
-		]
-		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='PvP')
-	async def callback(self, interaction: discord.Interaction):
-		prix = {'Casque P4U3':5000,'Plastron P4U3':6000,'Pantalon P4U3':6000}
-		guild = bot.get_guild(790367917812088864)
+		options = []
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		try:
-			if Eco["Auteurs"][str(interaction.user.id)] >= 3:
-				await interaction.response.send_message(":warning: Vous ne pouvez pas faire plus de 3 commandes en meme temps !",ephemeral=True)
-				return
-		except:
-			pass
-		for x in Eco["commande"].items():
-			if x[1][0] == str(interaction.user.id) and len(x[1]) < 5:
-				await interaction.response.send_message("Veuillez finir votre commande avant d'en rouvrir une autre",ephemeral=True)
-				return
-		Eco["commande"][Eco["tickets"]] = [str(interaction.user.id),self.values[0],prix[self.values[0]]]
-		try:
-			Eco["Auteurs"][str(interaction.user.id)] += 1
-		except:
-			Eco["Auteurs"][str(interaction.user.id)] = 1
+		for tt in Eco["items"]["PvP"].items():
+			options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/u',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='PvP')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
 		vendeur = guild.get_role(960180290683293766)
-		comm = await interaction.guild.create_text_channel(name="Commande " + Eco["tickets"],
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
 													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
 															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
 														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
 														   category=guild.get_channel(819574162686738473))
-		Eco["tickets"]  = (4-len(str(int(Eco["tickets"])+1)))*"0"+str(int(Eco["tickets"])+1)
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
-		await comm.send(interaction.user.mention+", merci d'avoir commandé l'item "+self.values[0]+" chez nous.",
-						view=NombreView())
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
 		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def editpvp(interaction: discord.Interaction,message:str):
+	PvP = bot.get_channel(819576587846418432)
+	message = await PvP.fetch_message(message)
+	msg = await edimarket("PvP")
+	print(msg)
+	await message.edit(content=msg, view=PvPView())
+	await interaction.response.send_message('ok')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def additem(interaction: discord.Interaction,categorie:str,id:str,titre:str,prix:int,emoji:str):
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	Eco["items"][categorie][id] = [titre,prix,emoji]
+	with open('economie.json', 'w') as f:
+		json.dump(Eco, f, indent=6)
+	interaction.response.send_message(f'{titre} à été ajouté au catalogue pour {prix}$/u')
 
 class PvPView(discord.ui.View):
 	def __init__(self):
@@ -2415,37 +2385,30 @@ async def ww(interaction: discord.Interaction,ll):
 # =========== Quotas ===========
 
 @bot.tree.command()
-async def debutquotas(interaction: discord.Interaction):
+async def debutquotas(interaction: discord.Interaction,quotas_sd:str,quotas_bd:str):
+	await interaction.response.send_message('Le message n"a pas bien été envoyé')
+	
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
-	def check(m):
-		return m.author == interaction.user and m.channel == interaction.channel
-	mes = await interaction.response.send_message('Quels sont les quotasde la SD ?')
-	SD = await bot.wait_for('message', timeout=600, check=check)
-	await mes.delete()
-	mes = await interaction.response.send_message('Quels sont les quotasde la SD ?')
-	quota = await bot.wait_for('message', timeout=600, check=check)
-	await mes.delete()
 	Elite = interaction.guild.get_role(986333837065850952)
 	Bad = interaction.guild.get_role(991601555209990174)
 	id = [[],[]]
 	for personne in Elite.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {SD.content} à {interaction.user.mention}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_sd} à {interaction.user.mention}')
 		id[0].append(personne.id)
 	for personne in Bad.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quota.content} à {interaction.user.mention}')
+		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_bd} à {interaction.user.mention}')
 		id[1].append(personne.id)
 	quot["semaine"] += 1
 	quot["semaine"+str(quot["semaine"])] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
-	await interaction.response.send_message('Le message à bien été envoyé')
 
 @bot.tree.command()
 async def enleverquotas(interaction: discord.Interaction):
 	with open ('quotas.json','r') as f:
 		quot = json.load(f)
-	quot["semaine"+quot["semaine"]]
+	quot["semaine"+str(quot["semaine"])]
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
 	await interaction.response.send_message('Le message à bien été envoyé')
@@ -2469,7 +2432,6 @@ async def renduquotas(interaction: discord.Interaction,divi:str,member:discord.M
 		json.dump(quot,f,indent=6)
 	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
 	await interaction.response.send_message('Le message à bien été envoyé')
-
 
 @bot.tree.command()
 async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[str]):
@@ -2567,7 +2529,7 @@ async def on_message(message):
 				description=f'User: {message.author.mention}\n{message.content}',
 				color=discord.Color.magenta()
 			))
-		if message.content.startswith(PREFIX):
+		if message.content.startswith('SD'):
 			await message.author.send("Vous ne pouvez pas m'utiliser en message privé !")
 		return
 	await bot.process_commands(message)

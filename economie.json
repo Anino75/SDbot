@@ -1,6 +1,15 @@
 {
+      "items":{
+            "PvP":{"001":["Casque P4U3",5000,"<:casque:968964169120505856>"]},
+            "farming":[[]],
+            "minerais":[[]],
+            "alchimiste":[[]],
+            "livres":[[]],
+            "machines":[[]],
+            "outils":[[]],
+            "services":[[]],
+            "pillages":[[]]
+      },
       "Comptes": {},
-      "tickets": "0000",
-      "commande": {},
-      "Auteurs": {}
+      "commande": {}
 }
