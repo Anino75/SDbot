@@ -77,18 +77,13 @@ class event(discord.ui.View):
 		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
 @bot.tree.command()
-async def absence(interaction: discord.Interaction) -> None:
+async def absence(interaction: discord.Interaction,raison:str,duree:str) -> None:
+	'''Merci de mettre la durée sous la forme JJ/MM/AAAA'''
 	if 813928386946138153 in [x.id for x in interaction.user.roles]:
 		await interaction.response.send_message('Vous êtes déjà absent.e !')
 		return
-	def check(m):
-		return m.user == interaction.user and m.channel == interaction.channel
-	await interaction.channel.send(f'Quelle est la raison de votre absence ?')
-	msg = await bot.wait_for('message', timeout=180,check=check)
-	await interaction.channel.send(f"Jusqu'a quand durera votre absence ? (merci de mettre la date sous la forme JJ/MM/AAAA)")
-	tt = await bot.wait_for('message', timeout=180,check=check)
 	try:
-		if int(tt.content[0:2]) + int(tt.content[3:5]) + int(tt.content[6:10]) < 2100 and len(tt.content) == 10 and int(tt.content[0:2])>=int(str(datetime.now())[8:10]) and int(tt.content[3:5])>=int(str(datetime.now())[5:7]) and int(tt.content[6:10])>=int(str(datetime.now())[0:4]):
+		if int(duree[0:2]) + int(duree[3:5]) + int(duree[6:10]) < 2100 and len(duree) == 10 and int(duree[0:2])>=int(str(datetime.now())[8:10]) and int(duree[3:5])>=int(str(datetime.now())[5:7]) and int(duree[6:10])>=int(str(datetime.now())[0:4]):
 			pass
 		else:
 			await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
@@ -98,14 +93,14 @@ async def absence(interaction: discord.Interaction) -> None:
 		return
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
-	if tt.content[0:10] in ab.keys():
-		ab[tt.content[0:10]][interaction.user.id] = msg.content
+	if duree[0:10] in ab.keys():
+		ab[duree[0:10]][interaction.user.id] = raison
 	else:
-		ab[tt.content[0:10]] = {interaction.user.id:msg.content}
+		ab[duree[0:10]] = {interaction.user.id:raison}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
 	chanel = bot.get_channel(790719427800858634)
-	await chanel.send(f"{interaction.user.mention} est absent jusqu'au {tt.content} pour {msg.content}")
+	await chanel.send(f"{interaction.user.mention} est absent jusqu'au {duree} pour {raison}")
 	role = interaction.guild.get_role(813928386946138153)
 	await interaction.user.add_roles(role)
 	await interaction.response.send_message('Votre absence a bien été prise en compte')
@@ -114,7 +109,7 @@ async def absence(interaction: discord.Interaction) -> None:
 @commands.cooldown(1, 604800, commands.BucketType.user)
 async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
 	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] and 791066207418712094 not in [x.id for x in interaction.user.roles] and 791066206437113897 not in [x.id for x in interaction.user.roles] and 790675784225521734 not in [x.id for x in interaction.user.roles] and 790675784120401932 not in [x.id for x in interaction.user.roles] and 790675783693500456 not in [x.id for x in interaction.user.roles] and 790675783549976579 not in [x.id for x in interaction.user.roles] and 790675783352975360 not in [x.id for x in interaction.user.roles] and 790675782364037131 not in [x.id for x in interaction.user.roles] and 790675782338740235 not in [x.id for x in interaction.user.roles]:
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les membres peuvent utiliser cette commande !',discord.Color.red()))
 		return
 	if divi != "SD" and divi != "BD" and divi != "HD":
 		await interaction.response.send_message('La division que vous avez indiqué n\'est pas bonne, merci  d\'ecrire `*choixdivi SD` ou BD ou HD')
@@ -162,9 +157,9 @@ async def voc():
 	if dtn not in voc.keys():
 		voc[dtn] = {}
 	for channel in guild.voice_channels:
-		if len(channel.members)>1:
+		if len(channel.members)-1 > [mem.bot for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_deaf for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.deaf for mem in channel.members].count(True):
 			for member in channel.members:
-				if member.voice.mute == False and member.voice.self_mute == False and member.voice.deaf == False and member.voice.self_deaf == False:
+				if len(channel.members)>1 and member.voice.mute == False and member.voice.self_mute == False and member.voice.deaf == False and member.voice.self_deaf == False and member.bot == False:
 					if str(member.id) in voc["total"].keys():
 						voc["total"][str(member.id)] += 1
 					else:
@@ -193,9 +188,30 @@ async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None
 		await interaction.response.send_message('''Vous n'êtes jamais venu en voc !''')
 		return
 	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {sorted(voc[total_ou_mois].values(),reverse=True).index(voc[total_ou_mois][str(interaction.user.id)])+1}eme')
-	
+
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+async def recruteurtempsdevoc(interaction: discord.Interaction,membre:discord.Member,total_ou_mois:str) -> None:
+	if 791066206109958204 not in [x.id for x in membre.roles]:
+		await interaction.response.send_message('''Vous ne pouvez voir que l'activité des membres en test !''')
+		return
+	if total_ou_mois == "mois":
+		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+	elif total_ou_mois != "total":
+		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`')
+		return
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	if str(membre.id) not in voc[total_ou_mois]:
+		await interaction.response.send_message(f'''{membre.mention} n'êtes jamais venu en voc !''')
+		return
+	await interaction.response.send_message(f'{membre.mention} a `{voc[total_ou_mois][str(membre.id)]}` minutes de voc')
+
 @bot.tree.command()
 async def admintempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
+	if 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in interaction.user.roles]:
+		await interaction.response.send_message(embed=create_small_embed('Seuls les HG peuvent utiliser cette commande !'))
+		return
 	if total_ou_mois == "mois":
 		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
 	elif total_ou_mois != "total":
@@ -438,7 +454,7 @@ async def on_ready():
 		print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
 	print(field_placeholder)
 	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
-	act = discord.Game(name="*help pour voir les commandes auxquelles vous avez accès")
+	act = discord.Game(name="/help pour voir les commandes auxquelles vous avez accès")
 	await bot.change_presence(activity=act)
 
 
@@ -1071,6 +1087,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	role1 = guild.get_role(791066207418712094)
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	log = bot.get_channel(831615469134938112)
+	await recru(str(interaction.user.id))
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
@@ -1124,35 +1141,27 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 # =========== Staff ===========
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def lock(interaction: discord.Interaction):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False,)})
 	await interaction.response.send_message(create_small_embed('''Ce channel à été **lock** par un membre du staff. Vous ne pouvez donc plus y parler jusqu'a ce qu'il soit unlock.\nIl peut avoir été lock pour plusieurs raisons mais généralement il s'agit d'une prévention (afin d'éviter que la discussion actuelle ne dégénère).\nMerci de votre comprehension,\nLe staff Sweetdream'''))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def unlock(interaction: discord.Interaction):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=None,)})
 	await interaction.response.send_message(create_small_embed('''Le channel à été unlock'''))
 
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def warn(interaction: discord.Interaction, member : discord.Member, *, raison:str):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
 		return
 	_embed = discord.Embed(title="Warn",
-						   description="Bonjour,\nTu as été averti.e pour la raison suivante : "+raison+
-									   "\nModérateur :"+interaction.user.mention
-						   )
+						   description="Bonjour,\nTu as été averti.e pour la raison suivante : "+raison)
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1167,10 +1176,8 @@ async def warn(interaction: discord.Interaction, member : discord.Member, *, rai
 	await log.send(embed=create_small_embed(member.mention+ ' à été warn par ' +interaction.user.mention+" pour "+raison))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	if member.id == interaction.user.id:
 		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
@@ -1180,9 +1187,7 @@ async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:
 		if nbw != None:
 			raison = str(nbw)+raison
 	_embed = discord.Embed(title="Unwarn",
-						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison+
-									   "\nModérateur :"+interaction.user.mention
-						   )
+						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison)
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1221,8 +1226,7 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 															" derank de la faction ainsi qu'une punition de** 10 000 "
 															"obsidian, deux stacks de blocs de pala et 200 000$\n**Au "
 															"bout de 3 blâmes vous serez temporairement banni de la "
-															"faction pour un mois**\nModérateur : "+interaction.user.mention
-						   )
+															"faction pour un mois**")
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1237,22 +1241,17 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 	await log.send(embed=create_small_embed(member.mention+ ' à été blamé par ' +interaction.user.mention+" pour "+raison))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def unblame(interaction: discord.Interaction, member : discord.Member, nbw:typing.Optional[int], *, raison:typing.Optional[str]):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	if member.id == interaction.user.id:
-		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
+		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unblame sale vilain",discord.Color.red()))
 		return
 	try:
 		nbw=int(nbw)-1
 	except:
 		if nbw != None:
 			raison = str(nbw)+raison
-	_embed = discord.Embed(title="Blame",
-						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison+
-									   "\nModérateur :"+interaction.user.mention
-						   )
+	_embed = discord.Embed(title="Blame",description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison)
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1275,10 +1274,8 @@ async def unblame(interaction: discord.Interaction, member : discord.Member, nbw
 	await log.send(embed=create_small_embed(member.mention+ ' à été unblame par ' +interaction.user.mention+" pour "+raison))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def rankup(interaction: discord.Interaction, member:discord.Member):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1305,10 +1302,8 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 	await interaction.response.send_message("Le rankup a bien été effectué")
 
 @bot.tree.command()
-async def derank(interaction: discord.Interaction, member:discord.Member,*,raison:str):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
+async def derank(interaction: discord.Interaction, member:discord.Member,*,raison:typing.Optional[str]):
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -1334,16 +1329,21 @@ async def derank(interaction: discord.Interaction, member:discord.Member,*,raiso
 	await interaction.response.send_message("Le derank a bien été effectué")
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:str):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
+	if member.id == 790574682294190091:
+		await interaction.response.send_message('Vous ne pouvez pas ban la grande maitresse suprème !')
+		try:
+			interaction.user.send('Vous avez été banni pour avoir tenté de bannir la grande maitresse suprème')
+		except:
+			pass
+		await interaction.guild.ban(interaction.user,reason='Tente de ban la grande maitresse supreme')
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
 	guild = interaction.guild
 	embed_ = discord.Embed(
-		description=f"Vous avez été banni de la SweetDream pour la raison suivante : {raison}\nModérateur : {interaction.user.mention}",
+		description=f"Vous avez été banni de la SweetDream pour la raison suivante : {raison}",
 		color=discord.Color.red()
 	)
 	try:
@@ -1358,10 +1358,8 @@ async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:s
 	await interaction.response.send_message(embed=create_small_embed(message))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def unban(interaction: discord.Interaction, member:discord.User,*,raison:str):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
-		return
 	if member.id == interaction.user.id:
 		await interaction.response.send_message(embed=create_small_embed("Tu peux pas t'unwarn sale vilain",discord.Color.red()))
 		return
@@ -1372,51 +1370,47 @@ async def unban(interaction: discord.Interaction, member:discord.User,*,raison:s
 	await interaction.response.send_message(embed=create_small_embed(member.mention+"à bien été déban"))
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def sanctions(interaction: discord.Interaction, member: discord.Member):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+	if not member:
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
-		if not member:
-			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
-			return
-		with open('warnblame.json', 'r') as f:
-			wb = json.load(f)
-		with open('phases.json', 'r') as f:
-			ph = json.load(f)
-		msg = f"Mention : {member.mention} ({member.nick})\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
-		if str(member.id) in ph["Fait"]:
-			msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0][8:10]}/{ph['Fait'][str(member.id)][0][5:7]}/{ph['Fait'][str(member.id)][0][0:4]}"
-		for element in wb.keys():
-			msg += f"\n\n**{element} :**"
-			try:
-				for i in range(len(wb[element][str(member.id)])):
-					msg += f"\n[{str(i+1)}] {wb[element][str(member.id)][i][0]} - *{wb[element][str(member.id)][i][1][8:10]}/{wb[element][str(member.id)][i][1][5:7]}/{wb[element][str(member.id)][i][1][0:4]}*"
-			except:
-				msg+=f"\nAucun {element}"
-		embed = discord.Embed(title=member.name,description=msg)
-		embed.set_thumbnail(url=member.avatar.url)
-		await interaction.response.send_message(embed=embed)
+	with open('warnblame.json', 'r') as f:
+		wb = json.load(f)
+	with open('phases.json', 'r') as f:
+		ph = json.load(f)
+	msg = f"Mention : {member.mention} ({member.nick})\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
+	if str(member.id) in ph["Fait"]:
+		msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0][8:10]}/{ph['Fait'][str(member.id)][0][5:7]}/{ph['Fait'][str(member.id)][0][0:4]}"
+	for element in wb.keys():
+		msg += f"\n\n**{element} :**"
+		try:
+			for i in range(len(wb[element][str(member.id)])):
+				msg += f"\n[{str(i+1)}] {wb[element][str(member.id)][i][0]} - *{wb[element][str(member.id)][i][1][8:10]}/{wb[element][str(member.id)][i][1][5:7]}/{wb[element][str(member.id)][i][1][0:4]}*"
+		except:
+			msg+=f"\nAucun {element}"
+	embed = discord.Embed(title=member.name,description=msg)
+	embed.set_thumbnail(url=member.avatar.url)
+	await interaction.response.send_message(embed=embed)
 
 @bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def addinfo(interaction: discord.Interaction, member: discord.Member,positive_negative_neutre:str,*,info:str):
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] :
-		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les hg peuvent utiliser cette commande !',discord.Color.red()))
+	if not member:
+		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
-		if not member:
-			await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
-			return
-		with open('warnblame.json', 'r') as f:
-			wb = json.load(f)
-		if positive_negative_neutre != "neutre" and positive_negative_neutre != "positive" and positive_negative_neutre != "neutre":
-			info = positive_negative_neutre+info
-			positive_negative_neutre = "neutre"
-		if str(member.id) in wb[positive_negative_neutre].keys():
-			wb[positive_negative_neutre][str(member.id)].append([info,str(datetime.now())])
-		else:
-			wb[positive_negative_neutre][str(member.id)] = [[info,str(datetime.now())]]
-		with open('warnblame.json', 'w') as f:
-			json.dump(wb, f, indent=6)
-		await interaction.response.send_message(embed=create_small_embed("l'info à été enregistrée"))
+	with open('warnblame.json', 'r') as f:
+		wb = json.load(f)
+	if positive_negative_neutre != "negative" and positive_negative_neutre != "positive" and positive_negative_neutre != "neutre":
+		await interaction.response.send_message("Il faut écrire `positive`, `negative` ou `neutre` patate")
+		return
+	if str(member.id) in wb[positive_negative_neutre].keys():
+		wb[positive_negative_neutre][str(member.id)].append([info,str(datetime.now())])
+	else:
+		wb[positive_negative_neutre][str(member.id)] = [[info,str(datetime.now())]]
+	with open('warnblame.json', 'w') as f:
+		json.dump(wb, f, indent=6)
+	await interaction.response.send_message(embed=create_small_embed("l'info à été enregistrée"))
 
 # =========== Tickets ===========
 
