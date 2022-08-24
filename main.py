@@ -1036,7 +1036,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 		interviews["Recruteur"][str(interaction.user.id)] += 1
 	else:
 		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Candids"].keys():
+	if str(interaction.user.id) in interviews["Oral"].keys():
 		interviews["Oral"][str(interaction.user.id)] += 1
 	else:
 		interviews["Oral"][str(interaction.user.id)] = 1
