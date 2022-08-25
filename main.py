@@ -1108,7 +1108,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews["Recruteur"][str(interaction.user.id)] += 1
 	else:
 		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Candids"].keys():
+	if str(interaction.user.id) in interviews["Phases"].keys():
 		interviews["Phases"][str(interaction.user.id)] += 1
 	else:
 		interviews["Phases"][str(interaction.user.id)] = 1
