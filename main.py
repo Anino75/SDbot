@@ -83,6 +83,8 @@ class event(discord.ui.View):
 		await interaction.user.add_roles(role)
 		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
 async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	"""Merci de mettre la date sous la forme JJ/MM/AAAA"""
 	if 813928386946138153 in [x.id for x in interaction.user.roles]:
@@ -634,7 +636,6 @@ async def effectif():
 				'Membres VIP': [790675782338740235, 790675782364037131, 790675783352975360],
 				'Membres +': [790675783549976579, 790675783693500456, 790675784120401932],
 				'Membres': [790675784225521734, 791066206437113897, 791066207418712094]}
-	abs_role = guild.get_role(813928386946138153)
 	message = await channel.fetch_message(937008348597997628)
 	_embed = discord.Embed(
 		title='Voici notre effectif:',
@@ -651,7 +652,7 @@ async def effectif():
 	for roles_obj in list(roles.items()):
 		_embed.description += f"\n**{roles_obj[0]} :**\n\n"
 		for role in roles_obj[1]:
-			v_field = ", ".join([x.mention for x in role.members if abs_role.id not in [r.id for r in x.roles]])
+			v_field = ", ".join([x.mention for x in role.members])
 				# _embed.add_field(name=role.name, value=v_field if v_field != '' else ' - ')
 			_embed.description += f"{role.mention} : {v_field}\n\n"
 	await message.edit(embed=_embed)
@@ -802,12 +803,23 @@ class candid(discord.ui.View):
 async def listerecru(interaction: discord.Interaction):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
-	await interaction.response.send_message(embed=
-		create_small_embed(
-			f'''**Total :**\n<@{sorted(interviews["Recruteur"], key=lambda recru: interviews["Recruteur"][recru],reverse=True).join("><@")}>
-			\n**Candidatures :**\n<@{sorted(interviews["Candids"], key=lambda recru: interviews["Candids"][recru],reverse=True).join("><@")}>
-			\n**Entretiens**\n<@{sorted(interviews["Oral"], key=lambda recru: interviews["Oral"][recru],reverse=True).join("><@")}>
-			\n**Phases :**\n<@{sorted(interviews["Phases"], key=lambda recru: interviews["Phases"][recru],reverse=True).join("><@")}>'''))
+		msg = '**Total :**\n'
+	for rec in sorted(interviews["Recruteur"], key=lambda recru: interviews["Recruteur"][recru],reverse=True):
+		msg += f'<@{rec}> - {interviews["Recruteur"][rec]}\n'
+
+	msg += '\n**Candidatures :**\n'
+	for rec in sorted(interviews["Candids"], key=lambda recru: interviews["Candids"][recru],reverse=True):
+		msg += f'<@{rec}> - {interviews["Candids"][rec]}\n'
+
+	msg += '\n**Entretiens :**\n'
+	for rec in sorted(interviews["Oral"], key=lambda recru: interviews["Oral"][recru],reverse=True):
+		msg += f'<@{rec}> - {interviews["Oral"][rec]}\n'
+
+	msg += '\n**Phases :**\n'
+	for rec in sorted(interviews["Phases"], key=lambda recru: interviews["Phases"][recru],reverse=True):
+		msg += f'<@{rec}> - {interviews["Phases"][rec]}'
+
+	await interaction.response.send_message(embed=create_small_embed(msg))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
@@ -1083,7 +1095,7 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 		interviews["Recruteur"][str(interaction.user.id)] += 1
 	else:
 		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Candids"].keys():
+	if str(interaction.user.id) in interviews["Oral"].keys():
 		interviews["Oral"][str(interaction.user.id)] += 1
 	else:
 		interviews["Oral"][str(interaction.user.id)] = 1
@@ -1108,7 +1120,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews["Recruteur"][str(interaction.user.id)] += 1
 	else:
 		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Candids"].keys():
+	if str(interaction.user.id) in interviews["Phases"].keys():
 		interviews["Phases"][str(interaction.user.id)] += 1
 	else:
 		interviews["Phases"][str(interaction.user.id)] = 1
@@ -1125,7 +1137,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		await member.edit(nick=f'[??] {member.nick[5:]}')
 	except:
 		await member.edit(nick=f'[??] {member.name}')
-	role = guild.get_role(791066206109958204)
+	role = guild.get_role(1011953852427272302)
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(791066207418712094)
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
@@ -1736,13 +1748,12 @@ class PvP(discord.ui.Select):
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
-	#views={"PvP":PvPview(),"farming":farmingview(),"minerais":mineraisview(),"alchimiste":alchiview(),"livres":livresview(),"machines":machinesview(),"outils":outilsview(),
-	"services":servicesview(),"pillages":pillagesview()}
+	#views={"PvP":PvPview(),"farming":farmingview(),"minerais":mineraisview(),"alchimiste":alchiview(),"livres":livresview(),"machines":machinesview(),"outils":outilsview(),"services":servicesview(),"pillages":pillagesview()}
 	PvP = bot.get_channel(819576587846418432)
 	message = await PvP.fetch_message(message)
 	msg = await edimarket("PvP")
 	print(msg)
-	await message.edit(content=msg, view=views[categorie])
+	#await message.edit(content=msg, view=views[categorie])
 	await interaction.response.send_message('ok')
 
 @bot.tree.command()
