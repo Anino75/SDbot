@@ -1736,7 +1736,7 @@ class PvP(discord.ui.Select):
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
-	views={"PvP":PvPview(),"farming":farmingview(),"minerais":mineraisview(),"alchimiste":alchiview(),"livres":livresview(),"machines":machinesview(),"outils":outilsview(),
+	#views={"PvP":PvPview(),"farming":farmingview(),"minerais":mineraisview(),"alchimiste":alchiview(),"livres":livresview(),"machines":machinesview(),"outils":outilsview(),
 	"services":servicesview(),"pillages":pillagesview()}
 	PvP = bot.get_channel(819576587846418432)
 	message = await PvP.fetch_message(message)
