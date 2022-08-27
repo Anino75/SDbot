@@ -1,4 +1,5 @@
 import asyncio
+from inspect import stack
 import io
 import json
 import random
@@ -27,7 +28,15 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(PersistentView())
 		self.add_view(fermerticket())
 		self.add_view(PvPView())
-		self.add_view(NombreView())
+		self.add_view(farmView())
+		self.add_view(mineraisView())
+		self.add_view(alchimisteView())
+		self.add_view(livresView())
+		self.add_view(machinesView())
+		self.add_view(outilsView())
+		self.add_view(servicesView())
+		self.add_view(pillagesView())
+		self.add_view(basesclaimView())
 		self.add_view(Methode())
 		self.add_view(RouleR())
 		self.add_view(contijouer())
@@ -586,9 +595,6 @@ async def prepare(interaction: discord.Interaction,prep:str):
 			"Bonjour à tous, voici notre système de support. Cela vous permettra de nous poser toutes "
 			"vos questions, vos demandes ou nous faire des plaintes.\n\nPour ouvrir un salon de support, clique sur"
 			" la réaction. Les HG pourront répondre à vos questions."), view=PersistentView())
-	if prep == 'PvP' or prep == 'tout' or prep == 'market':
-		PvP = bot.get_channel(819576587846418432)
-		await PvP.send(await edimarket("PvP"), view=PvPView())
 	if prep == 'RouleR' or prep == 'tout' or prep == 'jeux':
 		jeux = bot.get_channel(961592610412167270)
 		await jeux.send(embed = create_embed('Roulette Russe','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette russe et tenter de **__multiplier par 5 votre mise !__**'),view=RouleR())
@@ -616,14 +622,23 @@ async def prepare(interaction: discord.Interaction,prep:str):
 			pna = "Nous n'avons aucun pacte de non agression pour l'instant"
 		await relat.send(embed=create_embed('Relations Factions',
 											  f'Voici ici la liste de toutes nos relations :\n\n**Ally :**\n{ally}\n\n**Truces :**\n{truces}\n\n**Pacte de non agression :**\n{pna}'))
+	if prep == 'tout' or prep == 'market':
+		views={"PvP":[PvPView(),819576587846418432],"farming":[farmView(),820047258597720094],"minerais":[mineraisView(),819575989003747400],"alchimiste":[alchimisteView(),819576467284295701],"livres":[livresView(),823930348047695952],"machines":[machinesView(),819577657711657011],"outils":[outilsView(),819576748651839498],"services":[servicesView(),819578071875059712],"pillages":[pillagesView(),819577906761695242],"BC":[basesclaimView(),1012658806406262795]}
+		for tu in views.items():
+			chan = bot.get_channel(tu[1][1])
+			await chan.send(await edimarket(tu[0]), view=tu[1][0])
 	await interaction.response.send_message("Tout s'est bien passé !")
 
 async def edimarket(item):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
 	msg = ""
-	for tt in Eco["items"][item].items():
-		msg += f'{tt[1][2]} {tt[1][0]} -> {tt[1][1]}$/u\n'
+	views={"PvP":[0,100],"farming":[99,200],"minerais":[199,300],"alchimiste":[299,400],"livres":[399,500],"machines":[499,600],"outils":[599,700],"services":[699,800],"pillages":[799,900],"basesclaim":[899,1000]}
+	a = views[item][0]
+	b = views[item][1]
+	for tt in Eco["items"].items():
+		if a<int(tt[0])<b: 
+			msg += f'{tt[1][2]} {tt[1][0]} -> {tt[1][1]}$/{tt[1][3]}\n'
 	return msg
 
 # =========== Effectif ===========
@@ -1568,17 +1583,19 @@ async def compte(member):
 
 @bot.tree.command()
 async def money(interaction: discord.Interaction,member:discord.User):
-	with open('economie.json', 'r') as f:
-		Eco = json.load(f)
 	if not member:
 		await compte(interaction.user)
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
 		await interaction.response.send_message("Vous avez actuelement "+str(Eco["Comptes"][str(interaction.user.id)])+"$ sur votre compte")
 		return
-	if 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in
+	elif 790675782569164820 not in [x.id for x in interaction.user.roles] and 821787385636585513 not in [x.id for x in
 																										 interaction.user.roles]:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Seuls les HG peuvent voir l'argent des autres !", discord.Color.red()))
 		return
 	await compte(member)
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
 	await interaction.response.send_message(member.mention + " à actuelement " + str(Eco["Comptes"][str(member.id)]) + "$ sur son compte")
 
 @bot.tree.command()
@@ -1637,6 +1654,9 @@ async def pay(interaction: discord.Interaction,member:discord.Member,money:int):
 	log = bot.get_channel(959867855350931486)
 	await log.send(embed=create_small_embed(interaction.user.mention+" à donné "+str(money)+"$ à "+member.mention))
 
+
+
+#f"Souhaitez vous payer en jeu ou avez votre solde ? (ID : {interaction.message.content[-4:-1]}, Nombre : {nb})"
 class Methode(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
@@ -1645,31 +1665,38 @@ class Methode(discord.ui.View):
 		await compte(interaction.user)
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		if str(interaction.user.id) != Eco["commande"][interaction.channel.name[-4:]][0]:
-			await interaction.response.send_message(":warning: Vous n'êtes pas l'auteur de ce ticket !", ephemeral=True)
-			return
-		if int(Eco["commande"][interaction.channel.name[-4:]][2]) > Eco["Comptes"][str(interaction.user.id)]:
+		id = interaction.message.content[56:59]
+		nb = interaction.message.content[70:-1]
+		prix = Eco["items"][id][1]*nb
+		if prix > Eco["Comptes"][str(interaction.user.id)]:
 			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent ! Veuillez payer en jeu !",ephemeral=True)
 			await interaction.channel.send("Merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-			Eco["commande"][interaction.channel.name[-4:]].append("\n\n**A payer**")
+			pay = "\n\n**A payer**"
 		else:
 			Eco["Comptes"][str(interaction.user.id)] -= Eco["commande"][interaction.channel.name[-4:]][2]
 			await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-			Eco["commande"][interaction.channel.name[-4:]].append("\n\n**Déjà payée**")
+			pay = "\n\n**Déjà payée**"
 		with open('economie.json', 'w') as f:
 			json.dump(Eco, f, indent=6)
 		await interaction.message.delete()
-		await commandefinie(interaction.guild,interaction.channel)
+		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{prix}\n\n**Pour prendre la commande, `*claim` dans le **"+interaction.channel.mention)
+		APp = interaction.guild.get_channel(960113232398401586)
+		await APp.send("<@&960180290683293766>",embed=embed_)
+		await interaction.channel.send(embed=embed_)
+
 	@discord.ui.button(label='Payer en jeu', style=discord.ButtonStyle.red, custom_id='jeu')
 	async def jeu(self, interaction: discord.Interaction, button: discord.ui.Button):
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		Eco["commande"][interaction.channel.name[-4:]].append("\n\n**A payer**")
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
+		id = interaction.message.content[56:59]
+		nb = interaction.message.content[70:-1]
+		print(id,nb)
 		await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
 		await interaction.message.delete()
-		await commandefinie(interaction.guild,interaction.channel)
+		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `*claim` dans le **"+interaction.channel.mention)
+		APp = interaction.guild.get_channel(960113232398401586)
+		await APp.send("<@&960180290683293766>",embed=embed_)
+		await interaction.channel.send(embed=embed_)
 
 class Nombre(discord.ui.Select):
 	def __init__(self):
@@ -1685,7 +1712,6 @@ class Nombre(discord.ui.Select):
 	async def callback(self, interaction: discord.Interaction):
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		#prix = Eco["items"]["PvP"][][1]
 		await interaction.channel.purge()
 		if self.values[0] == 'Plus que 5':
 			await interaction.channel.send("Veuillez indiquer combien d'Items vous souhaitez prendre")
@@ -1709,28 +1735,14 @@ class NombreView(discord.ui.View):
 		super().__init__(timeout=None)
 		self.add_item(Nombre())
 
-async def commandefinie(guild,channel):
-	with open('economie.json', 'r') as f:
-		Eco = json.load(f)
-	acheteur = bot.get_user(int(Eco["commande"][channel.name[-4:]][0]))
-	embed_=discord.Embed(
-		title = "Commande "+channel.name[-4:],
-		description = "**Acheteur :**\n"+acheteur.mention+"\n\n**Item :**\n"+Eco["commande"][channel.name[-4:]][1]+"\n\n**Quantité :**\n"+Eco["commande"][channel.name[-4:]][3]+"\n\n**Prix :**\n"+Eco["commande"][channel.name[-4:]][2]+Eco["commande"][channel.name[-4:]][4]+"\n\n**Pour prendre la commande, `*claim` dans le **"+channel.mention
-	)
-	with open('economie.json', 'w') as f:
-		json.dump(Eco, f, indent=6)
-	AP = guild.get_channel(960113232398401586)
-	vendeur = guild.get_role(960180290683293766)
-	await AP.send(vendeur.mention,embed=embed_)
-	await channel.send(embed=embed_)
-
 class PvP(discord.ui.Select):
 	def __init__(self):
 		options = []
 		with open('economie.json', 'r') as f:
 			Eco = json.load(f)
-		for tt in Eco["items"]["PvP"].items():
-			options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/u',emoji=tt[1][2]))
+		for tt in Eco["items"].items():
+			if 000<int(tt[0])<100:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
 		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='PvP')
 	async def callback(self, interaction: discord.Interaction):
 		with open('economie.json', 'r') as f:
@@ -1745,31 +1757,285 @@ class PvP(discord.ui.Select):
 		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
 		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
 
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
-	#views={"PvP":PvPview(),"farming":farmingview(),"minerais":mineraisview(),"alchimiste":alchiview(),"livres":livresview(),"machines":machinesview(),"outils":outilsview(),"services":servicesview(),"pillages":pillagesview()}
-	PvP = bot.get_channel(819576587846418432)
-	message = await PvP.fetch_message(message)
-	msg = await edimarket("PvP")
-	print(msg)
-	#await message.edit(content=msg, view=views[categorie])
-	await interaction.response.send_message('ok')
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def additem(interaction: discord.Interaction,categorie:str,id:str,titre:str,prix:int,emoji:str):
-	with open('economie.json', 'r') as f:
-		Eco = json.load(f)
-	Eco["items"][categorie][id] = [titre,prix,emoji]
-	with open('economie.json', 'w') as f:
-		json.dump(Eco, f, indent=6)
-	interaction.response.send_message(f'{titre} à été ajouté au catalogue pour {prix}$/u')
-
 class PvPView(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
 		self.add_item(PvP())
+
+class farm(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 99<int(tt[0])<200:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='farm')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class farmView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(farm())
+
+class minerais(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 199<int(tt[0])<300:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='minerais')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class mineraisView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(minerais())
+
+class alchimiste(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 299<int(tt[0])<400:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='alchimiste')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class alchimisteView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(alchimiste())
+
+class livres(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 399<int(tt[0])<500:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='livres')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class livresView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(livres())
+
+class machines(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 499<int(tt[0])<600:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='machines')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class machinesView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(machines())
+
+class outils(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 599<int(tt[0])<700:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='outils')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class outilsView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(outils())
+
+class services(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 699<int(tt[0])<800:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='services')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class servicesView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(services())
+
+class pillages(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 799<int(tt[0])<900:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='pillages')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class pillagesView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(pillages())
+
+class basesclaim(discord.ui.Select):
+	def __init__(self):
+		options = []
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		for tt in Eco["items"].items():
+			if 899<int(tt[0])<1000:
+				options.append(discord.SelectOption(label=f'{tt[1][0]} (ID : {tt[0]})',description=f'{tt[1][1]}$/{tt[1][3]}',emoji=tt[1][2]))
+		super().__init__(placeholder='Quel item voulez vous commander ?', min_values=1, max_values=1, options=options, custom_id='basesclaim')
+	async def callback(self, interaction: discord.Interaction):
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		guild = bot.get_guild(790367917812088864)
+		vendeur = guild.get_role(960180290683293766)
+		comm = await interaction.guild.create_text_channel(name=f"Commande {interaction.user.name}",
+													overwrites={guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False, ),
+															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
+														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
+														   category=guild.get_channel(819574162686738473))
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
+
+class basesclaimView(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(basesclaim())
+
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
+async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
+	views={"PvP":PvPView(),"farming":farmView(),"minerais":mineraisView(),"alchimiste":alchimisteView(),"livres":livresView(),"machines":machinesView(),"outils":outilsView(),"services":servicesView(),"pillages":pillagesView(),"BC":basesclaimView()}
+	if categorie not in views.keys():
+		await interaction.response.send_message('Mauvaise catégorie')
+		return
+	message = await interaction.channel.fetch_message(message)
+	msg = await edimarket(categorie)
+	await message.edit(content=msg, view=views[categorie])
+	await interaction.response.send_message('ok',ephemeral=True)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
+async def additem(interaction: discord.Interaction,id:str,titre:str,prix:int,emoji:str,stack_u:str):
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	Eco["items"][id] = [titre,prix,emoji,stack_u]
+	with open('economie.json', 'w') as f:
+		json.dump(Eco, f, indent=6)
+	await interaction.response.send_message(f'{titre} à été ajouté au catalogue pour {prix}$/{stack_u}',ephemeral=True)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def removeitem(interaction: discord.Interaction,id:str,):
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	Eco["items"].pop(id)
+	with open('economie.json', 'w') as f:
+		json.dump(Eco, f, indent=6)
+	await interaction.response.send_message(f'{id} à été retiré du catalogue avec succès')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
@@ -2437,10 +2703,16 @@ async def debutquotas(interaction: discord.Interaction,quotas_sd:str,quotas_bd:s
 	Bad = interaction.guild.get_role(991601555209990174)
 	id = [[],[]]
 	for personne in Elite.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_sd} à {interaction.user.mention}')
+		try:
+			await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_sd} à {interaction.user.mention}')
+		except:
+			await interaction.channel.send(f'Il y a un problème avec{personne.mention} ({personne.id})')
 		id[0].append(personne.id)
 	for personne in Bad.members:
-		await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_bd} à {interaction.user.mention}')
+		try:
+			await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_bd} à {interaction.user.mention}')
+		except:
+			await interaction.channel.send(f'Il y a un problème avec{personne.mention} ({personne.id})')
 		id[1].append(personne.id)
 	quot["semaine"+str(quot["semaine"]+1)] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
 	quot["semaine"] += 1

@@ -1,15 +1,111 @@
 {
-      "items":{
-            "PvP":{"001":["Casque P4U3",5000,"<:casque:968964169120505856>"]},
-            "farming":[[]],
-            "minerais":[[]],
-            "alchimiste":[[]],
-            "livres":[[]],
-            "machines":[[]],
-            "outils":[[]],
-            "services":[[]],
-            "pillages":[[]]
+      "items": {
+            "001": [
+                  "Full P4 U3 Mending",
+                  24000,
+                  "<:full_p4:968964170815012924>",
+                  "u"
+            ],
+            "002": [
+                  "Casque en Paladium P4 U3",
+                  5000,
+                  "<:casque:968964169120505856>",
+                  "u"
+            ],
+            "003": [
+                  "Plastron en Paladium P4 U3",
+                  5000,
+                  "<:plastron:968964169170825316>",
+                  "u"
+            ],
+            "004": [
+                  "Pantalon en paladium P4",
+                  4500,
+                  "<:pantalon:968964169854517259>",
+                  "u"
+            ],
+            "005": [
+                  "Bottes en paladium P4",
+                  4500,
+                  "<:bottes:968964167144964236>",
+                  "u"
+            ],
+            "006": [
+                  "\u00c9p\u00e9e en paladium S5 F2 U3",
+                  5000,
+                  "<:epee_pala:823934747251572737>",
+                  "u"
+            ],
+            "007": [
+                  "Potion instantan\u00e9e de Heal 2",
+                  150,
+                  "<:heal_II:1005914803438628886>",
+                  "u"
+            ],
+            "008": [
+                  "Potion de Fire Resistance 8min",
+                  300,
+                  "\ud83d\udd25",
+                  "u"
+            ],
+            "009": [
+                  "Amulette de Magma",
+                  5000,
+                  "\ud83d\udd25",
+                  "u"
+            ],
+            "010": [
+                  "Hang Glider",
+                  500,
+                  "<:hang_glider:968964169644785704>",
+                  "u"
+            ],
+            "011": [
+                  "Potion Launcher",
+                  2000,
+                  "<:SweetDream:800120911561752587>",
+                  "u"
+            ],
+            "012": [
+                  "Speed stick",
+                  6000,
+                  "<:SweetDream:800120911561752587>",
+                  "u"
+            ],
+            "013": [
+                  "Heal stick",
+                  3900,
+                  "<:heal_stick:1005914806949257317>",
+                  "u"
+            ],
+            "014": [
+                  "Strength stick",
+                  2900,
+                  "<:SweetDream:800120911561752587>",
+                  "u"
+            ],
+            "015": [
+                  "Hyper Jump stick",
+                  11000,
+                  "<:hyper_jump_stick:1005914815027490906>",
+                  "u"
+            ],
+            "016": [
+                  "Stick of god",
+                  11500,
+                  "<:stick_of_god:1005914868404211852>",
+                  "u"
+            ],
+            "017": [
+                  "Pomme en paladium",
+                  500,
+                  "<:SweetDream:800120911561752587>",
+                  "u"
+            ]
       },
-      "Comptes": {},
-      "commande": {}
+      "Comptes": {
+            "699697587367706624": 123123,
+            "905951017152184340": 1000000000000000,
+            "497425043047972885": 0
+      }
 }
