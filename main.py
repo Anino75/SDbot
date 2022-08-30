@@ -37,7 +37,6 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(servicesView())
 		self.add_view(pillagesView())
 		self.add_view(basesclaimView())
-		self.add_view(Methode())
 		self.add_view(RouleR())
 		self.add_view(contijouer())
 		self.add_view(roulette())
@@ -220,7 +219,22 @@ async def recruteurtempsdevoc(interaction: discord.Interaction,membre:discord.Me
 	with open('voc.json','r') as f:
 		voc = json.load(f)
 	if str(membre.id) not in voc[total_ou_mois]:
-		await interaction.response.send_message(f'''{membre.mention} n'êtes jamais venu en voc !''')
+		await interaction.response.send_message(f'''{membre.mention} n'est jamais venu en voc !''')
+		return
+	await interaction.response.send_message(f'{membre.mention} a `{voc[total_ou_mois][str(membre.id)]}` minutes de voc')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
+async def joueurtempsdevoc(interaction: discord.Interaction,membre:discord.Member,total_ou_mois:str) -> None:
+	if total_ou_mois == "mois":
+		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
+	elif total_ou_mois != "total":
+		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`')
+		return
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	if str(membre.id) not in voc[total_ou_mois]:
+		await interaction.response.send_message(f'''{membre.mention} n'est jamais venu en voc !''')
 		return
 	await interaction.response.send_message(f'{membre.mention} a `{voc[total_ou_mois][str(membre.id)]}` minutes de voc')
 
@@ -326,23 +340,21 @@ async def spam(interaction: discord.Interaction,member: discord.Member,nombre: t
 @bot.tree.command()
 async def weshwesh(interaction: discord.Interaction):
 	if interaction.user.id != 790574682294190091:
-		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
+		await interaction.response.send_message('''T'es pas la grande maitresse supreme toi !''')
 		return
-	with open('phases.json', 'r') as f:
-		phases = json.load(f)
-	role_id = [790675783352975360,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204]
-	for ids in role_id:
-		role = interaction.guild.get_role(ids)
-		for member in role.members:
-			print(member.id)
-			try:
-				await member.send("Bonjour, suite à l'annonce de faction voici le catalogue :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Source de Fake Water -> 40 points (1500 sources max par personne)\n- Enclumes en améthyste et titane -> 700 points\n- Enclumes en pala -> 1.400\n- Obsidienne -> 12.5 points\n- 1$ -> 0,2 point")
-			except:
-				await interaction.response.send_message(f"{member.mention} à désactivé ses mp")
-			phases["A faire"][member.id] = str(datetime.now())
-			interaction.channel.send(f'fait pour {member.mention}')
-	with open('phases.json', 'w') as f:
-		json.dump(phases, f, indent=6)
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	Roles = {"790675782338740235":48600,"790675782364037131":39600,"790675783352975360":31500,"790675783549976579":24300,"790675783693500456":18000,
+			 "790675784120401932":12600,"790675784225521734":8100,"791066206437113897":4500,"791066207418712094":1800,"791066206109958204":0}
+	for personne in interaction.guild.members:
+		for tt in personne.roles:
+			if str(tt.id) in Roles.keys():
+				if str(personne.id) in voc['total'].keys():
+					voc['total'][str(personne.id)] += Roles[str(tt.id)]
+				else:
+					voc['total'][str(personne.id)] = Roles[str(tt.id)]
+	with open("voc.json",'w') as f:
+		json.dump(voc, f, indent=6)
 	await interaction.response.send_message('fait')
 
 @bot.tree.command()
@@ -633,7 +645,7 @@ async def edimarket(item):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
 	msg = ""
-	views={"PvP":[0,100],"farming":[99,200],"minerais":[199,300],"alchimiste":[299,400],"livres":[399,500],"machines":[499,600],"outils":[599,700],"services":[699,800],"pillages":[799,900],"basesclaim":[899,1000]}
+	views={"PvP":[0,100],"farming":[99,200],"minerais":[199,300],"alchimiste":[299,400],"livres":[399,500],"machines":[499,600],"outils":[599,700],"services":[699,800],"pillages":[799,900],"BC":[899,1000]}
 	a = views[item][0]
 	b = views[item][1]
 	for tt in Eco["items"].items():
@@ -1207,6 +1219,8 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 		role1 = guild.get_role(791066206109958204)
 		await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
+		role1 = guild.get_role(1011953852427272302)
+		await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 		await member.edit(nick="")
 	except:
 		await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
@@ -1375,24 +1389,23 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 async def quirankup(interaction: discord.Interaction):
 	with open('voc.json','r') as f:
 		voc = json.load(f)
-	Roles = {"790675782338740235":48600,"790675782364037131":39600,"790675783352975360":31500,"790675783549976579":24300,"790675783693500456":18000,
-			 "790675784120401932":12600,"790675784225521734":8100,"791066206437113897":4500,"791066207418712094":1800,"791066206109958204":0}
+	Roles = [[790675782338740235,48600],[790675782364037131,39600],[790675783352975360,31500],[790675783549976579,24300],[790675783693500456,18000],
+			 [790675784120401932,12600],[790675784225521734,8100],[791066206437113897,4500],[791066207418712094,1800],[791066206109958204,0]]
 	for personne in voc['total'].items():
 		role = None
 		role2 = None
-		print(personne[0])
 		mem = interaction.guild.get_member(int(personne[0]))
 		if mem != None:
-			for x in Roles.items():
-				if role == None and x[1] < personne[1]:
-					role = interaction.guild.get_role(int(x[0]))
-				if int(x[0]) in [t.id for t in mem.roles]:
-					role2 = interaction.guild.get_role(int(x[0]))
-			if role2 != None and role != role2:
-				await interaction.channel.send(f'{mem.mention} devrait passer {role.mention}')
+			for x in Roles:
+				if role == None and x[1] <= personne[1]:
+					role = interaction.guild.get_role(x[0])
+				if x[0] in [t.id for t in mem.roles]:
+					role2 = interaction.guild.get_role(x[0])
+			if role2 != None and role!=None and role != role2:
+				await interaction.channel.send(f'{mem.mention} est {role2.mention} et devrait passer {role.mention}')
 		else:
 			await interaction.channel.send(f"<@{personne[0]}> est parti ou alors il y a un soucis")
-	await interaction.response.send_message('Finito')
+	await interaction.channel.send('Finito')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
@@ -1676,50 +1689,6 @@ async def pay(interaction: discord.Interaction,member:discord.Member,money:int):
 	log = bot.get_channel(959867855350931486)
 	await log.send(embed=create_small_embed(interaction.user.mention+" à donné "+str(money)+"$ à "+member.mention))
 
-
-
-#f"Souhaitez vous payer en jeu ou avez votre solde ? (ID : {interaction.message.content[-4:-1]}, Nombre : {nb})"
-class Methode(discord.ui.View):
-	def __init__(self):
-		super().__init__(timeout=None)
-	@discord.ui.button(label='Payer par solde', style=discord.ButtonStyle.green, custom_id='solde')
-	async def solde(self,interaction: discord.Interaction, button: discord.ui.Button):
-		await compte(interaction.user)
-		with open('economie.json', 'r') as f:
-			Eco = json.load(f)
-		id = interaction.message.content[56:59]
-		nb = interaction.message.content[70:-1]
-		prix = Eco["items"][id][1]*int(nb)
-		if prix > Eco["Comptes"][str(interaction.user.id)]:
-			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent ! Veuillez payer en jeu !",ephemeral=True)
-			await interaction.channel.send("Merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-			pay = "\n\n**A payer**"
-		else:
-			Eco["Comptes"][str(interaction.user.id)] -= Eco["commande"][interaction.channel.name[-4:]][2]
-			await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-			pay = "\n\n**Déjà payée**"
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
-		await interaction.message.delete()
-		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{prix}\n\n**Pour prendre la commande, `*claim` dans le **"+interaction.channel.mention)
-		APp = interaction.guild.get_channel(960113232398401586)
-		await APp.send("<@&960180290683293766>",embed=embed_)
-		await interaction.channel.send(embed=embed_)
-
-	@discord.ui.button(label='Payer en jeu', style=discord.ButtonStyle.red, custom_id='jeu')
-	async def jeu(self, interaction: discord.Interaction, button: discord.ui.Button):
-		with open('economie.json', 'r') as f:
-			Eco = json.load(f)
-		id = interaction.message.content[56:59]
-		nb = interaction.message.content[70:-1]
-		print(id,nb)
-		await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-		await interaction.message.delete()
-		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `*claim` dans le **"+interaction.channel.mention)
-		APp = interaction.guild.get_channel(960113232398401586)
-		await APp.send("<@&960180290683293766>",embed=embed_)
-		await interaction.channel.send(embed=embed_)
-
 class Nombre(discord.ui.Select):
 	def __init__(self):
 		options = [
@@ -1740,7 +1709,13 @@ class Nombre(discord.ui.Select):
 			nb = await chiffrecommande(interaction.user,interaction.channel)
 		else:
 			nb = int(self.values[0])
-		await interaction.channel.send(f"Souhaitez vous payer en jeu ou avez votre solde ? (ID : {interaction.message.content[-4:-1]}, Nombre : {nb})",view=Methode())
+		id = interaction.message.content[-4:-1]
+		await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
+		await interaction.message.delete()
+		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `/claim` dans le **{interaction.channel.mention}")
+		APp = interaction.guild.get_channel(960113232398401586)
+		await APp.send("<@&960180290683293766>",embed=embed_)
+		await interaction.channel.send(embed=embed_)
 
 async def chiffrecommande(member,channel):
 	def check(m):
@@ -2062,9 +2037,7 @@ async def removeitem(interaction: discord.Interaction,id:str,):
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
 async def claim(interaction: discord.Interaction):
-	try:
-		int(interaction.channel.name[-4:])
-	except:
+	if interaction.channel.name[:8] != "commande":
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
 	await compte(interaction.user)
@@ -2086,11 +2059,6 @@ async def livre(interaction: discord.Interaction):
 		io.BytesIO(transcript.encode()),
 		filename=f"transcript-{interaction.channel.name}.html",
 	)
-	if Eco["commande"][interaction.channel.name[-4:]][4]== "\n\n**Déjà payée**":
-		Eco["Comptes"][str(interaction.user.id)] += Eco["commande"][interaction.channel.name[-4:]][2]
-		await interaction.user.send("Vous avez été payé")
-	Eco['Auteurs'][Eco["commande"][interaction.channel.name[-4:]][0]] -= 1
-	Eco["commande"].pop(interaction.channel.name[-4:])
 	log = bot.get_channel(819580672310116356)
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
@@ -2859,6 +2827,8 @@ async def on_message(message):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	if isinstance(message.channel, discord.DMChannel): # dont allow dm channel
+		anino = await bot.fetch_user(790574682294190091)
+		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message}')
 		if str(message.author.id) in list(interviews['Wait']):
 			interviews['Wait'].pop(str(message.author.id))
 			interviews['Responded'][message.author.id] = str(datetime.utcnow())
