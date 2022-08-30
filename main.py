@@ -1349,10 +1349,6 @@ async def unblame(interaction: discord.Interaction, member : discord.Member, nbw
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
 async def rankup(interaction: discord.Interaction, member:discord.Member):
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
-												 discord.Color.red()))
-		return
 	guild = interaction.guild
 	Roles = {9:790675782338740235,8:790675782364037131,7:790675783352975360,6:790675783549976579,5:790675783693500456,
 			 4:790675784120401932,3:790675784225521734,2:791066206437113897, 1:791066207418712094}
@@ -1373,6 +1369,30 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 	await rankup.send(embed=embed_)
 	await member.send("Félicitation à toi, tu passes "+role1.name+" !")
 	await interaction.response.send_message("Le rankup a bien été effectué")
+
+@bot.tree.command()
+@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
+async def quirankup(interaction: discord.Interaction):
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	Roles = {"790675782338740235":48600,"790675782364037131":39600,"790675783352975360":31500,"790675783549976579":24300,"790675783693500456":18000,
+			 "790675784120401932":12600,"790675784225521734":8100,"791066206437113897":4500,"791066207418712094":1800,"791066206109958204":0}
+	for personne in voc['total'].items():
+		role = None
+		role2 = None
+		print(personne[0])
+		mem = interaction.guild.get_member(int(personne[0]))
+		if mem != None:
+			for x in Roles.items():
+				if role == None and x[1] < personne[1]:
+					role = interaction.guild.get_role(int(x[0]))
+				if int(x[0]) in [t.id for t in mem.roles]:
+					role2 = interaction.guild.get_role(int(x[0]))
+			if role2 != None and role != role2:
+				await interaction.channel.send(f'{mem.mention} devrait passer {role.mention}')
+		else:
+			await interaction.channel.send(f"<@{personne[0]}> est parti ou alors il y a un soucis")
+	await interaction.response.send_message('Finito')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
@@ -1400,6 +1420,8 @@ async def derank(interaction: discord.Interaction, member:discord.Member,*,raiso
 	log = bot.get_channel(944296375007477811)
 	await log.send(embed=create_small_embed(member.mention + ' à été unblame par ' + interaction.user.mention + " pour " + raison))
 	await interaction.response.send_message("Le derank a bien été effectué")
+
+
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
@@ -1667,7 +1689,7 @@ class Methode(discord.ui.View):
 			Eco = json.load(f)
 		id = interaction.message.content[56:59]
 		nb = interaction.message.content[70:-1]
-		prix = Eco["items"][id][1]*nb
+		prix = Eco["items"][id][1]*int(nb)
 		if prix > Eco["Comptes"][str(interaction.user.id)]:
 			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent ! Veuillez payer en jeu !",ephemeral=True)
 			await interaction.channel.send("Merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
