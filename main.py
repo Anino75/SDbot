@@ -47,6 +47,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(candid())
 		self.add_view(event())
 		self.add_view(page())
+		self.add_view(NombreView())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -1713,8 +1714,7 @@ class Nombre(discord.ui.Select):
 		else:
 			nb = int(self.values[0])
 		id = interaction.message.content[-4:-1]
-		await interaction.response.send_message("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-		await interaction.message.delete()
+		await interaction.channel.send("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
 		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `/claim` dans le **{interaction.channel.mention}")
 		APp = interaction.guild.get_channel(960113232398401586)
 		await APp.send("<@&960180290683293766>",embed=embed_)
