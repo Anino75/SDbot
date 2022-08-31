@@ -1168,6 +1168,9 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(791066207418712094)
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
+	embed_ = create_small_embed("Bienvenue à "+member.mention+" dans la faction !",discord.Color.gold())
+	rankup = guild.get_channel(791991289007570974)
+	await rankup.send(embed=embed_)
 	log = bot.get_channel(831615469134938112)
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
@@ -2828,7 +2831,7 @@ async def on_message(message):
 		interviews = json.load(f)
 	if isinstance(message.channel, discord.DMChannel): # dont allow dm channel
 		anino = await bot.fetch_user(790574682294190091)
-		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message}')
+		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message.content}')
 		if str(message.author.id) in list(interviews['Wait']):
 			interviews['Wait'].pop(str(message.author.id))
 			interviews['Responded'][message.author.id] = str(datetime.utcnow())
