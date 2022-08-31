@@ -92,14 +92,14 @@ class event(discord.ui.View):
 		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235)
+@discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235,821787385636585513,790675782569164820)
 async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	"""Merci de mettre la date sous la forme JJ/MM/AAAA"""
 	if 813928386946138153 in [x.id for x in interaction.user.roles]:
 		await interaction.response.send_message('Vous êtes déjà absent.e !')
 		return
 	try:
-		if int(date[0:2]) + int(date[3:5]) + int(date[6:10]) < 2100 and len(date) == 10 and int(date[0:2])>=int(str(datetime.now())[8:10]) and int(date[3:5])>=int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4]):
+		if int(date[0:2]) + int(date[3:5]) + int(date[6:10]) < 2100 and len(date) == 10 and ((int(date[0:2])>int(str(datetime.now())[8:10]) and int(date[3:5])==int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4])) or (int(date[3:5])>int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4]))):
 			pass
 		else:
 			await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
