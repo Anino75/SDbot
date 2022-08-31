@@ -2045,7 +2045,9 @@ async def claim(interaction: discord.Interaction):
 		return
 	await compte(interaction.user)
 	vendeur = interaction.guild.get_role(960180290683293766)
+	resp = interaction.guild.get_role(790675781789155329)
 	await interaction.channel.set_permissions(interaction.user,read_messages=True, send_messages=True)
+	await interaction.channel.set_permissions(resp,read_messages=True, send_messages=True)
 	await interaction.channel.set_permissions(vendeur,overwrite= None)
 	await interaction.response.send_message("Vous avez bien pris en charge cette commande")
 
