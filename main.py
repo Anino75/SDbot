@@ -49,6 +49,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(page())
 		self.add_view(NombreView())
 		self.add_view(ench())
+		self.add_view(vend())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -464,6 +465,26 @@ class regl(discord.ui.View):
 		await interaction.user.add_roles(role)
 		await interaction.response.send_message('Vous avez bien accépté le règlement. Bon jeu !',ephemeral=True)
 
+class vend(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Je veux être notifié pendant les commandes", style=discord.ButtonStyle.green, custom_id='prrol')
+	async def prrol(self, interaction: discord.Interaction, button: discord.ui.Button):
+		role = interaction.guild.get_role(1016022889780228136)
+		if role in interaction.user.roles:
+			await interaction.response.send_message('Vous avez déjà le role <@&1016022889780228136>.',ephemeral=True)
+			return
+		await interaction.user.add_roles(role)
+		await interaction.response.send_message('Vous avez bien pris le rôle <@&1016022889780228136>. Bon jeu !',ephemeral=True)
+	@discord.ui.button(label="Je ne veux plus être notifié pendant les commandes", style=discord.ButtonStyle.red, custom_id='enrol')
+	async def enrol(self, interaction: discord.Interaction, button: discord.ui.Button):
+		role = interaction.guild.get_role(1016022889780228136)
+		if role not in interaction.user.roles:
+			await interaction.response.send_message("Vous n'avez déjà plus le role <@&1016022889780228136>.",ephemeral=True)
+			return
+		await interaction.user.remove_roles(role)
+		await interaction.response.send_message('Vous avez bien retiré le rôle <@&1016022889780228136>. Bon jeu !',ephemeral=True)
+
 class ench(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
@@ -567,6 +588,9 @@ async def prepare(interaction: discord.Interaction,prep:str):
 	if prep =='encheres':
 		chan = bot.get_channel(840630454477520906)
 		await chan.send('Pour être notifiés des dèrnières enchères, prennez le role en cliquant sur le bouton',view=ench())
+	if prep =='mentionvendeur':
+		chan = bot.get_channel(1014650824108019792)
+		await chan.send('Pour être notifiés des dèrnières commandes, prennez le role en cliquant sur le bouton',view=vend())
 	if prep == 'reg' or prep == 'tout':
 		reg = interaction.guild.get_channel(948647836466151434)
 		chef = interaction.guild.get_role(790675782569164820)
@@ -1731,9 +1755,15 @@ class Nombre(discord.ui.Select):
 		else:
 			nb = int(self.values[0])
 		await interaction.channel.send("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
-		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = f"**Acheteur :**\n{interaction.user.name}\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb} {Eco['items'][id][3]}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `/claim` dans le **{interaction.channel.mention}")
+		msg=f"**Acheteur :**\n{interaction.user.mention} ({interaction.user.name})\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb} {Eco['items'][id][3]}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `/claim` dans le **{interaction.channel.mention}"
+		with open('economie.json', 'r') as f:
+			Eco = json.load(f)
+		Eco["Commandes"][str(interaction.channel.id)]=msg
+		with open('economie.json', 'w') as f:
+			json.dump(Eco, f, indent=6)
+		embed_=discord.Embed(title = "Commande "+interaction.user.name,description = msg)
 		APp = interaction.guild.get_channel(960113232398401586)
-		await APp.send("<@&960180290683293766>",embed=embed_)
+		await APp.send("<@&1016022889780228136>",embed=embed_)
 		await interaction.channel.send(embed=embed_)
 
 async def chiffrecommande(member,channel):
@@ -2025,7 +2055,7 @@ class basesclaimView(discord.ui.View):
 		self.add_item(basesclaim())
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
 async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
 	views={"PvP":PvPView(),"farming":farmView(),"minerais":mineraisView(),"alchimiste":alchimisteView(),"livres":livresView(),"machines":machinesView(),"outils":outilsView(),"services":servicesView(),"pillages":pillagesView(),"BC":basesclaimView()}
 	if categorie not in views.keys():
@@ -2037,7 +2067,7 @@ async def editmarket(interaction: discord.Interaction,categorie:str,message:str)
 	await interaction.response.send_message('ok',ephemeral=True)
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
 async def additem(interaction: discord.Interaction,id:str,titre:str,prix:int,emoji:str,stack_u:str):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
@@ -2047,31 +2077,23 @@ async def additem(interaction: discord.Interaction,id:str,titre:str,prix:int,emo
 	await interaction.response.send_message(f'{titre} à été ajouté au catalogue pour {prix}$/{stack_u}',ephemeral=True)
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
-async def decaleid(interaction: discord.Interaction,categorie:str,plus_moins_arrange:str):
-	views={"PvP":[0,100],"farming":[99,200],"minerais":[199,300],"alchimiste":[299,400],"livres":[399,500],"machines":[499,600],"outils":[599,700],"services":[699,800],"pillages":[799,900],"BC":[899,1000]}
-	if categorie not in views:
-		await interaction.response.send_message('Mauvaise catégorie')
-		return
+@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
+async def decaleid(interaction: discord.Interaction,plus_moins_arrange:str,debut:int,fin:int):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
 	if plus_moins_arrange=='plus':
-		a = views[categorie][0]
-		b = views[categorie][1]
 		dict1 = dict(Eco["items"])
 		for tt in Eco["items"].items():
-			if a<int(tt[0])<b:
+			if debut<=int(tt[0])<=fin:
 				dict1[str(int(tt[0])+1)] = tt[1]
 		Eco["items"] = dict1
 		with open('economie.json', 'w') as f:
 			json.dump(Eco, f, indent=6)
 		await interaction.response.send_message(f'tout a bien été décalé de un en plus',ephemeral=True)
 	elif plus_moins_arrange=='moins':
-		a = views[categorie][0]
-		b = views[categorie][1]
 		dict1 = dict(Eco["items"])
 		for tt in Eco["items"].items():
-			if a<int(tt[0])<b: 
+			if debut<=int(tt[0])<=fin: 
 				dict1[str(int(tt[0])-1)] = tt[1]
 		Eco["items"] = dict1
 		with open('economie.json', 'w') as f:
@@ -2086,7 +2108,7 @@ async def decaleid(interaction: discord.Interaction,categorie:str,plus_moins_arr
 		await interaction.response.send_message(f'veuillez indiquer "plus", "moins" ou "arange"',ephemeral=True)
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
+@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
 async def removeitem(interaction: discord.Interaction,id:str,):
 	with open('economie.json', 'r') as f:
 		Eco = json.load(f)
@@ -2122,7 +2144,12 @@ async def livre(interaction: discord.Interaction):
 		filename=f"transcript-{interaction.channel.name}.html",
 	)
 	log = bot.get_channel(819580672310116356)
-	await log.send(embed=discord.Embed(description="Commande de "+interaction.user.mention,color=discord.Color.gold()),file=transcript_file)
+	with open('economie.json', 'r') as f:
+		Eco = json.load(f)
+	try:
+		await log.send(embed=discord.Embed(description=f"**Vendeur :\n**{interaction.user.mention} ({interaction.user.name})\n\n"+Eco["Commandes"][str(interaction.channel.id)],color=discord.Color.gold()),file=transcript_file)
+	except:
+		await log.send(embed=discord.Embed(description=f"Commande de {interaction.user.mention}",color=discord.Color.gold()),file=transcript_file)
 	await interaction.channel.delete()
 
 class RouleR(discord.ui.View):

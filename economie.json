@@ -1,8 +1,8 @@
 {
       "items": {
             "001": [
-                  "Full P4 U3 Mending",
-                  24000,
+                  "Full P4 U3 Mending (avec bottes en pala vert)",
+                  22500,
                   "<:full_p4:968964170815012924>",
                   "u"
             ],
@@ -19,38 +19,38 @@
                   "u"
             ],
             "004": [
-                  "Pantalon en paladium P4",
-                  4500,
+                  "Pantalon en Paladium P4 U3",
+                  5000,
                   "<:pantalon:968964169854517259>",
                   "u"
             ],
             "005": [
-                  "Bottes en paladium P4",
-                  4500,
+                  "Bottes en Paladium Vert P4 U3",
+                  5000,
                   "<:bottes:968964167144964236>",
                   "u"
             ],
             "006": [
-                  "\u00c9p\u00e9e en paladium S5 F2 U3",
-                  5000,
+                  "\u00c9p\u00e9e en Paladium S5 F2 U3",
+                  6500,
                   "<:epee_pala:823934747251572737>",
                   "u"
             ],
             "007": [
                   "Potion instantan\u00e9e de Heal 2",
-                  150,
+                  160,
                   "<:heal_II:1005914803438628886>",
                   "u"
             ],
             "008": [
                   "Potion de Fire Resistance 8min",
                   300,
-                  "\ud83d\udd25",
+                  "<:fire_resistance:1005914778042110075>",
                   "u"
             ],
             "009": [
                   "Amulette de Magma",
-                  5000,
+                  4000,
                   "\ud83d\udd25",
                   "u"
             ],
@@ -62,50 +62,684 @@
             ],
             "011": [
                   "Potion Launcher",
-                  2000,
-                  "<:SweetDream:800120911561752587>",
+                  1000,
+                  "<:arme_bleu:1013494828480336014>",
                   "u"
             ],
             "012": [
                   "Speed stick",
                   6000,
-                  "<:SweetDream:800120911561752587>",
+                  "\ud83d\udca8",
                   "u"
             ],
             "013": [
                   "Heal stick",
-                  3900,
+                  4000,
                   "<:heal_stick:1005914806949257317>",
                   "u"
             ],
             "014": [
                   "Strength stick",
-                  2900,
-                  "<:SweetDream:800120911561752587>",
+                  4000,
+                  "\ud83d\udca5",
                   "u"
             ],
             "015": [
                   "Hyper Jump stick",
-                  11000,
+                  6500,
                   "<:hyper_jump_stick:1005914815027490906>",
                   "u"
             ],
             "016": [
                   "Stick of god",
-                  11500,
+                  17000,
                   "<:stick_of_god:1005914868404211852>",
                   "u"
             ],
             "017": [
                   "Pomme en paladium",
-                  500,
+                  750,
+                  "<:sa_c_une_pomme_en_paladium:1013494836990586890>",
+                  "u"
+            ],
+            "100": [
+                  "Graines de bl\u00e9",
+                  20,
+                  "<:graine_de_ble:968964169879658606>",
+                  "stack"
+            ],
+            "101": [
+                  "Graines d'eggplant",
+                  190,
+                  "<:graine_deggplants:968964169963569192>",
+                  "stack"
+            ],
+            "102": [
+                  "Graines de chervil",
+                  250,
+                  "<:graine_de_chervil:968964169883861043>",
+                  "stack"
+            ],
+            "103": [
+                  "Graines de kiwano",
+                  70000,
+                  "<:graine_de_kiwanos:968964169829322892>",
+                  "stack"
+            ],
+            "104": [
+                  "Graines d'orangeblue",
+                  1000000,
+                  "<:graine_de_blueberry:968964169703501824>",
+                  "stack"
+            ],
+            "106": [
+                  "Seedplanter en Am\u00e9thyste",
+                  1800,
+                  "<:seedplanteramet:821774793522020372>",
+                  "u"
+            ],
+            "107": [
+                  "Seedplanter en Titane",
+                  4800,
+                  "<:seedplantertitane:821774837931966475>",
+                  "u"
+            ],
+            "108": [
+                  "Seedplanter en Paladium",
+                  12100,
+                  "<:seedplanterpala:821774873624969276>",
+                  "u"
+            ],
+            "109": [
+                  "Os",
+                  120,
+                  "\ud83e\uddb4",
+                  "stack"
+            ],
+            "110": [
+                  "Fertilized Dirt",
+                  600,
+                  "<:connected_dirt:968964170068418610>",
+                  "stack"
+            ],
+            "111": [
+                  "Xp Berry",
+                  1200,
+                  "<:compressed_xp_berry:968964174220779580>",
+                  "stack"
+            ],
+            "112": [
+                  "Xp bush",
+                  100,
+                  "<:xpbush:821777229251608626>",
+                  "u"
+            ],
+            "113": [
+                  "T\u00eate de creeper",
+                  4000,
+                  "<:tete_de_creeper:968964171590959144>",
+                  "u"
+            ],
+            "114": [
+                  "Totem de fertilit\u00e9",
+                  18000,
+                  "<:totem:968964169816743996>",
+                  "u"
+            ],
+            "115": [
+                  "Fiole 1000xp farmer",
+                  750,
+                  "<:fire_resistance:1005914778042110075>",
+                  "u"
+            ],
+            "116": [
+                  "Glowstone",
+                  1600,
+                  "\ud83d\udfe8",
+                  "stack"
+            ],
+            "201": [
+                  "Minerais de Fer",
+                  950,
+                  "<:minerai_de_fer:968964170215211028>",
+                  "stack"
+            ],
+            "202": [
+                  "Minerais d'Or",
+                  3000,
+                  "<:minerai_dor:968964170752081950>",
+                  "stack"
+            ],
+            "203": [
+                  "Minerais d'Am\u00e9thyste",
+                  2700,
+                  "<:minerai_damethyste:968964170529783848>",
+                  "stack"
+            ],
+            "204": [
+                  "Minerais de Titane",
+                  3800,
+                  "<:minerai_de_titane:968964170861121536>",
+                  "stack"
+            ],
+            "205": [
+                  "Minerais de Paladium",
+                  16000,
+                  "<:minerai_de_paladium:968964170697543680>",
+                  "stack"
+            ],
+            "206": [
+                  "Lingot de Fer",
+                  9,
+                  "<:lingot_de_fer:968964169179222076>",
+                  "u"
+            ],
+            "207": [
+                  "Lingot d'Or",
+                  12,
+                  "<:lingot_dor:968964169858711562>",
+                  "u"
+            ],
+            "208": [
+                  "Diamant",
+                  30,
+                  "<:diamant:968964168654934036>",
+                  "u"
+            ],
+            "209": [
+                  "Lingot d'Am\u00e9thyste",
+                  25,
+                  "<:lingot_damethyste:968964169095315606>",
+                  "u"
+            ],
+            "210": [
+                  "Lingot de Titane",
+                  35,
+                  "<:lingot_de_titane:968964169556717588>",
+                  "u"
+            ],
+            "211": [
+                  "Lingot de Paladium",
+                  90,
+                  "<:lingot_de_paladium:968964169443442729>",
+                  "u"
+            ],
+            "212": [
+                  "Findium",
+                  400,
+                  "<:findium:968964169191800953>",
+                  "u"
+            ],
+            "213": [
+                  "Voidstone Minage (+4000$/50k stone)",
+                  19000,
+                  "<:minage_voidstone:968964170718523392>",
+                  "u"
+            ],
+            "301": [
+                  "Jacaranda",
+                  35,
+                  "\ud83e\udeb5",
+                  "u"
+            ],
+            "302": [
+                  "Fiole de s\u00e8ve Jacaranda(100%)",
+                  100,
+                  "<:fioles_de_seve:1005914774233677925>",
+                  "u"
+            ],
+            "303": [
+                  "Extractor",
+                  1000,
+                  "\ud83d\udeb0",
+                  "u"
+            ],
+            "304": [
+                  "Fleurs vanilla",
+                  4,
+                  "<:fleurs:1005914781821182122>",
+                  "u"
+            ],
+            "305": [
+                  "Lightning potion",
+                  4000,
+                  "<:lightening_potion:1005914826331131945>",
+                  "u"
+            ],
+            "399": [
+                  "bb",
+                  1,
                   "<:SweetDream:800120911561752587>",
+                  "u"
+            ],
+            "400": [
+                  "Livre Parfait",
+                  4000,
+                  "<:book_in_english:1005914762313478204>",
+                  "u"
+            ],
+            "401": [
+                  "Bouteille XP vanilla (30 niveaux)",
+                  1400,
+                  "\ud83e\uddea",
+                  "u"
+            ],
+            "501": [
+                  "Typesetting Table",
+                  800,
+                  "<:typesetting_machine:1005914879925944420>",
+                  "u"
+            ],
+            "502": [
+                  "Printing Press",
+                  800,
+                  "<:printing_machine_ou_un_truck_du_:1005914856278474832>",
+                  "u"
+            ],
+            "503": [
+                  "Forge",
+                  5000,
+                  "<:forge:1005914790423707700>",
+                  "u"
+            ],
+            "504": [
+                  "Paladium Machine",
+                  6000,
+                  "<:paladium_machine:1005914830470922320>",
+                  "u"
+            ],
+            "505": [
+                  "Crusher",
+                  5000,
+                  "<:crusher:1005914770429452379>",
+                  "u"
+            ],
+            "506": [
+                  "Grinder (complet)",
+                  8000,
+                  "<:grinder:1005914795276517487>",
+                  "u"
+            ],
+            "507": [
+                  "Food Machine",
+                  50000,
+                  "<:un_os_carbonise_avec_des_trucks_:1013494832284569601>",
+                  "u"
+            ],
+            "508": [
+                  "Cobblebraker",
+                  700,
+                  "<:cobblebreaker:968964170328449065>",
+                  "u"
+            ],
+            "509": [
+                  "Am\u00e9lioration en Am\u00e9thyste",
+                  680,
+                  "<:lingot_damethyste:968964169095315606>",
+                  "u"
+            ],
+            "510": [
+                  "Am\u00e9lioration en Titane",
+                  830,
+                  "<:lingot_de_titane:968964169556717588>",
+                  "u"
+            ],
+            "511": [
+                  "Am\u00e9lioration en Paladium",
+                  1060,
+                  "<:lingot_de_paladium:968964169443442729>",
+                  "u"
+            ],
+            "601": [
+                  "Hammer F2 Smelt",
+                  3500,
+                  "<:hammer:1005914799684735067>",
+                  "u"
+            ],
+            "602": [
+                  "Hammer F3 Smelt",
+                  35000,
+                  "<:hammer:1005914799684735067>",
+                  "u"
+            ],
+            "603": [
+                  "Hammer Speed 3",
+                  4500,
+                  "<:hammer:1005914799684735067>",
+                  "u"
+            ],
+            "604": [
+                  "Pioche E4 U3",
+                  3800,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "u"
+            ],
+            "605": [
+                  "Pioche E4 F3 U3",
+                  6300,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "u"
+            ],
+            "606": [
+                  "Pioche E4 U3 Silk Touch",
+                  5000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "u"
+            ],
+            "607": [
+                  "POG Niv1 E4 F3",
+                  5000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "u"
+            ],
+            "608": [
+                  "POG Niv1 E4 Silk Touch",
+                  5000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "u"
+            ],
+            "609": [
+                  "Big hole upgrade",
+                  4000,
+                  "\u2699\ufe0f",
+                  "u"
+            ],
+            "701": [
+                  "Minage simple (Fournir pioche/hammer)",
+                  13000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "30min"
+            ],
+            "702": [
+                  "Minage Big hole 2 (Fournir Palamixed coal)",
+                  16000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "30min"
+            ],
+            "703": [
+                  "Duplication F3 Smelt",
+                  0,
+                  "<:hammer:1005914799684735067>",
+                  "u"
+            ],
+            "704": [
+                  "Up POG entre lvl 1 et 5",
+                  1000,
+                  "\u2b06\ufe0f",
+                  "niveau"
+            ],
+            "705": [
+                  "Up POG entre lvl 6 et 10",
+                  3000,
+                  "\u2b06\ufe0f",
+                  "niveau"
+            ],
+            "706": [
+                  "Up POG entre lvl 11 et 15",
+                  5000,
+                  "\u2b06\ufe0f",
+                  "niveau"
+            ],
+            "707": [
+                  "Up POG entre lvl 16 et 20",
+                  10000,
+                  "\u2b06\ufe0f",
+                  "niveau"
+            ],
+            "708": [
+                  "Creusage (Fournir outil)",
+                  7500,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "chunk"
+            ],
+            "709": [
+                  "Creusage Bedrock (Fournir tout)",
+                  225000,
+                  "<:pioche_en_paladium:1005914838935031909>",
+                  "chunk"
+            ],
+            "710": [
+                  "Reposer les graines",
+                  15000,
+                  "<:graine_de_ble:968964169879658606>",
+                  "30min"
+            ],
+            "711": [
+                  "Becher",
+                  750,
+                  "<:connected_dirt:968964170068418610>",
+                  "chunk"
+            ],
+            "712": [
+                  "AFK",
+                  5000,
+                  "\ud83d\ude34",
+                  "30min"
+            ],
+            "713": [
+                  "Enchant normal lvl30 (+1000$ si XP non-fournie)",
+                  500,
+                  "<:book_in_english:1005914762313478204>",
+                  "u"
+            ],
+            "714": [
+                  "Enchant modd\u00e9 (+1000$ si XP non-fournie)",
+                  2500,
+                  "<:book_in_english:1005914762313478204>",
+                  "u"
+            ],
+            "715": [
+                  "Visualisation homes avec Home Remover (+16findiums/min)",
+                  100000,
+                  "\ud83d\udc40",
+                  "u"
+            ],
+            "716": [
+                  "Destruction de homes",
+                  27000,
+                  "\u2694\ufe0f",
+                  "home"
+            ],
+            "801": [
+                  "Unclaim Finder Vert",
+                  2000,
+                  "<:unclaim_finder_vert_2:1005914937023008788>",
+                  "u"
+            ],
+            "802": [
+                  "Unclaim Finder Orange",
+                  4500,
+                  "<:unclaim_finder_orange_3:1005914897948889179>",
+                  "u"
+            ],
+            "803": [
+                  "Unclaim Finder Rouge",
+                  7000,
+                  "<:unclaim_finder_rouge_2:1005914919499202560>",
+                  "u"
+            ],
+            "804": [
+                  "Unclaim Finder Bleu",
+                  35000,
+                  "\ud83d\udd35",
+                  "u"
+            ],
+            "805": [
+                  "Full Travel",
+                  2500,
+                  "<:travel_stuff:1005914875618402445>",
+                  "u"
+            ],
+            "806": [
+                  "Hood Helmet",
+                  1000,
+                  "<:hood_helmet:1005914810615087214>",
+                  "u"
+            ],
+            "807": [
+                  "Scuba Helmet",
+                  500,
+                  "<:scuba_helmet:1005914864474132602>",
+                  "u"
+            ],
+            "808": [
+                  "Unclaim Helmet (+prix de l'Unclaim Finder)",
+                  4000,
+                  "<:book_in_english:1005914762313478204>",
+                  "u"
+            ],
+            "809": [
+                  "Cave block",
+                  600,
+                  "<:cave_block:1005914766360973432>",
+                  "u"
+            ],
+            "810": [
+                  "Dynamite",
+                  250,
+                  "<:dynamite:968964169045004319>",
+                  "u"
+            ],
+            "811": [
+                  "Dynamite en endium",
+                  130000,
+                  "<:dynamite:968964169045004319>",
+                  "u"
+            ],
+            "901": [
+                  "Obsidienne",
+                  900,
+                  "<:obsidienne:968964170521382932>",
+                  "stack"
+            ],
+            "902": [
+                  "Big Obsidienne",
+                  225,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "903": [
+                  "Boom Obsidienne",
+                  150,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "904": [
+                  "Mega Boom Obsidienne",
+                  1500,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "905": [
+                  "Spike Obsidienne (Paladium)",
+                  500,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "906": [
+                  "Slime Obsidienne",
+                  500,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "907": [
+                  "Poison Obsidienne",
+                  150,
+                  "<:obsidienne:968964170521382932>",
+                  "u"
+            ],
+            "908": [
+                  "Spike en Paladium",
+                  450,
+                  "<:lingot_de_paladium:968964169443442729>",
+                  "u"
+            ],
+            "909": [
+                  "Enclume en Fer",
+                  250,
+                  "<:enclume:968964170110349322>",
+                  "u"
+            ],
+            "910": [
+                  "Enclume en Am\u00e9thyste",
+                  800,
+                  "<:lingot_damethyste:968964169095315606>",
+                  "u"
+            ],
+            "911": [
+                  "Enclume en Titane",
+                  1100,
+                  "<:lingot_de_titane:968964169556717588>",
+                  "u"
+            ],
+            "912": [
+                  "Enclume en Paladium",
+                  2200,
+                  "<:lingot_de_paladium:968964169443442729>",
+                  "u"
+            ],
+            "913": [
+                  "Slimepad",
+                  325,
+                  "<:sa_c_un_slime_pad:1013494840144711691>",
+                  "u"
+            ],
+            "914": [
+                  "Sable",
+                  60,
+                  "\ud83d\udfe8",
+                  "stack"
+            ],
+            "915": [
+                  "Fake Water",
+                  200,
+                  "<:fake_water:968964170559135794>",
+                  "u"
+            ],
+            "916": [
+                  "Dark oak Saplings",
+                  7500,
+                  "\ud83c\udf32",
+                  "stack"
+            ],
+            "917": [
+                  "Bois modd\u00e9 (pour l'eau/fake)",
+                  500,
+                  "\ud83e\udeb5",
+                  "stack"
+            ],
+            "610": [
+                  "Palamixed Coal",
+                  800,
+                  "<:lingot_de_paladium:968964169443442729>",
                   "u"
             ]
       },
+      "Commandes":{},
       "Comptes": {
             "699697587367706624": 123123,
             "905951017152184340": 1000000000000000,
-            "497425043047972885": 0
+            "497425043047972885": 0,
+            "336160741000216597": 0,
+            "358249551196323844": 0,
+            "790574682294190091": 1150,
+            "954385613984002060": 0,
+            "692097902620835930": 0,
+            "870274240388161587": 0,
+            "715650894825390130": 0,
+            "942453637848911892": 0,
+            "693772450781200385": 0,
+            "871797433095569488": 0,
+            "746652080642588693": 0,
+            "413410397237018624": 0,
+            "338611118677295104": 0,
+            "758712252093825025": 0,
+            "576372633575358494": 0,
+            "659842507991154705": 0,
+            "386572292181852161": 0,
+            "964936697559273512": 0,
+            "793172363092164619": 0,
+            "859061063903084585": 0,
+            "411856695321427970": 0
       }
 }
