@@ -1438,7 +1438,7 @@ async def quirankup(interaction: discord.Interaction):
 		mem = interaction.guild.get_member(int(personne[0]))
 		if mem != None:
 			for x in Roles:
-				if role == None and x[1] < personne[1]:
+				if role == None and x[1] <= personne[1]:
 					role = interaction.guild.get_role(x[0])
 				if x[0] in [t.id for t in mem.roles]:
 					role2 = interaction.guild.get_role(x[0])
