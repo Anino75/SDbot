@@ -586,8 +586,7 @@ async def edditally():
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def prepare(interaction: discord.Interaction,prep:str):
 	if prep =='encheres':
-		chan = bot.get_channel(840630454477520906)
-		await chan.send('Pour être notifiés des dèrnières enchères, prennez le role en cliquant sur le bouton',view=ench())
+		await interaction.channel.send('Pour être notifiés des dèrnières enchères, prennez le role en cliquant sur le bouton',view=ench())
 	if prep =='mentionvendeur':
 		chan = bot.get_channel(1014650824108019792)
 		await chan.send('Pour être notifiés des dèrnières commandes, prennez le role en cliquant sur le bouton',view=vend())
@@ -755,8 +754,6 @@ async def candids():
 					guild = bot.get_guild(790367917812088864)
 					member = guild.get_member(int(myresult[-i-1][0]))
 					role = guild.get_role(986686680146772038)
-					for h in range(len(myresult)):
-						print(myresult[h][0])
 					msg = f'**Pseudo discord :**\n<@{myresult[-i-1][0]}>\n**Pseudo Minecraft :**\n{myresult[-i-1][1]}\n**Anciens Pseudos :**\n{myresult[-i-1][2]}\n**Problèmes orthographe :**\n{myresult[-i-1][3]}\n**Présentation IRL :**\n{myresult[-i-1][4]}\n**Comment et depuis quand connaissez vous minecraft ?**\n{myresult[-i-1][5]}\n**Commant connaissez vous paladium, avancement et prédilections**\n{myresult[-i-1][6]}\n**Des sanctions sur Paladium :**\n{myresult[-i-1][7]}\n**Pourquoi la SweetDream ?**\n{myresult[-i-1][8]}\n**Anciennes factions :**\n{myresult[-i-1][9]}\n**Objectif sur paladium :**\n{myresult[-i-1][10]}\n**Disponibilités :**\n{myresult[-i-1][11]}'
 					for j in range(math.ceil(len(msg)/2000)):
 						if len(msg)<j*2000:
@@ -1093,7 +1090,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 		return
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de "
-							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points (30 max par personne)\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Obsidienne Normale -> 12.5 points\n- Poisonned Obsidian -> 15 points\n- Boom Obsidian -> 25 points\n- Mega Boom Obsidian -> 300 points\n- Big obsidian -> 200 points\n\n**Ressources :**\n- Lingot d'amethyste : 17 points\n- Lingot de titane : 17 points\n- 1$ -> 0,2 point\n- lingot de pala : 40 points\n- Nugget en endium : 75.000 points\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
+							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points (30 max par personne)\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Obsidienne Normale -> 5 points\n- Poisonned Obsidian -> 15 points\n- Boom Obsidian -> 25 points\n- Mega Boom Obsidian -> 300 points\n- Big obsidian -> 200 points\n\n**Ressources :**\n- Lingot d'amethyste : 17 points\n- Lingot de titane : 17 points\n- 1$ -> 0,2 point\n- lingot de pala : 40 points\n- Nugget en endium : 75.000 points\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
 							" envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream")
 	for type in interviews.items():
 		for personne in type[1].keys():
@@ -1441,14 +1438,12 @@ async def quirankup(interaction: discord.Interaction):
 		mem = interaction.guild.get_member(int(personne[0]))
 		if mem != None:
 			for x in Roles:
-				if role == None and x[1] <= personne[1]:
+				if role == None and x[1] < personne[1]:
 					role = interaction.guild.get_role(x[0])
 				if x[0] in [t.id for t in mem.roles]:
 					role2 = interaction.guild.get_role(x[0])
 			if role2 != None and role!=None and role != role2:
 				await interaction.channel.send(f'{mem.mention} est {role2.mention} et devrait passer {role.mention}')
-		else:
-			await interaction.channel.send(f"<@{personne[0]}> est parti ou alors il y a un soucis")
 	await interaction.channel.send('Finito')
 
 @bot.tree.command()
@@ -2736,7 +2731,6 @@ async def motus(interaction: discord.Interaction):
 		liste = f.readlines()
 	mot = list(liste[random.randint(0,len(liste))].upper())
 	mot.pop(-1)
-	print(mot)
 	message = await interaction.channel.send(f"Veuillez indiquer des mots en {len(mot)} lettres\n")
 	for j in range(5):
 		let = await interaction.channel.send('\nVeuillez donner un mot')
@@ -2852,6 +2846,102 @@ async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[s
 			except:
 				await interaction.channel.send(f'il y a un soucis avec {personne}')
 	await interaction.response.send_message(embed=create_small_embed(message))
+
+"""@bot.tree.command()
+async def finqotas():
+    with open("quotas.json",'r') as f:
+        quot = json.load(f)
+    for idd in quot["semaine"+quot["semaine"]]["SD"]["af"]:
+        personne = bot.get_user(idd)
+        personne.send("Vous n'avez pas rendu vos quotas cette semaine, vous avez donc été avertis. Au bout de trois vous ne pourrez plus venir dans la division élite ni Baddream et serez déplacé vers la HD pour une periode de six mois. Vous pouvez racheter un de ces avertisements en farmant le double des quotas d'une autre semaine/n***RAPPEL*** Vous pouvez a tout moment faire /choixdivi HD pour ne plus avoir de quotas, cependant vous aurez moins d'accès et de rankups")
+        if idd in quot["warn"]:
+            if quot["warn"] == 2:
+                personne.send("vous avez atteint la limite de 3 avertissements et vous etes donc passé dans la division HD pour une periode de six mois. Vous pouvez cependant ecourter cette periode en farmant l'equivalent de trois quotas"
+            quot["warn"][idd].append(datetime.now())
+        else:
+            quot["warn"][idd] = [datetime.now()]
+
+@bot.tree.command()
+async def listewarnquotas():"""
+## =========== Equipes ===========
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def addequipe(interaction: discord.Interaction,membre:discord.Member,equipe:str):
+	if equipe != "Aninal" and equipe != "Nateuice" and equipe != "LaitLait" and equipe != "Sac Dawinx":
+		await interaction.response.send_message("Mauvais nom d'équipe !")
+		return
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	eq[equipe]['Membres'][str(membre.id)] = 0
+	role = interaction.guild.get_role(eq[equipe]['Role'])
+	await membre.add_roles(role)
+	with open('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
+	await interaction.response.send_message(f'''{membre.mention} a bien été ajouté à l'équipe {equipe}''')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def addpoints(interaction: discord.Interaction,membre:discord.Member,points:int,raison:str):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	find = None
+	for divi in eq.keys():
+		if str(membre.id) in eq[divi]['Membres'].keys():
+			find = divi
+	if find == None:
+		await interaction.response.send_message("Cet utilisateur n'est dans aucune équipe !")
+		return
+	logs = interaction.guild.get_channel(1026567820311531550)
+	await logs.send(f'{interaction.user.mention} à donné {points} à {membre.mention} pour {raison}')
+	eq[find]['Total'] += points
+	eq[find]['Membres'][str(membre.id)] += points
+	with open('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
+	await interaction.response.send_message(f'''{points} points ont bien étés ajoutés à {membre.mention}''')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def removepoints(interaction: discord.Interaction,membre:discord.Member,points:int,raison:str):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	find = None
+	for divi in eq.keys():
+		if str(membre.id) in eq[divi]['Membres'].keys():
+			find = divi
+	if find == None:
+		await interaction.response.send_message("Cet utilisateur n'est dans aucune équipe !")
+		return
+	logs = interaction.guild.get_channel(1026567820311531550)
+	await logs.send(f'{interaction.user.mention} à donné {points} à {membre.mention} pour {raison}')
+	eq[find]['Total'] -= points
+	eq[find]['Membres'][str(membre.id)] -= points
+	with open('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
+	await interaction.response.send_message(f'''{points} points ont bien étés ajoutés à {membre.mention}''')
+
+@bot.tree.command()
+async def classement(interaction: discord.Interaction):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	Tot = []
+	for divi in eq.keys():
+		Tot.append([divi,eq[divi]['Total']])
+	s = sorted(Tot,key = lambda t : t[1],reverse=True)
+	await interaction.response.send_message(f'''1er : {s[0][0]} ({s[0][1]})\n2eme : {s[1][0]} ({s[1][1]})\n3eme : {s[2][0]} ({s[2][1]})\n4eme : {s[3][0]} ({s[3][1]})''')
+
+@bot.tree.command()
+async def points(interaction: discord.Interaction):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	find = None
+	for divi in eq.keys():
+		if str(interaction.user.id) in eq[divi]['Membres'].keys():
+			find = divi
+	if find == None:
+		await interaction.response.send_message("Vous n'êtes dans aucune équipe !")
+		return
+	await interaction.response.send_message(f"Vous avez fait {eq[divi]['Membres'][str(interaction.user.id)]} points au total")
 
 # =========== Autre ===========
 
