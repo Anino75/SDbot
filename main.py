@@ -14,7 +14,6 @@ from urllib import response
 import chat_exporter
 import discord
 from discord.ext import commands, tasks
-from matplotlib import interactive
 import mysql.connector
 import typing
 from typing import Optional
@@ -2853,20 +2852,21 @@ async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[s
 async def finquotas(interaction: discord.Interaction):
 	with open("quotas.json",'r') as f:
 		quot = json.load(f)
-	for idd in quot["semaine"+quot["semaine"]]["SD"]["af"]:
+	for idd in quot["semaine"+str(quot["semaine"])]["SD"]["af"]:
 		personne = bot.get_user(int(idd))
 		try:
-			personne.send("Vous n'avez pas rendu vos quotas cette semaine, vous avez donc été avertis. Au bout de trois vous ne pourrez plus venir dans la division élite ni Baddream et serez déplacé vers la HD pour une periode de six mois. Vous pouvez racheter un de ces avertisements en farmant le double des quotas d'une autre semaine/n***RAPPEL*** Vous pouvez a tout moment faire /choixdivi HD pour ne plus avoir de quotas, cependant vous aurez moins d'accès et de rankups")
+			await personne.send("Vous n'avez pas rendu vos quotas cette semaine, vous avez donc utilisé un de vos jokes. Au bout de trois vous ne pourrez plus venir dans la division élite ni Baddream et serez déplacé vers la HD pour une periode de six mois. Vous pouvez racheter un de ces avertisements en farmant le double des quotas d'une autre semaine/n***RAPPEL*** Vous pouvez a tout moment faire /choixdivi HD pour ne plus avoir de quotas, cependant vous aurez moins d'accès et de rankups")
 		except:
 			await interaction.channel.send(f"<@{idd}> n'a pas activé ses mp")
-		if idd in quot["warn"]:
-			if quot["warn"] == 2:
-				personne.send("vous avez atteint la limite de 3 avertissements et vous etes donc passé dans la division HD pour une periode de six mois. Vous pouvez cependant ecourter cette periode en farmant l'equivalent de trois quotas")
-				quot["warn"][idd].append(datetime.now())
+		if str(idd) in quot["warn"].keys():
+			if len(quot["warn"][str(idd)]) == 2:
+				await personne.send("vous avez atteint la limite de 3 avertissements et vous etes donc passé dans la division HD pour une periode de six mois. Vous pouvez cependant ecourter cette periode en farmant l'equivalent de trois quotas")
+				quot["warn"][str(idd)].append(str(datetime.now()))
 		else:
-			quot["warn"][idd] = [datetime.now()]
+			quot["warn"][str(idd)] = [str(datetime.now())]
 	with open ('quotas.json','w') as f:
 		json.dump(quot,f,indent=6)
+	await interaction.channel.send('Fait')
 
 @bot.tree.command()
 async def listewarnquotas(interaction: discord.Interaction):
