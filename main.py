@@ -172,6 +172,8 @@ async def abs():
 async def voc():
 	with open('voc.json','r') as f:
 		voc = json.load(f)
+	with open ('points.json','r') as f:
+		pt = json.load(f)
 	guild = bot.get_guild(790367917812088864)
 	dtn = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
 	if dtn not in voc.keys():
@@ -184,16 +186,18 @@ async def voc():
 						voc["total"][str(member.id)] += 1
 					else:
 						voc["total"][str(member.id)] = 1
-					if str(member.id) in voc["credit"].keys():
-						voc["credit"][str(member.id)] += 1
-					else:
-						voc["credit"][str(member.id)] = 1
 					if str(member.id) in voc[dtn].keys():
 						voc[dtn][str(member.id)] += 1
 					else:
 						voc[dtn][str(member.id)] = 1
+					if str(member.id) in pt.keys():
+						pt[str(member.id)] += 2
+					else:
+						pt[str(member.id)] = 2
 	with open("voc.json",'w') as f:
 		json.dump(voc, f, indent=6)
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
 
 @bot.tree.command()
 async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
@@ -1425,27 +1429,6 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 	await rankup.send(embed=embed_)
 	await member.send("Félicitation à toi, tu passes "+role1.name+" !")
 	await interaction.response.send_message("Le rankup a bien été effectué")
-
-@bot.tree.command()
-@discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
-async def quirankup(interaction: discord.Interaction):
-	with open('voc.json','r') as f:
-		voc = json.load(f)
-	Roles = [[790675782338740235,48600],[790675782364037131,39600],[790675783352975360,31500],[790675783549976579,24300],[790675783693500456,18000],
-			 [790675784120401932,12600],[790675784225521734,8100],[791066206437113897,4500],[791066207418712094,1800],[791066206109958204,0]]
-	for personne in voc['total'].items():
-		role = None
-		role2 = None
-		mem = interaction.guild.get_member(int(personne[0]))
-		if mem != None:
-			for x in Roles:
-				if role == None and x[1] <= personne[1]:
-					role = interaction.guild.get_role(x[0])
-				if x[0] in [t.id for t in mem.roles]:
-					role2 = interaction.guild.get_role(x[0])
-			if role2 != None and role!=None and role != role2:
-				await interaction.channel.send(f'{mem.mention} est {role2.mention} et devrait passer {role.mention}')
-	await interaction.channel.send('Finito')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(821787385636585513,790675782569164820)
@@ -2764,198 +2747,154 @@ async def ww(interaction: discord.Interaction,ll):
 		print("pb")
 	return lettre
 
-# =========== Quotas ===========
+# =========== points ===========
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
-async def debutquotas(interaction: discord.Interaction,quotas_sd:str,quotas_bd:str):
-	with open ('quotas.json','r') as f:
-		quot = json.load(f)
-	Elite = interaction.guild.get_role(986333837065850952)
-	Bad = interaction.guild.get_role(991601555209990174)
-	id = [[],[]]
-	for personne in Elite.members:
-		try:
-			await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_sd} à {interaction.user.mention}')
-		except:
-			await interaction.channel.send(f'Il y a un problème avec{personne.mention} ({personne.id})')
-		id[0].append(personne.id)
-	for personne in Bad.members:
-		try:
-			await personne.send(f'Bonjour, vous avez une semaine pour rendre {quotas_bd} à {interaction.user.mention}')
-		except:
-			await interaction.channel.send(f'Il y a un problème avec{personne.mention} ({personne.id})')
-		id[1].append(personne.id)
-	quot["semaine"+str(quot["semaine"]+1)] = {"SD":{"af":id[0],"fait":[]},"BD":{"af":id[1],"fait":[]}}
-	quot["semaine"] += 1
-	with open ('quotas.json','w') as f:
-		json.dump(quot,f,indent=6)
-	await interaction.response.send_message('Le message bien été envoyé')
-
-@bot.tree.command()
-@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
-async def enleverquotas(interaction: discord.Interaction):
-	with open ('quotas.json','r') as f:
-		quot = json.load(f)
-	quot["semaine"+str(quot["semaine"])]
-	with open ('quotas.json','w') as f:
-		json.dump(quot,f,indent=6)
+async def renduquotas(interaction: discord.Interaction,catalogue:str,member:discord.Member):
+	cat = {"Tryhardeur":0}
+	if catalogue not in cat.keys():
+		await interaction.response.send_message("Ce n'est pas un catalogue valide !")
+		return
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(member.id) in pt.keys():
+		pt[str(member.id)] += cat[catalogue]
+	else:
+		pt[str(member.id)] = cat[catalogue]
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
+	log = bot.get_channel(1026567820311531550)
+	await log.send(f'{member.mention} à fait la quota "{catalogue}" et à reçu {cat[catalogue]} points')
+	await member.send(f'Vous avez fait le quota "{catalogue}" cette semaine et avez reçu {cat[catalogue]} points !')
 	await interaction.response.send_message('Le message à bien été envoyé')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
-async def renduquotas(interaction: discord.Interaction,divi:str,member:discord.Member):
-	if divi != "SD" and divi != "BD":
-		await interaction.response.send_message("Ce n'est pas une division valide !")
-		return
-	if not member:
-		await interaction.response.send_message("Vous n'avez pas indiqué de membre")
-		return
-	with open ('quotas.json','r') as f:
-		quot = json.load(f)
-	if member.id not in quot["semaine"+str(quot["semaine"])][divi]["af"]:
-		await interaction.response.send_message("Cette personne n'a pas de quotas a rendre")
-		return
-	quot["semaine"+str(quot["semaine"])][divi]["af"].remove(member.id)
-	quot["semaine"+str(quot["semaine"])][divi]["fait"].append(member.id)
-	with open ('quotas.json','w') as f:
-		json.dump(quot,f,indent=6)
-	await member.send(f'Vous avez fait le quota de le {divi} de cette semaine !')
-	await interaction.response.send_message('Le message à bien été envoyé')
+async def dreampoints(interaction: discord.Interaction):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(interaction.user.id) in pt.keys():
+		points = pt[str(interaction.user.id)]
+	else:
+		points = 0
+	await interaction.response.send_message(f'Vous avez ``{points}`` points')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
-async def listequotas(interaction: discord.Interaction,semaine:typing.Optional[str]):
-	with open ('quotas.json','r') as f:
-		quot = json.load(f)
-	if not semaine or semaine > quot["semaine"] or semaine<1:
-		semaine = quot["semaine"]
-	message = ""
-	for divi in quot["semaine"+str(semaine)].keys():
-		message += f"\n__**{divi}**__\n**Non Rendu :**\n"
-		for personne in quot["semaine"+str(semaine)][divi]["af"]:
-			try:
-				pers = bot.get_user(personne)
-				message += "> "+pers.mention+"\n"
-			except:
-				await interaction.channel.send(f'il y a un soucis avec {personne}')
-		message += "**Rendu :**\n"
-		for personne in quot["semaine"+str(semaine)][divi]["fait"]:
-			try:
-				pers = bot.get_user(personne)
-				message += "> "+pers.mention+"\n"
-			except:
-				await interaction.channel.send(f'il y a un soucis avec {personne}')
-	await interaction.response.send_message(embed=create_small_embed(message))
-
-@bot.tree.command()
-async def finquotas(interaction: discord.Interaction):
-	with open("quotas.json",'r') as f:
-		quot = json.load(f)
-	for idd in quot["semaine"+str(quot["semaine"])]["SD"]["af"]:
-		personne = bot.get_user(int(idd))
-		try:
-			await personne.send("Vous n'avez pas rendu vos quotas cette semaine, vous avez donc utilisé un de vos jokes. Au bout de trois vous ne pourrez plus venir dans la division élite ni Baddream et serez déplacé vers la HD pour une periode de six mois. Vous pouvez racheter un de ces avertisements en farmant le double des quotas d'une autre semaine/n***RAPPEL*** Vous pouvez a tout moment faire /choixdivi HD pour ne plus avoir de quotas, cependant vous aurez moins d'accès et de rankups")
-		except:
-			await interaction.channel.send(f"<@{idd}> n'a pas activé ses mp")
-		if str(idd) in quot["warn"].keys():
-			if len(quot["warn"][str(idd)]) == 2:
-				await personne.send("vous avez atteint la limite de 3 avertissements et vous etes donc passé dans la division HD pour une periode de six mois. Vous pouvez cependant ecourter cette periode en farmant l'equivalent de trois quotas")
-				quot["warn"][str(idd)].append(str(datetime.now()))
+async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(interaction.user.id) in pt.keys() and pt[str(interaction.user.id)] >= montant:
+		pt[str(interaction.user.id)] -= montant
+		if str(member.id) in pt.keys():
+			pt[str(member.id)] += montant
 		else:
-			quot["warn"][str(idd)] = [str(datetime.now())]
-	with open ('quotas.json','w') as f:
-		json.dump(quot,f,indent=6)
-	await interaction.channel.send('Fait')
+			pt[str(member.id)] = montant
+		with open ('points.json','w') as f:
+			json.dump(pt,f,indent=6)
+		await interaction.response.send_message(f'Vous avez payé {montant} points à {member.mention}')
+	else:
+		await interaction.response.send_message(f'''Vous n'avez pas assez de DreamPoints pour faire cela''')
 
 @bot.tree.command()
-async def listewarnquotas(interaction: discord.Interaction):
-	with open("quotas.json",'r') as f:
-		quot = json.load(f)
-	m = '**Warns quotas :** \n\n'
-	for personne in quot['warns'].keys():
-		m += f'''<@{personne}> : {len(quot['warns'][personne])} *({quot['warns'][personne].join(', ')})*\n'''
-	await interaction.response.send_message(create_small_embed(m))
-
-## =========== Equipes ===========
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def addequipe(interaction: discord.Interaction,membre:discord.Member,equipe:str):
-	if equipe != "Aninal" and equipe != "Nateuice" and equipe != "LaitLait" and equipe != "Sac Dawinx":
-		await interaction.response.send_message("Mauvais nom d'équipe !")
-		return
-	with open('equipes.json','r') as f:
-		eq = json.load(f)
-	eq[equipe]['Membres'][str(membre.id)] = 0
-	role = interaction.guild.get_role(eq[equipe]['Role'])
-	await membre.add_roles(role)
-	with open('equipes.json','w') as f:
-		json.dump(eq,f,indent=6)
-	await interaction.response.send_message(f'''{membre.mention} a bien été ajouté à l'équipe {equipe}''')
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def addpoints(interaction: discord.Interaction,membre:discord.Member,points:int,raison:str):
-	with open('equipes.json','r') as f:
-		eq = json.load(f)
-	find = None
-	for divi in eq.keys():
-		if str(membre.id) in eq[divi]['Membres'].keys():
-			find = divi
-	if find == None:
-		await interaction.response.send_message("Cet utilisateur n'est dans aucune équipe !")
-		return
+async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(interaction.user.id) in pt.keys():
+		pt[str(interaction.user.id)] += nombre
+	else:
+		pt[str(interaction.user.id)] = nombre
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à donné {points} à {membre.mention} pour {raison}')
-	eq[find]['Total'] += points
-	eq[find]['Membres'][str(membre.id)] += points
-	with open('equipes.json','w') as f:
-		json.dump(eq,f,indent=6)
-	await interaction.response.send_message(f'''{points} points ont bien étés ajoutés à {membre.mention}''')
+	await logs.send(f'{interaction.user.mention} à demandé `{nombre}` points pour {motif} (preuve eventuelle : {preuve})')
+	await interaction.response.send_message(f'''{nombre} points vous ont été donnés.\n__**ATTENTION !**__ Une verification sera faite bientot et si ces points ne sont pas légitimes vous serez lourdement sanctionnés.\nSi c'est une erreur ou un test, veuillez contacter un hg le plus rapidement possible''')
+
+""" @bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def blbl(interaction: discord.Interaction):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	Roles = [[790675782338740235,48600],[790675782364037131,39600],[790675783352975360,31500],[790675783549976579,24300],[790675783693500456,18000],
+			 [790675784120401932,12600],[790675784225521734,8100],[791066206437113897,4500],[791066207418712094,1800],[791066206109958204,0]]
+	for personne in voc['total'].items():
+		role = None
+		role2 = None
+		mem = interaction.guild.get_member(int(personne[0]))
+		if mem != None:
+			for x in Roles:
+				if x[0] in [t.id for t in mem.roles]:
+					pt[str(mem.id)] = personne[1] - x[1]
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
+	await interaction.channel.send('Finito') """
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
-async def removepoints(interaction: discord.Interaction,membre:discord.Member,points:int,raison:str):
-	with open('equipes.json','r') as f:
-		eq = json.load(f)
-	find = None
-	for divi in eq.keys():
-		if str(membre.id) in eq[divi]['Membres'].keys():
-			find = divi
-	if find == None:
-		await interaction.response.send_message("Cet utilisateur n'est dans aucune équipe !")
-		return
+async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombre:int,motif:str,preuve:typing.Optional[str]):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(membre.id) in pt.keys():
+		pt[str(membre.id)] += nombre
+	else:
+		pt[str(membre.id)] = nombre
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à donné {points} à {membre.mention} pour {raison}')
-	eq[find]['Total'] -= points
-	eq[find]['Membres'][str(membre.id)] -= points
-	with open('equipes.json','w') as f:
-		json.dump(eq,f,indent=6)
-	await interaction.response.send_message(f'''{points} points ont bien étés ajoutés à {membre.mention}''')
+	await logs.send(f'{interaction.user.mention} à donné `{nombre}` points à {membre.mention} pour {motif} (preuve eventuelle : {preuve})')
+	await interaction.response.send_message(f'''{nombre} points ont été donnés à {membre.mention}.''')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def removepoints(interaction: discord.Interaction,membre:discord.Member,nombre:int,motif:str,preuve:typing.Optional[str]):
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if str(membre.id) in pt.keys():
+		pt[str(membre.id)] -= nombre
+	else:
+		pt[str(membre.id)] = -nombre
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
+	logs = interaction.guild.get_channel(1026567820311531550)
+	await logs.send(f'{interaction.user.mention} à retiré `{nombre}` points à {membre.mention} pour {motif} (preuve eventuelle : {preuve})')
+	await interaction.response.send_message(f'''{nombre} points ont été retirés à {membre.mention}.''')
+
+@bot.tree.command()
+async def achatdp(interaction: discord.Interaction,achat:str):
+	ach = {'Rankup Penseur':[791066207418712094,5000],'Rankup Maitre penseur':[791066206437113897,6000],'Rankup Inventeur':[790675784225521734,7000],
+					'Rankup Utopiste':[790675784120401932,10000],'Rankup Songeur':[790675783693500456,12000],'Rankup Dreamer':[790675783549976579,14000],
+					'Rankup Chimère':[790675783352975360,20000],'Rankup Fantaisiste':[790675782364037131,25000],'Rankup Idéaliste':[790675782338740235,30000], 'Grade Perso':20000, 'Emoji Perso':20000}
+	salon = interaction.guild.get_channel(1034854483911512115)
+	if achat not in ach.keys():
+		await interaction.response.send_message("L'achat spécifié n'est pas correct, veuillez acheter : ``Rankup Penseur/Maitre penseur/etc``, ``Grade Perso``, ``Emoji Perso`` ou ``Commande Perso``")
+		return
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	if achat[:6] == 'Rankup':
+		ptt = ach[achat][1]
+	else:
+		ptt = ach[achat]
+	if str(interaction.user.id) in pt.keys() and pt[str(interaction.user.id)] >= ptt:
+		pt[str(interaction.user.id)] -= ptt
+	else:
+		await interaction.response.send_message("Vous n'avez pas assez de points pour cela !")
+		return
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
+	if achat[:6] == 'Rankup':
+		await salon.send(f"{interaction.user.mention} veut passer <@&{ach[achat][0]}>")
+	else:
+		await salon.send(f"{interaction.user.mention} veut un {achat}")
+	await interaction.response.send_message(f"Votre demande à été effectuée, sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\nPour les rankups :\n- Vous demandez plus de trois rankups a la fois\n- Vous n'avez pas le rang nécéssaire au rankup suivant\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n")
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
-	with open('equipes.json','r') as f:
-		eq = json.load(f)
-	Tot = []
-	for divi in eq.keys():
-		Tot.append([divi,eq[divi]['Total']])
-	s = sorted(Tot,key = lambda t : t[1],reverse=True)
-	await interaction.response.send_message(f'''1er : {s[0][0]} ({s[0][1]})\n2eme : {s[1][0]} ({s[1][1]})\n3eme : {s[2][0]} ({s[2][1]})\n4eme : {s[3][0]} ({s[3][1]})''')
-
-@bot.tree.command()
-async def points(interaction: discord.Interaction):
-	with open('equipes.json','r') as f:
-		eq = json.load(f)
-	find = None
-	for divi in eq.keys():
-		if str(interaction.user.id) in eq[divi]['Membres'].keys():
-			find = divi
-	if find == None:
-		await interaction.response.send_message("Vous n'êtes dans aucune équipe !")
-		return
-	await interaction.response.send_message(f"Vous avez fait {eq[divi]['Membres'][str(interaction.user.id)]} points au total")
+	with open('points.json','r') as f:
+		pt = json.load(f)
+	s = sorted(pt,key = lambda t : pt[t],reverse=True)
+	print(s)
+	await interaction.response.send_message(f'''1er : {s[0]} ({pt[s[0]]})\n2eme : {s[1]} ({pt[s[1]]})\n3eme : {s[2]} ({pt(s[2])})''')
 
 # =========== Autre ===========
 
