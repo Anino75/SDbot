@@ -51,6 +51,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(NombreView())
 		self.add_view(ench())
 		self.add_view(vend())
+		self.add_view(pagecl())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -125,7 +126,7 @@ async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	await interaction.user.add_roles(role)
 	await interaction.response.send_message('Votre absence a bien été prise en compte')
 
-@bot.tree.command()
+""" @bot.tree.command()
 @commands.cooldown(1, 604800, commands.BucketType.user)
 async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
 	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] and 791066207418712094 not in [x.id for x in interaction.user.roles] and 791066206437113897 not in [x.id for x in interaction.user.roles] and 790675784225521734 not in [x.id for x in interaction.user.roles] and 790675784120401932 not in [x.id for x in interaction.user.roles] and 790675783693500456 not in [x.id for x in interaction.user.roles] and 790675783549976579 not in [x.id for x in interaction.user.roles] and 790675783352975360 not in [x.id for x in interaction.user.roles] and 790675782364037131 not in [x.id for x in interaction.user.roles] and 790675782338740235 not in [x.id for x in interaction.user.roles]:
@@ -151,7 +152,7 @@ async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
 	if divi == "HD":
 		await interaction.user.edit(nick=f'[HD] {interaction.user.nick[5:]}')
 	await test.send(f'{interaction.user.mention} est passé dans la division {divi}')
-	await interaction.response.send_message(f'Vous etes passé dans la {divi}')
+	await interaction.response.send_message(f'Vous etes passé dans la {divi}') """
 
 @tasks.loop(seconds = 36000)
 async def abs():
@@ -191,9 +192,9 @@ async def voc():
 					else:
 						voc[dtn][str(member.id)] = 1
 					if str(member.id) in pt.keys():
-						pt[str(member.id)] += 2
+						pt[str(member.id)] += 3
 					else:
-						pt[str(member.id)] = 2
+						pt[str(member.id)] = 3
 	with open("voc.json",'w') as f:
 		json.dump(voc, f, indent=6)
 	with open ('points.json','w') as f:
@@ -1019,13 +1020,12 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 		pass
 	role1 = interaction.guild.get_role(1011953852427272302)
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
-	await interaction.response.send_message('Message envoyé')
 	try:
 		await member.send(embed=discord.Embed(title='Recrutements',description="Bravo à toi pour avoir rankup et réussi ta période de test ! Il ne te manque plus qu'a rendre tes phases a un recruteur dans le <#1011954323271458846>\n**__RAPPEL :__ Il est strictement interdit de parler des phases et de donner le nombre de points que vous avez fait pour rentrer sous peine de sanctions** "))
 	except:
 		await interaction.response.send_message(f'{member.mention} à désactivé ses mp mais il a quand meme été ajouté aux phases')
 		return
-	interaction.response.send_message('Message envoyé')
+	await interaction.response.send_message('Message envoyé')
 
 class testview(discord.ui.View):
 	def __init__(self):
@@ -2806,10 +2806,10 @@ async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preu
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à demandé `{nombre}` points pour {motif} (preuve eventuelle : {preuve})')
+	await logs.send(f'{interaction.user.mention} à demandé `{nombre}` points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	await interaction.response.send_message(f'''{nombre} points vous ont été donnés.\n__**ATTENTION !**__ Une verification sera faite bientot et si ces points ne sont pas légitimes vous serez lourdement sanctionnés.\nSi c'est une erreur ou un test, veuillez contacter un hg le plus rapidement possible''')
 
-""" @bot.tree.command()
+@bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def blbl(interaction: discord.Interaction):
 	with open ('points.json','r') as f:
@@ -2817,7 +2817,7 @@ async def blbl(interaction: discord.Interaction):
 	with open('voc.json','r') as f:
 		voc = json.load(f)
 	Roles = [[790675782338740235,48600],[790675782364037131,39600],[790675783352975360,31500],[790675783549976579,24300],[790675783693500456,18000],
-			 [790675784120401932,12600],[790675784225521734,8100],[791066206437113897,4500],[791066207418712094,1800],[791066206109958204,0]]
+			 [790675784120401932,12600],[790675784225521734,8100],[791066206437113897,4500],[791066207418712094,1800],[791066206109958204,0],[1011953852427272302,0]]
 	for personne in voc['total'].items():
 		role = None
 		role2 = None
@@ -2825,10 +2825,10 @@ async def blbl(interaction: discord.Interaction):
 		if mem != None:
 			for x in Roles:
 				if x[0] in [t.id for t in mem.roles]:
-					pt[str(mem.id)] = personne[1] - x[1]
+					pt[str(mem.id)] = 3*(personne[1] - x[1])
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
-	await interaction.channel.send('Finito') """
+	await interaction.response.send_message('Finito')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -2842,7 +2842,7 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à donné `{nombre}` points à {membre.mention} pour {motif} (preuve eventuelle : {preuve})')
+	await logs.send(f'{interaction.user.mention} à donné `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	await interaction.response.send_message(f'''{nombre} points ont été donnés à {membre.mention}.''')
 
 @bot.tree.command()
@@ -2857,14 +2857,14 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à retiré `{nombre}` points à {membre.mention} pour {motif} (preuve eventuelle : {preuve})')
+	await logs.send(f'{interaction.user.mention} à retiré `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	await interaction.response.send_message(f'''{nombre} points ont été retirés à {membre.mention}.''')
 
 @bot.tree.command()
 async def achatdp(interaction: discord.Interaction,achat:str):
-	ach = {'Rankup Penseur':[791066207418712094,5000],'Rankup Maitre penseur':[791066206437113897,6000],'Rankup Inventeur':[790675784225521734,7000],
-					'Rankup Utopiste':[790675784120401932,10000],'Rankup Songeur':[790675783693500456,12000],'Rankup Dreamer':[790675783549976579,14000],
-					'Rankup Chimère':[790675783352975360,20000],'Rankup Fantaisiste':[790675782364037131,25000],'Rankup Idéaliste':[790675782338740235,30000], 'Grade Perso':20000, 'Emoji Perso':20000}
+	ach = {'Rankup Penseur':[791066207418712094,10000],'Rankup Maitre penseur':[791066206437113897,15000],'Rankup Inventeur':[790675784225521734,20000],
+					'Rankup Utopiste':[790675784120401932,30000],'Rankup Songeur':[790675783693500456,40000],'Rankup Dreamer':[790675783549976579,50000],
+					'Rankup Chimère':[790675783352975360,70000],'Rankup Fantaisiste':[790675782364037131,90000],'Rankup Idéaliste':[790675782338740235,110000], 'Grade Perso':20000, 'Emoji Perso':20000}
 	salon = interaction.guild.get_channel(1034854483911512115)
 	if achat not in ach.keys():
 		await interaction.response.send_message("L'achat spécifié n'est pas correct, veuillez acheter : ``Rankup Penseur/Maitre penseur/etc``, ``Grade Perso``, ``Emoji Perso`` ou ``Commande Perso``")
@@ -2889,12 +2889,57 @@ async def achatdp(interaction: discord.Interaction,achat:str):
 	await interaction.response.send_message(f"Votre demande à été effectuée, sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\nPour les rankups :\n- Vous demandez plus de trois rankups a la fois\n- Vous n'avez pas le rang nécéssaire au rankup suivant\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n")
 
 @bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
 async def classement(interaction: discord.Interaction):
 	with open('points.json','r') as f:
 		pt = json.load(f)
 	s = sorted(pt,key = lambda t : pt[t],reverse=True)
-	print(s)
-	await interaction.response.send_message(f'''1er : {s[0]} ({pt[s[0]]})\n2eme : {s[1]} ({pt[s[1]]})\n3eme : {s[2]} ({pt(s[2])})''')
+	msg = ""
+	if len(s) < 20:
+		for i in range(len(s)):
+			msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
+	else:
+		for i in range(20):
+			msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
+	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=msg),view=pagecl())
+
+class pagecl(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Page précédente", style=discord.ButtonStyle.red, custom_id='prec')
+	async def prec(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for element in interaction.message.embeds:
+			tir = int(element.title[-1])
+		if tir == 1:
+			await interaction.response.send_message('Vous êtes déjà à la première page',ephemeral=True)
+			return
+		with open('points.json','r') as f:
+			pt = json.load(f)
+		msg = ''
+		s = sorted(pt,key = lambda t : pt[t],reverse=True)
+		for i in range((tir-2)*20,(tir-1)*20):
+			msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
+		await interaction.message.edit(embed=discord.Embed(title=f'Page {tir-1}',description=msg))
+		await interaction.response.send_message('Message modifié',ephemeral=True)
+	@discord.ui.button(label="Page suivante", style=discord.ButtonStyle.green, custom_id='suiv')
+	async def suiv(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for element in interaction.message.embeds:
+			tir = int(element.title[-1])
+		with open('points.json','r') as f:
+			pt = json.load(f)
+		if tir*20 >= len(pt.keys()):
+			await interaction.response.send_message('Vous êtes déjà à la dernière page',ephemeral=True)
+			return
+		msg = ''
+		s = sorted(pt,key = lambda t : pt[t],reverse=True)
+		if len(pt.keys()) < (tir+1)*20:
+			for i in range(tir*20,len(pt.keys())):
+				msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
+		else:
+			for i in range(tir*20,(tir+1)*20):
+				msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
+		await interaction.message.edit(embed=discord.Embed(title=f'Page {tir+1}',description=msg))
+		await interaction.response.send_message('Message modifié',ephemeral=True)
 
 # =========== Autre ===========
 
@@ -2973,6 +3018,24 @@ async def on_message(message):
 		if message.content.startswith('SD'):
 			await message.author.send("Vous ne pouvez pas m'utiliser en message privé !")
 		return
+	bonj = bot.get_channel(811653900611354704)
+	if message.channel == bonj:
+		Roles = [790675782338740235,790675782364037131,790675783352975360,790675783549976579,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204,1011953852427272302]
+		if message.content.lower == "bonjour tlm" or message.content.lower == "bonjour tlm ":
+			x = None
+			for Ro in Roles:
+				if Ro in [t.id for t in message.author.roles]:
+					x = 1 
+			if x != None:
+				with open ('points.json','r') as f:
+					pt = json.load(f)
+				if str(message.author.id) in pt.keys():
+					pt[str(message.author.id)] += 20
+				else:
+					pt[str(message.author.id)] = 20
+			with open ('points.json','w') as f:
+				json.dump(pt,f,indent=6)
+			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
 	await bot.process_commands(message)
 
 def run_bot(token=TOKEN, debug=False):
