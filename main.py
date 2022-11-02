@@ -44,7 +44,6 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(rouleView())
 		self.add_view(regl())
 		self.add_view(IsAlly())
-		self.add_view(testview())
 		self.add_view(candid())
 		self.add_view(event())
 		self.add_view(page())
@@ -52,6 +51,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(ench())
 		self.add_view(vend())
 		self.add_view(pagecl())
+		self.add_view(autoview())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -998,7 +998,7 @@ async def inactivity():
 			if user==None:
 				memi.append(user_id[0])
 			else:
-				await fin.send(f'{user.mention} a fini sa periode de test. Voulez vous le faire passer ?',view=testview())
+				await fin.send(f'{user.mention} a fini sa periode de test.?')# Voulez vous le faire passer   ,view=testview()
 				memi.append(user_id[0])
 	for element in memi:
 		interviews['ET'].pop(element)
@@ -1034,7 +1034,7 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 		return
 	await interaction.response.send_message('Message envoyé')
 
-class testview(discord.ui.View):
+"""class testview(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Accepter', style=discord.ButtonStyle.green, custom_id='pass')
@@ -1090,7 +1090,7 @@ class testview(discord.ui.View):
 			await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"),ephemeral=True)
 		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
 		await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
-		await interaction.message.delete()
+		await interaction.message.delete()"""
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
@@ -1789,7 +1789,7 @@ class PvP(discord.ui.Select):
 															   interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True, ),
 														   vendeur:discord.PermissionOverwrite(read_messages=True, send_messages=True, )},
 														   category=guild.get_channel(1015558169545674782))
-		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
+		await comm.send(f"{interaction.user.mention}, merci d'avoir commandé l'item {self.values[0][:-4]} chez nous. (ID : {self.values[0][-4:-1]})",view=NombreView())
 		await interaction.response.send_message("Vous avez crée le channel "+comm.mention,ephemeral=True)
 
 class PvPView(discord.ui.View):
@@ -2994,6 +2994,74 @@ class pagecl(discord.ui.View):
 				msg += f'{i+1} : <@{s[i]}> - ({pt[s[i]]})\n'
 		await interaction.message.edit(embed=discord.Embed(title=f'Page {tir+1}',description=msg))
 		await interaction.response.send_message('Message modifié',ephemeral=True)
+
+class auto(discord.ui.Select):
+	def __init__(self):
+		with open('warnblame.json','r') as f:
+			au = json.load(f)
+		options = []
+		for i in au['autoroles']:
+			options.append(discord.SelectOption(label=str(i[1]),description=str(i[0]),emoji=i[2]))
+		super().__init__(placeholder='Auto Rôles', min_values=1, max_values=1, options=options, custom_id='autor')
+	async def callback(self, interaction: discord.Interaction):
+		guild = bot.get_guild(790367917812088864)
+		print(self.values)
+		t = guild.get_role(self.values[1])
+		await interaction.user.add_roles(t)
+		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
+
+class fest(discord.ui.Select):
+	def __init__(self):
+		with open('equipes.json','r') as f:
+			eq = json.load(f)
+		options = []
+		guild = bot.get_guild(790367917812088864)
+		for i in eq.keys():
+			t = guild.get_role(int(i))
+			options.append(discord.SelectOption(label=f'{t} (ID : {t.id})',emoji=t.unicode_emoji))
+		super().__init__(placeholder='Auto Rôles', min_values=1, max_values=1, options=options, custom_id='autor')
+	async def callback(self, interaction: discord.Interaction):
+		with open('equipes.json','r') as f:
+			eq = json.load(f)
+		for y in eq.keys():
+			if int(y) in [t.id for t in interaction.user.roles]:
+				interaction.response.send_message('Vous avez déjà un rôle de ce festivau !',ephemeral=True)
+				return
+		guild = bot.get_guild(790367917812088864)
+		t = guild.get_role(self.values[0])
+		await interaction.user.add_roles(t)
+		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
+
+class autoview(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+		self.add_item(auto())
+		#self.add_item(fest())
+
+async def majauto():
+	with open('warnblame.json','r') as f:
+		au = json.load(f)
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	msg = '___***Auto Rôles :***___\n'
+	for t in au['autoroles']:
+		msg += f'- <@&{t}>\n'
+	msg += '\n___***Rôles du festivau***___\n'
+	for t in eq.keys():
+		msg += f'- <@&{t}>\n'
+	return discord.Embed(title=f'Roles Automatiques',description=msg)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def majroleauto(interaction: discord.Interaction,channel:discord.TextChannel,message:str):
+	message = channel.get_partial_message(message)
+	await message.edit(embed= await majauto(),view=autoview())
+	await interaction.response.send_message('Fait')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def sendroleauto(interaction: discord.Interaction):
+	await interaction.response.send_message(embed= await majauto(),view=autoview())
 
 # =========== Autre ===========
 
