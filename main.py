@@ -51,7 +51,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(ench())
 		self.add_view(vend())
 		self.add_view(pagecl())
-		self.add_view(autoview())
+		self.add_view(autoview([],[]))
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -2996,47 +2996,36 @@ class pagecl(discord.ui.View):
 		await interaction.response.send_message('Message modifié',ephemeral=True)
 
 class auto(discord.ui.Select):
-	def __init__(self):
-		with open('warnblame.json','r') as f:
-			au = json.load(f)
-		options = []
-		for i in au['autoroles']:
-			options.append(discord.SelectOption(label=str(i[1]),description=str(i[0]),emoji=i[2]))
+	def __init__(self,roles):
+		options=[discord.SelectOption(label=str(t.name),value=t.id,emoji=t.unicode_emoji) for t in roles]
 		super().__init__(placeholder='Auto Rôles', min_values=1, max_values=1, options=options, custom_id='autor')
 	async def callback(self, interaction: discord.Interaction):
 		guild = bot.get_guild(790367917812088864)
-		print(self.values)
-		t = guild.get_role(self.values[1])
+		t = guild.get_role(int(self.values[0]))
 		await interaction.user.add_roles(t)
 		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
 
 class fest(discord.ui.Select):
-	def __init__(self):
-		with open('equipes.json','r') as f:
-			eq = json.load(f)
-		options = []
-		guild = bot.get_guild(790367917812088864)
-		for i in eq.keys():
-			t = guild.get_role(int(i))
-			options.append(discord.SelectOption(label=f'{t} (ID : {t.id})',emoji=t.unicode_emoji))
-		super().__init__(placeholder='Auto Rôles', min_values=1, max_values=1, options=options, custom_id='autor')
+	def __init__(self,roles):
+		options=[discord.SelectOption(label=str(t.name),value=t.id,emoji=t.unicode_emoji) for t in roles]
+		super().__init__(placeholder='Rôles Festivau', min_values=1, max_values=1, options=options, custom_id='fest')
 	async def callback(self, interaction: discord.Interaction):
 		with open('equipes.json','r') as f:
 			eq = json.load(f)
 		for y in eq.keys():
 			if int(y) in [t.id for t in interaction.user.roles]:
-				interaction.response.send_message('Vous avez déjà un rôle de ce festivau !',ephemeral=True)
+				await interaction.response.send_message('Vous avez déjà un rôle de ce festivau !',ephemeral=True)
 				return
 		guild = bot.get_guild(790367917812088864)
-		t = guild.get_role(self.values[0])
+		t = guild.get_role(int(self.values[0]))
 		await interaction.user.add_roles(t)
 		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
 
 class autoview(discord.ui.View):
-	def __init__(self):
+	def __init__(self,options,roles):
 		super().__init__(timeout=None)
-		self.add_item(auto())
-		#self.add_item(fest())
+		self.add_item(auto(options))
+		self.add_item(fest(roles))
 
 async def majauto():
 	with open('warnblame.json','r') as f:
@@ -3049,19 +3038,67 @@ async def majauto():
 	msg += '\n___***Rôles du festivau***___\n'
 	for t in eq.keys():
 		msg += f'- <@&{t}>\n'
-	return discord.Embed(title=f'Roles Automatiques',description=msg)
+	guild = bot.get_guild(790367917812088864)
+	options = []
+	for i in au['autoroles']:
+		t = guild.get_role(int(i))
+		options.append(t)
+	roles = []
+	for i in eq.keys():
+		t = guild.get_role(int(i))
+		roles.append(t)
+	return [discord.Embed(title=f'Roles Automatiques',description=msg),options,roles]
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def majroleauto(interaction: discord.Interaction,channel:discord.TextChannel,message:str):
 	message = channel.get_partial_message(message)
-	await message.edit(embed= await majauto(),view=autoview())
+	t = await majauto()
+	await message.edit(embed=t[0],view=autoview(t[1],t[2]))
 	await interaction.response.send_message('Fait')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def sendroleauto(interaction: discord.Interaction):
-	await interaction.response.send_message(embed= await majauto(),view=autoview())
+	t = await majauto()
+	await interaction.response.send_message(embed=t[0],view=autoview(t[1],t[2]))
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def addroleauto(interaction: discord.Interaction,role_id:str):
+	with open('warnblame.json', 'r') as f:
+		au = json.load(f)
+	au["autoroles"].append(int(role_id))
+	with open ('warnblame.json','w') as f:
+		json.dump(au,f,indent=6)
+	await interaction.response.send_message('Fait')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def removeroleauto(interaction: discord.Interaction,role_id:str):
+	with open('warnblame.json', 'r') as f:
+		au = json.load(f)
+	au["autoroles"].remove(int(role_id))
+	with open ('warnblame.json','w') as f:
+		json.dump(au,f,indent=6)
+	await interaction.response.send_message('Fait')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def newfest(interaction: discord.Interaction,equipes:str):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	for rol in eq.keys():
+		role = interaction.guild.get_role(int(rol))
+		await role.delete()
+	eq = {}
+	guild = bot.get_guild(790367917812088864)
+	for element in equipes.rsplit():
+		rol = await guild.create_role(name=f'『⚔️』Equipe {element}')
+		eq[str(rol.id)] = 0
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
+	await interaction.response.send_message('Fait')
 
 # =========== Autre ===========
 
