@@ -2947,7 +2947,7 @@ async def classement(interaction: discord.Interaction):
 	msg = ''
 	for i in range(len(s)):
 		msg += f"{y[i]} <@&{s[i]}> *({eq[s[i]]} points)*\n\n"
-	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=msg),view=pagecl())
+	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=msg))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3213,6 +3213,8 @@ async def on_message(message):
 			with open ('points.json','w') as f:
 				json.dump(pt,f,indent=6)
 			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
+			logs = bot.get_channel(1026567820311531550)
+			await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
 	await bot.process_commands(message)
 
 def run_bot(token=TOKEN, debug=False):
