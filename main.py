@@ -2937,7 +2937,7 @@ async def achatdp(interaction: discord.Interaction,achat:str):
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
-	if interaction.channel.id != 811653993033891870 and interaction.channel.id != 791452088370069525:
+	if interaction.channel.id not in [811653993033891870,791452088370069525,1037477592573415545,1037478755821686864]:
 		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	with open('equipes.json','r') as f:
@@ -3190,22 +3190,26 @@ async def on_message(message):
 		return
 	bonj = bot.get_channel(811653900611354704)
 	if message.channel == bonj:
-		print("hello")
-		Roles = [790675782338740235,790675782364037131,790675783352975360,790675783549976579,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204,1011953852427272302]
-		if message.content.lower == "bonjour tlm" or message.content.lower == "bonjour tlm ":
-			print('tt')
+		if message.content.lower()[:11] == "bonjour tlm":
+			Roles = [821787385636585513,790675782569164820,790675782338740235,790675782364037131,790675783352975360,790675783549976579,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204,1011953852427272302]
 			x = None
 			for Ro in Roles:
 				if Ro in [t.id for t in message.author.roles]:
 					x = 1
 			if x != None:
-				print(x)
 				with open ('points.json','r') as f:
 					pt = json.load(f)
 				if str(message.author.id) in pt.keys():
 					pt[str(message.author.id)] += 20
 				else:
 					pt[str(message.author.id)] = 20
+				with open ('equipes.json','r') as f:
+					eq = json.load(f)
+				for role in eq.keys():
+					if int(role) in [t.id for t in message.author.roles]:
+						eq[role] += 20
+				with open ('equipes.json','w') as f:
+					json.dump(eq,f,indent=6)
 			with open ('points.json','w') as f:
 				json.dump(pt,f,indent=6)
 			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
