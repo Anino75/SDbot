@@ -175,6 +175,8 @@ async def voc():
 		voc = json.load(f)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
+	with open ('equipes.json','r') as f:
+		eq = json.load(f)
 	guild = bot.get_guild(790367917812088864)
 	dtn = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
 	if dtn not in voc.keys():
@@ -195,10 +197,15 @@ async def voc():
 						pt[str(member.id)] += 3
 					else:
 						pt[str(member.id)] = 3
+					for role in eq.keys():
+						if int(role) in [t.id for t in member.roles]:
+							eq[role] += 3
 	with open("voc.json",'w') as f:
 		json.dump(voc, f, indent=6)
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 
 @bot.tree.command()
 async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
@@ -2752,7 +2759,7 @@ async def ww(interaction: discord.Interaction,ll):
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
 async def renduquotas(interaction: discord.Interaction,catalogue:str,member:discord.Member):
-	cat = {"Tryhardeur":0}
+	cat = {"poussin":400,'tranquillou':800,'intermediaire':1200,'tryharder':2100,'giga chad':3000}
 	if catalogue not in cat.keys():
 		await interaction.response.send_message("Ce n'est pas un catalogue valide !")
 		return
@@ -2762,6 +2769,13 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 		pt[str(member.id)] += cat[catalogue]
 	else:
 		pt[str(member.id)] = cat[catalogue]
+	with open ('equipes.json','r') as f:
+		eq = json.load(f)
+	for role in eq.keys():
+		if int(role) in [t.id for t in member.roles]:
+			eq[role] += 3
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	log = bot.get_channel(1026567820311531550)
@@ -2771,6 +2785,9 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 
 @bot.tree.command()
 async def dreampoints(interaction: discord.Interaction):
+	if interaction.channel.id != 811653993033891870:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
 	if str(interaction.user.id) in pt.keys():
@@ -2781,6 +2798,9 @@ async def dreampoints(interaction: discord.Interaction):
 
 @bot.tree.command()
 async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
+	if interaction.channel.id != 811653993033891870:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
 	if str(interaction.user.id) in pt.keys() and pt[str(interaction.user.id)] >= montant:
@@ -2797,6 +2817,9 @@ async def paydp(interaction: discord.Interaction,member:discord.Member,montant:i
 
 @bot.tree.command()
 async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
+	if interaction.channel.id != 811653993033891870:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
 	if str(interaction.user.id) in pt.keys():
@@ -2809,7 +2832,7 @@ async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preu
 	await logs.send(f'{interaction.user.mention} à demandé `{nombre}` points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	await interaction.response.send_message(f'''{nombre} points vous ont été donnés.\n__**ATTENTION !**__ Une verification sera faite bientot et si ces points ne sont pas légitimes vous serez lourdement sanctionnés.\nSi c'est une erreur ou un test, veuillez contacter un hg le plus rapidement possible''')
 
-@bot.tree.command()
+""" @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def blbl(interaction: discord.Interaction):
 	with open ('points.json','r') as f:
@@ -2828,7 +2851,7 @@ async def blbl(interaction: discord.Interaction):
 					pt[str(mem.id)] = 3*(personne[1] - x[1])
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
-	await interaction.response.send_message('Finito')
+	await interaction.response.send_message('Finito') """
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -2839,6 +2862,13 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 		pt[str(membre.id)] += nombre
 	else:
 		pt[str(membre.id)] = nombre
+	with open ('equipes.json','r') as f:
+		eq = json.load(f)
+	for role in eq.keys():
+		if int(role) in [t.id for t in membre.roles]:
+			eq[role] += nombre
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
@@ -2854,6 +2884,13 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 		pt[str(membre.id)] -= nombre
 	else:
 		pt[str(membre.id)] = -nombre
+	with open ('equipes.json','r') as f:
+		eq = json.load(f)
+	for role in eq.keys():
+		if int(role) in [t.id for t in membre.roles]:
+			eq[role] -= nombre
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
@@ -2862,6 +2899,9 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 
 @bot.tree.command()
 async def achatdp(interaction: discord.Interaction,achat:str):
+	if interaction.channel.id != 811653993033891870:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		return
 	ach = {'Rankup Penseur':[791066207418712094,10000],'Rankup Maitre penseur':[791066206437113897,15000],'Rankup Inventeur':[790675784225521734,20000],
 					'Rankup Utopiste':[790675784120401932,30000],'Rankup Songeur':[790675783693500456,40000],'Rankup Dreamer':[790675783549976579,50000],
 					'Rankup Chimère':[790675783352975360,70000],'Rankup Fantaisiste':[790675782364037131,90000],'Rankup Idéaliste':[790675782338740235,110000], 'Grade Perso':20000, 'Emoji Perso':20000}
@@ -2889,8 +2929,22 @@ async def achatdp(interaction: discord.Interaction,achat:str):
 	await interaction.response.send_message(f"Votre demande à été effectuée, sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\nPour les rankups :\n- Vous demandez plus de trois rankups a la fois\n- Vous n'avez pas le rang nécéssaire au rankup suivant\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n")
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
 async def classement(interaction: discord.Interaction):
+	if interaction.channel.id != 811653993033891870:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		return
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	s = sorted(eq,key = lambda t : eq[t],reverse=True)
+	y = ['🥇 **__1er :__**','🥈 **__2eme :__**','🥉 **__3eme :__**'] + [f'**__{i}eme :__**' for i in range(4,len(s))]
+	msg = ''
+	for i in range(len(s)):
+		msg += f"{y[i]} <@&{s[i]}> *({eq[s[i]]} points)*\n\n"
+	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=msg),view=pagecl())
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def adminclassement(interaction: discord.Interaction):
 	with open('points.json','r') as f:
 		pt = json.load(f)
 	s = sorted(pt,key = lambda t : pt[t],reverse=True)
@@ -3020,13 +3074,16 @@ async def on_message(message):
 		return
 	bonj = bot.get_channel(811653900611354704)
 	if message.channel == bonj:
+		print("hello")
 		Roles = [790675782338740235,790675782364037131,790675783352975360,790675783549976579,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204,1011953852427272302]
 		if message.content.lower == "bonjour tlm" or message.content.lower == "bonjour tlm ":
+			print('tt')
 			x = None
 			for Ro in Roles:
 				if Ro in [t.id for t in message.author.roles]:
-					x = 1 
+					x = 1
 			if x != None:
+				print(x)
 				with open ('points.json','r') as f:
 					pt = json.load(f)
 				if str(message.author.id) in pt.keys():
