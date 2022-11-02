@@ -2773,7 +2773,7 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 		eq = json.load(f)
 	for role in eq.keys():
 		if int(role) in [t.id for t in member.roles]:
-			eq[role] += 3
+			eq[role] += cat[catalogue]
 	with open ('equipes.json','w') as f:
 		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
@@ -2786,7 +2786,7 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 @bot.tree.command()
 async def dreampoints(interaction: discord.Interaction):
 	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -2799,7 +2799,7 @@ async def dreampoints(interaction: discord.Interaction):
 @bot.tree.command()
 async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
 	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -2818,7 +2818,7 @@ async def paydp(interaction: discord.Interaction,member:discord.Member,montant:i
 @bot.tree.command()
 async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
 	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -2826,6 +2826,13 @@ async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preu
 		pt[str(interaction.user.id)] += nombre
 	else:
 		pt[str(interaction.user.id)] = nombre
+	with open ('equipes.json','r') as f:
+		eq = json.load(f)
+	for role in eq.keys():
+		if int(role) in [t.id for t in interaction.user.roles]:
+			eq[role] += nombre
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
@@ -2930,13 +2937,13 @@ async def achatdp(interaction: discord.Interaction,achat:str):
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
-	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+	if interaction.channel.id != 811653993033891870 and interaction.channel.id != 791452088370069525:
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	with open('equipes.json','r') as f:
 		eq = json.load(f)
 	s = sorted(eq,key = lambda t : eq[t],reverse=True)
-	y = ['🥇 **__1er :__**','🥈 **__2eme :__**','🥉 **__3eme :__**'] + [f'**__{i}eme :__**' for i in range(4,len(s))]
+	y = ['🥇 **__1er :__**','🥈 **__2eme :__**','🥉 **__3eme :__**'] + [f'**__{i}eme :__**' for i in range(4,len(s)+1)]
 	msg = ''
 	for i in range(len(s)):
 		msg += f"{y[i]} <@&{s[i]}> *({eq[s[i]]} points)*\n\n"
@@ -3002,8 +3009,12 @@ class auto(discord.ui.Select):
 	async def callback(self, interaction: discord.Interaction):
 		guild = bot.get_guild(790367917812088864)
 		t = guild.get_role(int(self.values[0]))
-		await interaction.user.add_roles(t)
-		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
+		if t in interaction.user.roles:
+			await interaction.user.remove_roles(t)
+			await interaction.response.send_message('Rôle retiré !',ephemeral=True)
+		else:
+			await interaction.user.add_roles(t)
+			await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
 
 class fest(discord.ui.Select):
 	def __init__(self,roles):
@@ -3047,7 +3058,7 @@ async def majauto():
 	for i in eq.keys():
 		t = guild.get_role(int(i))
 		roles.append(t)
-	return [discord.Embed(title=f'Roles Automatiques',description=msg),options,roles]
+	return [discord.Embed(title=f'Rôles Automatiques',description=msg),options,roles]
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
