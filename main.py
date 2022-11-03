@@ -3210,8 +3210,8 @@ async def on_message(message):
 						eq[role] += 20
 				with open ('equipes.json','w') as f:
 					json.dump(eq,f,indent=6)
-			with open ('points.json','w') as f:
-				json.dump(pt,f,indent=6)
+				with open ('points.json','w') as f:
+					json.dump(pt,f,indent=6)
 			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
 			logs = bot.get_channel(1026567820311531550)
 			await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
