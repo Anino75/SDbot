@@ -1189,7 +1189,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews = json.load(f)
 	guild = interaction.guild
 	_embed = discord.Embed(title = "Recrutements",
-							description ="Bravo, tu es désormais un.e membre officiel de la faction ! Fais désormais `/choixdivi SD/BD/HD` pour choisir ta division. Pour rappel :\nSD -> pour les tryharders gros quotas mais plus de bases\nBD -> moyen/petits quotas\nHD -> Sans quotas\n De plus, tu as maintenant accès aux "
+							description ="Bravo, tu es désormais un.e membre officiel de la faction ! Tu as maintenant accès aux "
 										 "salons de faction. N'hésites pas a être actif.ve en vocal et en écrit pour "
 										 "monter en grade et avoir accès a plus de bases ;-)"
 							)
@@ -1211,9 +1211,9 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		json.dump(phases, f, indent=6)
 	await member.send(embed=_embed)
 	try:
-		await member.edit(nick=f'[??] {member.nick[5:]}')
+		await member.edit(nick=f'[SD] {member.nick[5:]}')
 	except:
-		await member.edit(nick=f'[??] {member.name}')
+		await member.edit(nick=f'[SD] {member.name}')
 	role = guild.get_role(1011953852427272302)
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	role1 = guild.get_role(791066207418712094)
