@@ -45,12 +45,12 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(regl())
 		self.add_view(IsAlly())
 		self.add_view(candid())
-		self.add_view(event())
 		self.add_view(page())
 		self.add_view(NombreView())
 		self.add_view(ench())
 		self.add_view(vend())
 		self.add_view(pagecl())
+		self.add_view(actu())
 		self.add_view(autoview([],[]))
 #		self.add_view(divi())
 
@@ -84,17 +84,6 @@ async def on_app_command_error(interaction: Interaction,error: AppCommandError):
 	elif isinstance(error, commands.MissingRequiredArgument):
 		await interaction.response.send_message(f'''> <:Forget:1002454977043771443> __{interaction.user.mention}__, Tu as oublié une partie de la commande, réessaies comme sa : *`r!ban <mention> <raison>`*''')
  """
-class event(discord.ui.View):
-	def __init__(self):
-		super().__init__(timeout=None)
-	@discord.ui.button(label='Prendre le role participant event', style=discord.ButtonStyle.green, custom_id='rol',emoji='🎉')
-	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
-		role = interaction.guild.get_role(942036519290535936)
-		if role in interaction.user.roles:
-			await interaction.response.send_message("Vous avez déjà le rôle <@&942036519290535936> !",ephemeral=True)
-			return
-		await interaction.user.add_roles(role)
-		await interaction.response.send_message("Vous avez pris le rôle <@&942036519290535936>",ephemeral=True)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235,821787385636585513,790675782569164820)
@@ -199,7 +188,11 @@ async def voc():
 						pt[str(member.id)] = 3
 					for role in eq.keys():
 						if int(role) in [t.id for t in member.roles]:
-							eq[role] += 3
+							eq[role]['total'] += 3
+							if str(member.id) in eq[role]['membres'].keys():
+								eq[role]['membres'][str(member.id)] += 3
+							else:
+								eq[role]['membres'][str(member.id)] = 3
 	with open("voc.json",'w') as f:
 		json.dump(voc, f, indent=6)
 	with open ('points.json','w') as f:
@@ -2773,7 +2766,11 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 		eq = json.load(f)
 	for role in eq.keys():
 		if int(role) in [t.id for t in member.roles]:
-			eq[role] += cat[catalogue]
+			eq[role]['total'] += cat[catalogue]
+			if str(member.id) in eq[role]['membres'].keys():
+				eq[role]['membres'][str(member.id)] += cat[catalogue]
+			else:
+				eq[role]['membres'][str(member.id)] = cat[catalogue]
 	with open ('equipes.json','w') as f:
 		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
@@ -2815,7 +2812,7 @@ async def paydp(interaction: discord.Interaction,member:discord.Member,montant:i
 	else:
 		await interaction.response.send_message(f'''Vous n'avez pas assez de DreamPoints pour faire cela''')
 
-@bot.tree.command()
+"""@bot.tree.command()
 async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
 	if interaction.channel.id != 811653993033891870:
 		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
@@ -2829,6 +2826,13 @@ async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preu
 	with open ('equipes.json','r') as f:
 		eq = json.load(f)
 	for role in eq.keys():
+		if int(role) in [t.id for t in member.roles]:
+			eq[role]['total'] += cat[catalogue]
+			if str(member.id) in eq[role].keys():
+				eq[role]['membres'][str(member.id)] += cat[catalogue]
+			else:
+				eq[role]['membres'][str(member.id)] = cat[catalogue]
+	for role in eq.keys():
 		if int(role) in [t.id for t in interaction.user.roles]:
 			eq[role] += nombre
 	with open ('equipes.json','w') as f:
@@ -2839,7 +2843,7 @@ async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preu
 	await logs.send(f'{interaction.user.mention} à demandé `{nombre}` points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	await interaction.response.send_message(f'''{nombre} points vous ont été donnés.\n__**ATTENTION !**__ Une verification sera faite bientot et si ces points ne sont pas légitimes vous serez lourdement sanctionnés.\nSi c'est une erreur ou un test, veuillez contacter un hg le plus rapidement possible''')
 
-""" @bot.tree.command()
+ @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def blbl(interaction: discord.Interaction):
 	with open ('points.json','r') as f:
@@ -2873,7 +2877,11 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 		eq = json.load(f)
 	for role in eq.keys():
 		if int(role) in [t.id for t in membre.roles]:
-			eq[role] += nombre
+			eq[role]['total'] += nombre
+			if str(membre.id) in eq[role]['membres'].keys():
+				eq[role]['membres'][str(membre.id)] += nombre
+			else:
+				eq[role]['membres'][str(membre.id)] = nombre
 	with open ('equipes.json','w') as f:
 		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
@@ -2895,7 +2903,11 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 		eq = json.load(f)
 	for role in eq.keys():
 		if int(role) in [t.id for t in membre.roles]:
-			eq[role] -= nombre
+			eq[role]['total'] -= nombre
+			if str(membre.id) in eq[role]['membres'].keys():
+				eq[role]['membres'][str(membre.id)] -= nombre
+			else:
+				eq[role]['membres'][str(membre.id)] = -nombre
 	with open ('equipes.json','w') as f:
 		json.dump(eq,f,indent=6)
 	with open ('points.json','w') as f:
@@ -2942,12 +2954,79 @@ async def classement(interaction: discord.Interaction):
 		return
 	with open('equipes.json','r') as f:
 		eq = json.load(f)
-	s = sorted(eq,key = lambda t : eq[t],reverse=True)
+	roles = [interaction.guild.get_role(int(t)) for t in eq.keys()]
+	dic = {}
+	for role in roles:
+		dic[role.id] = len(role.members)
+	s = sorted(dic,key = lambda t : dic[t],reverse=True)
 	y = ['🥇 **__1er :__**','🥈 **__2eme :__**','🥉 **__3eme :__**'] + [f'**__{i}eme :__**' for i in range(4,len(s)+1)]
-	msg = ''
+	msg = f'__**Equipe la plus choisie :**__\n\n'
 	for i in range(len(s)):
-		msg += f"{y[i]} <@&{s[i]}> *({eq[s[i]]} points)*\n\n"
-	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=msg))
+		msg += f"{y[i]} <@&{s[i]}> *({dic[s[i]]} membres)*\n\n"
+	dic = {}
+	for role in roles:
+		dic[role.id] = eq[str(role.id)]['total']/len(role.members)
+	msg += '\n**__Moyenne de points la plus haute :__**\n\n'
+	s = sorted(dic,key = lambda t : dic[t],reverse=True)
+	for i in range(len(s)):
+		msg += f"{y[i]} <@&{s[i]}> *({round(dic[s[i]])} points par personne)*\n\n"
+	dic = {}
+	for role in roles:
+		s = sorted(eq[str(role.id)]['membres'],key=lambda o : eq[str(role.id)]['membres'][o],reverse=True)
+		dic[role.id] = [eq[str(role.id)]['membres'][s[0]],s[0]]
+	msg += '\n**__Plus gros farmeur :__**\n\n'
+	s = sorted(dic,key = lambda t : dic[t][0],reverse=True)
+	for i in range(len(s)):
+		msg += f"{y[i]} <@&{s[i]}> *({round(dic[s[i]][0])} points max par <@{dic[s[i]][1]}>)*\n\n"
+	await interaction.response.send_message(embed=discord.Embed(title=f'Classement',description=msg,timestamp=datetime.now()),view=actu())
+
+class actu(discord.ui.View):
+	def __init__(self) -> None:
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actual',emoji="\U0001f504")
+	async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
+		with open('equipes.json','r') as f:
+			eq = json.load(f)
+		roles = [interaction.guild.get_role(int(t)) for t in eq.keys()]
+		dic = {}
+		for role in roles:
+			dic[role.id] = len(role.members)
+		s = sorted(dic,key = lambda t : dic[t],reverse=True)
+		y = ['🥇 **__1er :__**','🥈 **__2eme :__**','🥉 **__3eme :__**'] + [f'**__{i}eme :__**' for i in range(4,len(s)+1)]
+		msg = f'__**Equipe la plus choisie :**__\n\n'
+		for i in range(len(s)):
+			msg += f"{y[i]} <@&{s[i]}> *({dic[s[i]]} membres)*\n\n"
+		dic = {}
+		for role in roles:
+			dic[role.id] = eq[str(role.id)]['total']/len(role.members)
+		msg += '\n**__Moyenne de points la plus haute :__**\n\n'
+		s = sorted(dic,key = lambda t : dic[t],reverse=True)
+		for i in range(len(s)):
+			msg += f"{y[i]} <@&{s[i]}> *({round(dic[s[i]])} points par personne)*\n\n"
+		dic = {}
+		for role in roles:
+			s = sorted(eq[str(role.id)]['membres'],key=lambda o : eq[str(role.id)]['membres'][o],reverse=True)
+			dic[role.id] = [eq[str(role.id)]['membres'][s[0]],s[0]]
+		msg += '\n**__Plus gros farmeur :__**\n\n'
+		s = sorted(dic,key = lambda t : dic[t][0],reverse=True)
+		for i in range(len(s)):
+			msg += f"{y[i]} <@&{s[i]}> *({round(dic[s[i]][0])} points max par <@{dic[s[i]][1]}>)*\n\n"
+		await interaction.response.edit_message(embed=discord.Embed(title=f'Classement',description=msg,timestamp=datetime.now()),view=actu())
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def blbl(interaction: discord.Interaction):
+	with open('equipes.json','r') as f:
+		eq = json.load(f)
+	with open('voc.json','r') as f:
+		voc = json.load(f)
+	for element in eq.keys():
+		role = interaction.guild.get_role(int(element))
+		for membre in role.members:
+			if str(membre.id) in voc['11/2022'].keys():
+				eq[element]['membres'][str(membre.id)] = voc['11/2022'][str(membre.id)]
+	with open ('equipes.json','w') as f:
+		json.dump(eq,f,indent=6)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3207,7 +3286,11 @@ async def on_message(message):
 					eq = json.load(f)
 				for role in eq.keys():
 					if int(role) in [t.id for t in message.author.roles]:
-						eq[role] += 20
+						eq[role]['total'] += 20
+						if str(message.author.id) in eq[role]['membres'].keys():
+							eq[role]['membres'][str(message.author.id)] += 20
+						else:
+							eq[role]['membres'][str(message.author.id)] = 20
 				with open ('equipes.json','w') as f:
 					json.dump(eq,f,indent=6)
 				with open ('points.json','w') as f:
