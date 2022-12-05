@@ -3187,7 +3187,7 @@ async def newfest(interaction: discord.Interaction,equipes:str):
 	guild = bot.get_guild(790367917812088864)
 	for element in equipes.rsplit():
 		rol = await guild.create_role(name=f'『⚔️』Equipe {element}')
-		eq[str(rol.id)] = 0
+		eq[str(rol.id)] = {"total":0,"membres":{}}
 	with open ('equipes.json','w') as f:
 		json.dump(eq,f,indent=6)
 	await interaction.response.send_message('Fait')
