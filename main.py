@@ -3100,6 +3100,8 @@ class fest(discord.ui.Select):
 		options=[discord.SelectOption(label=str(t.name),value=t.id,emoji=t.unicode_emoji) for t in roles]
 		super().__init__(placeholder='Rôles Festivau', min_values=1, max_values=1, options=options, custom_id='fest')
 	async def callback(self, interaction: discord.Interaction):
+		if 791066206109958204 in [x.id for x in interaction.user.roles]:
+			interaction.response.send_message()
 		with open('equipes.json','r') as f:
 			eq = json.load(f)
 		for y in eq.keys():
