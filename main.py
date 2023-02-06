@@ -51,6 +51,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(vend())
 		self.add_view(pagecl())
 		self.add_view(actu())
+		self.add_view(boutonform())
 		self.add_view(autoview([],[]))
 #		self.add_view(divi())
 
@@ -115,10 +116,11 @@ async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	await interaction.user.add_roles(role)
 	await interaction.response.send_message('Votre absence a bien été prise en compte')
 
+
 """ @bot.tree.command()
 @commands.cooldown(1, 604800, commands.BucketType.user)
 async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
-	if 798301141094891620 not in [x.id for x in interaction.user.roles] and 790675782569164820 not in [x.id for x in interaction.user.roles] and 791066207418712094 not in [x.id for x in interaction.user.roles] and 791066206437113897 not in [x.id for x in interaction.user.roles] and 790675784225521734 not in [x.id for x in interaction.user.roles] and 790675784120401932 not in [x.id for x in interaction.user.roles] and 790675783693500456 not in [x.id for x in interaction.user.roles] and 790675783549976579 not in [x.id for x in interaction.user.roles] and 790675783352975360 not in [x.id for x in interaction.user.roles] and 790675782364037131 not in [x.id for x in interaction.user.roles] and 790675782338740235 not in [x.id for x in interaction.user.roles]:
+	if 798301141094891620 not in  and 790675782569164820 not in [x.id for x in interaction.user.roles] and 791066207418712094 not in [x.id for x in interaction.user.roles] and 791066206437113897 not in [x.id for x in interaction.user.roles] and 790675784225521734 not in [x.id for x in interaction.user.roles] and 790675784120401932 not in [x.id for x in interaction.user.roles] and 790675783693500456 not in [x.id for x in interaction.user.roles] and 790675783549976579 not in [x.id for x in interaction.user.roles] and 790675783352975360 not in [x.id for x in interaction.user.roles] and 790675782364037131 not in [x.id for x in interaction.user.roles] and 790675782338740235 not in [x.id for x in interaction.user.roles]:
 		await interaction.response.send_message(embed=create_small_embed(':warning: Seuls les membres peuvent utiliser cette commande !',discord.Color.red()))
 		return
 	if divi != "SD" and divi != "BD" and divi != "HD":
@@ -705,7 +707,7 @@ async def edimarket(item):
 async def effectif():
 	guild = bot.get_guild(790367917812088864)
 	channel = await bot.fetch_channel(937006102653071452)
-	role_ids = {'Staff': [790675782569164820, 821787385636585513, 798301141094891620, 790675781789155329, 791426367362433066],
+	role_ids = {'Staff': [790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066],
 				'Membres VIP': [790675782338740235, 790675782364037131, 790675783352975360],
 				'Membres +': [790675783549976579, 790675783693500456, 790675784120401932],
 				'Membres': [790675784225521734, 791066206437113897, 791066207418712094]}
@@ -737,7 +739,9 @@ async def effectif():
 #                                                 discord.Color.red()))
 #        return
 
-@tasks.loop(seconds=60)
+
+
+@tasks.loop(seconds=300)
 async def candids():
 	mydb=mysql.connector.connect(
 		host="web49.lws-hosting.com",
@@ -868,6 +872,91 @@ class candid(discord.ui.View):
 		msg = await bot.wait_for('message', timeout=None,check=check)
 		await interaction.response.send_message(embed=create_small_embed(await refcandid(member,interaction.user,msg.content)))
 		await interaction.message.edit(view=None)
+
+class boutonform(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label='Candidater', style=discord.ButtonStyle.green, custom_id='candidat')
+	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
+		modal = Formulaire()
+		await interaction.response.send_modal(modal)
+
+class Formulaire(discord.ui.Modal,title="Formulaire de candidature SD"):
+	def __init__(self):
+		super().__init__()
+		self.pseudo = discord.ui.TextInput(
+			label="Pseudo Minecraft",
+			placeholder='''Pseudo Minecraft''',
+			max_length=16,
+		)
+		self.add_item(self.pseudo)
+		self.anpseudo = discord.ui.TextInput(
+			label="Anciens Pseudo",
+			placeholder='''Anciens Pseudo'''
+		)
+		self.add_item(self.anpseudo)
+
+		self.pbo = discord.ui.TextInput(
+			label="Avez-vous des problèmes orthographiques ?",
+			placeholder='''Dyslexie, Dysorthographie, TDAH, etc.... Cela n'aura aucun impact dans la faction !'''
+		)
+		self.add_item(self.pbo)
+		self.description = discord.ui.TextInput(
+			label="Présentez vous IRL",
+			style=discord.TextStyle.paragraph,
+			placeholder="N'hésite pas à parler de toi, nous voulons en savoir davantage sur toi. Au moins 450 caractères",
+			min_length=450,
+		)
+		self.add_item(self.description)
+		self.quest = discord.ui.TextInput(
+			label="Questions Minecraft",
+			style=discord.TextStyle.paragraph,
+			placeholder="Comment et depuis quand connaissez vous Minecraft. Quels sont vos domaines de prédilection",
+		)
+		self.add_item(self.quest)
+	async def callback(self, interaction: discord.Interaction) -> None:
+		modal = Formulaire2()
+		await interaction.response.send_modal(modal)
+
+class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
+	def __init__(self):
+		super().__init__()
+		self.av = discord.ui.TextInput(
+			label="Questions paladium",
+			style=discord.TextStyle.paragraph,
+			placeholder="Comment connaissez vous paladium. Quel est votre avancement en jeu ?",
+		)
+		self.add_item(self.av)
+		self.sd = discord.ui.TextInput(
+			label="Questions SD",
+			style=discord.TextStyle.paragraph,
+			placeholder="Pourquoi voulez vous rejoindre une faction et en particulier la SD.",
+		)
+		self.add_item(self.sd)
+		self.tryh = discord.ui.TextInput(
+			label="Questions Tryhard",
+			style=discord.TextStyle.paragraph,
+			placeholder="""Êtes vous prêt à "TryHard" pour la faction ? Comment définiez vous le terme Tryhard (avec vos mots)""",
+		)
+		self.add_item(self.tryh)
+		self.obj = discord.ui.TextInput(
+			label="Objectifs et Occupations",
+			style=discord.TextStyle.paragraph,
+			placeholder="Avez vous des objectifs sur Paladium ? Qu'est ce que vous voulez faire sur Paladium ?",
+		)
+		self.add_item(self.obj)
+		self.dis = discord.ui.TextInput(
+			label="Quelles sont vos disponibilités ?",
+			placeholder="Quelles sont vos disponibilités ?",
+		)
+		self.add_item(self.dis)
+	async def callback(self, interaction: discord.Interaction) -> None:
+		await interaction.response.send_message('t une blg')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def sendrecru(interaction: discord.Interaction):
+	await interaction.response.send_message('Bouh',view=boutonform())
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3101,7 +3190,7 @@ class fest(discord.ui.Select):
 		super().__init__(placeholder='Rôles Festivau', min_values=1, max_values=1, options=options, custom_id='fest')
 	async def callback(self, interaction: discord.Interaction):
 		if 791066206109958204 in [x.id for x in interaction.user.roles]:
-			interaction.response.send_message()
+			await interaction.response.send_message()
 		with open('equipes.json','r') as f:
 			eq = json.load(f)
 		for y in eq.keys():
