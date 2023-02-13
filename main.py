@@ -17,6 +17,7 @@ from discord.ext import commands, tasks
 import mysql.connector
 import typing
 from typing import Optional
+import requests
 
 debug = True
 SERVER = True
@@ -518,7 +519,7 @@ async def on_ready():
 	abs.start()
 	candids.start()
 	voc.start()
-	# print
+	# prints
 	field_placeholder = '+----------------------------------+'
 	fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
 	print(field_placeholder)
@@ -707,7 +708,7 @@ async def edimarket(item):
 async def effectif():
 	guild = bot.get_guild(790367917812088864)
 	channel = await bot.fetch_channel(937006102653071452)
-	role_ids = {'Staff': [790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066],
+	role_ids = {'Staff': [1068460789612163072,790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066,1011394095383580843],
 				'Membres VIP': [790675782338740235, 790675782364037131, 790675783352975360],
 				'Membres +': [790675783549976579, 790675783693500456, 790675784120401932],
 				'Membres': [790675784225521734, 791066206437113897, 791066207418712094]}
@@ -786,7 +787,7 @@ async def candids():
 		candids["nb"] += i+1
 		with open('candid.json', 'w') as f:
 			json.dump(candids, f, indent=6)
-			
+		
 async def acccandid(member:discord.Member,author):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
@@ -877,7 +878,7 @@ class boutonform(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Candidater', style=discord.ButtonStyle.green, custom_id='candidat')
-	async def accept(self,interaction: discord.Interaction, button: discord.ui.Button):
+	async def candid(self,interaction: discord.Interaction, button: discord.ui.Button):
 		modal = Formulaire()
 		await interaction.response.send_modal(modal)
 
@@ -898,6 +899,7 @@ class Formulaire(discord.ui.Modal,title="Formulaire de candidature SD"):
 
 		self.pbo = discord.ui.TextInput(
 			label="Avez-vous des problèmes orthographiques ?",
+			style=discord.TextStyle.paragraph,
 			placeholder='''Dyslexie, Dysorthographie, TDAH, etc.... Cela n'aura aucun impact dans la faction !'''
 		)
 		self.add_item(self.pbo)
@@ -914,12 +916,21 @@ class Formulaire(discord.ui.Modal,title="Formulaire de candidature SD"):
 			placeholder="Comment et depuis quand connaissez vous Minecraft. Quels sont vos domaines de prédilection",
 		)
 		self.add_item(self.quest)
-	async def callback(self, interaction: discord.Interaction) -> None:
+	async def on_submit(self, interaction: discord.Interaction) -> None:
+		data = f'bouh {self.pseudo}'
+		await interaction.response.send_message('''___***Attention ! Votre candidature n'est pas encore envoyée ! Pour finir la procédure veuillez finir le deuxieme questionnaire***___''',ephemeral=True,view=boutonform2(data))
+
+class boutonform2(discord.ui.View):
+	def __init__(self,data):
+		super().__init__(timeout=None)
+		self.add_item(data)
+	@discord.ui.button(label='Finir ma candidature', style=discord.ButtonStyle.green, custom_id='candidat2')
+	async def candida(self,interaction: discord.Interaction, button: discord.ui.Button):
 		modal = Formulaire2()
-		await interaction.response.send_modal(modal)
+		await interaction.response.send_modal(modal,self.data)
 
 class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
-	def __init__(self):
+	def __init__(self,data):
 		super().__init__()
 		self.av = discord.ui.TextInput(
 			label="Questions paladium",
@@ -950,8 +961,9 @@ class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
 			placeholder="Quelles sont vos disponibilités ?",
 		)
 		self.add_item(self.dis)
-	async def callback(self, interaction: discord.Interaction) -> None:
-		await interaction.response.send_message('t une blg')
+		self.add_item(data)
+	async def on_submit(self, interaction: discord.Interaction) -> None:
+		await interaction.response.send_message(f'bv : {self.data}, {self.sd}')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3281,7 +3293,147 @@ async def newfest(interaction: discord.Interaction,equipes:str):
 		json.dump(eq,f,indent=6)
 	await interaction.response.send_message('Fait')
 
+# =========== Blacklist ==========
+
+class bl(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    @discord.ui.button(label="Envoyer une demande de blacklist", style=discord.ButtonStyle.green, custom_id='bl')
+    async def bl(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(demandebl())
+
+@bot.tree.command()
+async def demande_bl(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(embed = create_embed('```​📌​ ‒ Demande de Blacklist```','''
+                           Bonjour __{interaction.user.mention}__,
+                           
+                           Sachez tout d'abord qu'en cliquant sur ce bouton, vous devrez répondre à 5 questions.
+                           
+                           > Vous recevrez la réponse de __<@924800267411668992>__ en MP, alors tachez de les garder ouverts, merci.
+                           
+                           • Toutes demandes troll ou visant à ne pas faire une vraie demande, seront sanctionnées.''',0xffffff),view=bl())
+
+class demandebl(discord.ui.Modal, title='Demande de blacklist'):
+    ide = discord.ui.TextInput(
+        label='''Quel est l'id de la personne à blacklist''',# souhaitez blacklister ?
+        placeholder=f'''Pour recuperer l'id merci de suivre le tuto dans #tuto''',
+    )
+    nom = discord.ui.TextInput(
+        label='''Quel est son nom ?''',
+        placeholder=f'''Marquer ici son nom discord avec son #''',
+    )
+    uuid = discord.ui.TextInput(
+        label='''Quel est son UUID ? (sur https://namemc.com/)''',
+        placeholder=f'''Pour trouver l'UUID mettez son pseudo sur https://namemc.com/''',
+    )
+    raison = discord.ui.TextInput(
+        label='''Pour quelle raison voulez vous la blacklist ?''',
+        placeholder=f'''Marquer ici la/les raison.s''',
+    )
+    preuves = discord.ui.TextInput(
+        label='Vos Preuves',
+        style=discord.TextStyle.long,
+        placeholder='Merci de mettre ici toutes les preuves récoltées (vidéos youtube, liens vers des screens, etc)',
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        data = requests.get(f"https://sessionserver.mojang.com/session/minecraft/profile/{self.uuid.value}").json()
+        embed = create_embed(f'```​📌​ ‒ Demande de Blacklist```','''
+                              Auteur de la demande : `{interaction.user.name}#{interaction.user.discriminator}` (*{interaction.user.id}*)
+                              Joueur à Blacklister : {self.nom.value} (*`{self.ide.value}`*)
+                              Pseudo IG : `{data["name"]}` (`{self.uuid.value}`)                         
+                              Raison de la demande : `{self.raison.value}`
+                              Preuves fournies : `{self.preuves.value}`''',0xffffff)
+        await interaction.user.send(embed = embed)
+        channel = bot.get_channel(794021749196718121)
+        msg = await channel.send(f'''__<@everyone>__ \​​📬​ Nouvelle demande''',embed = embed,view=blaccept())
+        with open('blacklist.json', 'r') as f:
+            bl = json.load(f)
+        bl["Attente"][msg.id] = [interaction.user.id,self.ide.value,self.uuid.value,self.raison.value,self.preuves.value,self.nom.value]
+        with open('blacklist.json', 'w') as f:
+            json.dump(bl, f, indent=6)
+        await interaction.response.send_message(f'''<:Version:1001717913272717342> Votre demande à correctement été envoyée au Staff.''',ephemeral=True) 
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        await interaction.response.send_message('Il y a eu un problème', ephemeral=True)
+
+class blaccept(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    @discord.ui.button(label="Accepter la demande de blacklist", style=discord.ButtonStyle.green, custom_id='bla')
+    async def bl(self, interaction: discord.Interaction, button: discord.ui.Button):
+        with open('blacklist.json', 'r') as f:
+            bl = json.load(f)
+        user = bl["Attente"][str(interaction.message.id)][1]
+        bl["black"][user] = bl["Attente"][str(interaction.message.id)][2:]
+        bl["Attente"].pop(str(interaction.message.id))
+        with open('blacklist.json', 'w') as f:
+            json.dump(bl, f, indent=6)
+        await interaction.message.edit(view=None)
+        await interaction.response.send_message(f'Vous avez ajouté <@{user}> à la blacklist avec succès !')
+    @discord.ui.button(label="Refuser la demande de blacklist", style=discord.ButtonStyle.red, custom_id='nonbl')
+    async def nonbl(self, interaction: discord.Interaction, button: discord.ui.Button):
+        with open('blacklist.json', 'r') as f:
+            bl = json.load(f)
+        user = bl["Attente"][str(interaction.message.id)][1]
+        bl["Attente"].pop(str(interaction.message.id))
+        with open('blacklist.json', 'w') as f:
+            json.dump(bl, f, indent=6)
+        await interaction.message.edit(view=None)
+        await interaction.response.send_message(f"Vous n'avez pas ajouté {user} à la blacklist")
+
+class actu(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actu',emoji='<a:TR_Online:1005062612138066010>')
+    async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.message.edit(embed = await embed_blacklist(interaction.guild,interaction.user))
+        await interaction.response.send_message('La blacklist à été actualisée',ephemeral=True) 
+
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(manage_guild = True)
+async def blacklist(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(embed = await embed_blacklist(interaction.guild,interaction.user), view=actu())
+    channel = bot.get_channel(986990938264064040)
+    await channel.send(f'''Blacklist set on `{interaction.guild.name}`''')
+
+async def embed_blacklist(guild,user):
+    with open('blacklist.json','r') as f:
+        bl = json.load(f)
+    msg = ''
+    for pers in bl['black'].keys():
+        if bl['black'][pers][0] == "":
+            data = {"name":"Aucun pseudo connu"}
+        else:
+            data = requests.get(f"https://sessionserver.mojang.com/session/minecraft/profile/{bl['black'][pers][0]}").json()
+        msg += f'''\📌 | **{bl['black'][pers][3]}** *(<@{pers}>)*\n\💻 | `{data["name"]}` ({bl['black'][pers][0]})\n> __{bl['black'][pers][1]}__\n\n'''
+    embed = discord.Embed(title = 'Blacklist V8',
+                          description = msg,
+                          timestamp = datetime.now(),
+                          color = 0xc18fff)
+    embed.set_author(name = f'Blacklist | {guild.name}', icon_url = guild.icon.url)
+    embed.set_footer(text = f'Dernière actualisation par {user.name}#{user.discriminator} | TheReferenceBot ')
+    return embed
+
 # =========== Autre ===========
+
+@bot.tree.command()
+@commands.cooldown(1, 480, commands.BucketType.user)
+async def bug_report(interaction: discord.Interaction,bug:str) -> None:
+    channel_send_bug = bot.get_channel(975472327364055140)
+    
+    embed = discord.Embed(description = f'''<:Doc:1001721683511623690> | **Bug** : `{bug}`
+                          
+                          >  <:Member:962279004428202004> | **Report de** : `{interaction.user.name}`
+                          >  <:Text:962272582919389214> | **ID** : `{interaction.user.id}`
+                          >  <:Referencement:962275482399825920> | **Serveur** : `{interaction.guild.name}` ({interaction.guild.id})''')
+    embed.set_footer(text = f'''TheReferenceBot • Demandé par {interaction.user} ''')
+    embed.set_author(name = f'Report de {interaction.user}', icon_url = interaction.user.avatar.url)
+    embed.set_thumbnail(url = interaction.guild.icon.url)
+    embed.timestamp = datetime.now()
+    await channel_send_bug.send(embed = embed)
+    await interaction.response.send_message(f'''<:Version:1001717913272717342> Votre report à bien été signalé au staff, merci de participer à l'amélioration du bot !''')
+
 
 class NewHelpCommand(commands.MinimalHelpCommand):
 	async def send_pages(self):
