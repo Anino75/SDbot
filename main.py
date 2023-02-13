@@ -58,8 +58,6 @@ class PersistentViewBot(commands.Bot):
 
 bot = PersistentViewBot()
 
-
-
 """
 This logs discord api actions too:
 global LOGGER
@@ -75,6 +73,13 @@ with open('token.txt', 'r') as f:
 async def sync(ctx):
     synced = await ctx.bot.tree.sync()
     await ctx.send(f"Synced {len(synced)} commands")
+
+async def infac(member:discord.Member):
+	fac = [1068460789612163072,790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066,1011394095383580843,790675782338740235, 790675782364037131, 790675783352975360,790675783549976579, 790675783693500456, 790675784120401932,790675784225521734, 791066206437113897, 791066207418712094]
+	for x in fac:
+			if x in [x.id for x in member.roles]:
+				return True 
+	return False
 
 """ tree = bot.tree
 @tree.error()
@@ -152,11 +157,12 @@ async def abs():
 		ab = json.load(f)
 	date = f"{str(datetime.now())[8:10]}/{str(datetime.now())[5:7]}/{str(datetime.now())[0:4]}"
 	guild=bot.get_guild(790367917812088864)
-	if date in ab.keys():
-		for personne in ab[date].keys():
-			personne = guild.get_member(int(personne))
-			role = guild.get_role(813928386946138153)
-			await personne.remove_roles(role)
+	for dates in ab.keys():
+		if dates[6:] < date[6:] or (dates[3:5]<date[3:5] and dates[6:] == date[6:]) or (dates[0:2]<= date[0:2] and dates[3:5] == date[3:5] and dates[6:] == date[6:]):
+			for personne in ab[date].keys():
+				personne = guild.get_member(int(personne))
+				role = guild.get_role(813928386946138153)
+				await personne.remove_roles(role)
 		ab.pop(date)
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
@@ -740,15 +746,13 @@ async def effectif():
 #                                                 discord.Color.red()))
 #        return
 
-
-
 @tasks.loop(seconds=300)
 async def candids():
 	mydb=mysql.connector.connect(
 		host="web49.lws-hosting.com",
 		database="cp1873034p22_Candid",
-		user = "cp1873034p22_tt",
-		password="L3y.Y[2Zr[PQ",)
+		user = "cp1873034p22_test",
+		password="ptmhjXzQx6@YyCe",)
 	mycursor = mydb.cursor()
 	mycursor.execute("SELECT * FROM Candids")
 	myresult = mycursor.fetchall()
@@ -756,38 +760,53 @@ async def candids():
 		candids = json.load(f)
 	if len(myresult) > candids['nb']:
 		for i in range(len(myresult) - candids["nb"]):
-			if myresult[-i-1][0] in candids["ban"]:
-				pass
-			else:
-				guild = bot.get_guild(790367917812088864)
-				rep = guild.get_channel(793804078366851092)
+			guild = bot.get_guild(790367917812088864)
+			try:
+				member = guild.get_member(int(myresult[-i-1][0]))
+				await envoicandid(guild,member,myresult[-i-1][1],myresult[-i-1][2],myresult[-i-1][3],myresult[-i-1][2],myresult[-i-1][4],myresult[-i-1][5],myresult[-i-1][6]+myresult[-i-1][7],myresult[-i-1][8],myresult[-i-1][9],myresult[-i-1][10],myresult[-i-1][11])
+			except:
 				try:
-					guild = bot.get_guild(790367917812088864)
-					member = guild.get_member(int(myresult[-i-1][0]))
-					role = guild.get_role(986686680146772038)
-					msg = f'**Pseudo discord :**\n<@{myresult[-i-1][0]}>\n**Pseudo Minecraft :**\n{myresult[-i-1][1]}\n**Anciens Pseudos :**\n{myresult[-i-1][2]}\n**Problèmes orthographe :**\n{myresult[-i-1][3]}\n**Présentation IRL :**\n{myresult[-i-1][4]}\n**Comment et depuis quand connaissez vous minecraft ?**\n{myresult[-i-1][5]}\n**Commant connaissez vous paladium, avancement et prédilections**\n{myresult[-i-1][6]}\n**Des sanctions sur Paladium :**\n{myresult[-i-1][7]}\n**Pourquoi la SweetDream ?**\n{myresult[-i-1][8]}\n**Anciennes factions :**\n{myresult[-i-1][9]}\n**Objectif sur paladium :**\n{myresult[-i-1][10]}\n**Disponibilités :**\n{myresult[-i-1][11]}'
-					for j in range(math.ceil(len(msg)/2000)):
-						if len(msg)<j*2000:
-							message = discord.Embed(title=f'Candidature {len(myresult)-(len(myresult) - candids["nb"]-i)}',description=msg[j*2000:])
-						else:
-							message = discord.Embed(title=f'Candidature {len(myresult)-(len(myresult) - candids["nb"]-i)}',description=msg[j*2000:(j+1)*2000])
-						if j == 0:
-							await rep.send(embed=message,view=candid())
-						else:
-							await rep.send(embed=message)
-					await member.add_roles(role)
-					await member.edit(nick=f'[CE] {myresult[-i-1][1]}')
-					await member.send('Nous avons bien reçu votre candidature.')
+					user = bot.get_user(myresult[-i-1][0])
+					await user.send("Vous n'avez pas rejoint le serveur discord et votre candidature n'a donc pas pu être traitée ! Veuillez rejoindre : https://discord.gg/D9tTGvt7az et recommencer")
 				except:
-					try:
-						user = bot.get_user(myresult[-i-1][0])
-						await user.send("Vous n'avez pas rejoint le serveur discord et votre candidature n'a donc pas pu être traitée ! Veuillez rejoindre : https://discord.gg/D9tTGvt7az et recommencer")
-					except:
-						pass
+					pass
 		candids["nb"] += i+1
 		with open('candid.json', 'w') as f:
 			json.dump(candids, f, indent=6)
-		
+
+async def envoicandid(guild,auteur:discord.Member,psmc,anps,pbort,prirl,cnmc,cmpl,pqsd,fcrc,objpl,disp):
+	msg = f'''**Pseudo discord :**\n{auteur.mention}\n
+	**Pseudo Minecraft :**\n{psmc}\n
+	**Anciens Pseudos :**\n{anps}\n
+	**Problèmes orthographiques :**\n{pbort}\n
+	**Présentation IRL :**\n{prirl}\n
+	**Comment et depuis quand connaissez vous minecraft ?**\n{cnmc}\n
+	**Commant connaissez vous paladium, avancement, prédilections et sanctions**\n{cmpl}\n
+	**Pourquoi la SweetDream ?**\n{pqsd}\n
+	**Anciennes factions :**\n{fcrc}\n
+	**Objectif sur paladium :**\n{objpl}\n
+	**Disponibilités :**\n{disp}'''
+	rep = guild.get_channel(793804078366851092)
+	with open('Candids.json','r') as f:
+		candids = json.load(f)
+	d = len(candids[2]['data'])
+	candids[2]['data'].append({'psmc':str(psmc),'anps':str(anps),'pborb':str(pbort),'prirl':str(prirl),'cnmc':str(cnmc),'pqsd':str(pqsd),'fcrc':str(fcrc),'objpl':str(objpl),'disp':str(disp)})
+	with open('Candids.json', 'w') as f:
+		json.dump(candids, f, indent=6)
+	guild = bot.get_guild(790367917812088864)
+	for j in range(math.ceil(len(msg)/2000)):
+		if len(msg)<(j+1)*2000:
+			await rep.send(embed=discord.Embed(title=f'Candidature {d}',description=msg[j*2000:]),view=candid())
+		else:
+			await rep.send(embed=discord.Embed(title=f'Candidature {d}',description=msg[j*2000:(j+1)*2000]))
+		role = guild.get_role(986686680146772038)
+		await auteur.add_roles(role)
+		await auteur.edit(nick=f'[CE] {psmc}')
+		try:
+			await auteur.send('Nous avons bien reçu votre candidature.')
+		except:
+			pass
+
 async def acccandid(member:discord.Member,author):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
@@ -830,9 +849,9 @@ async def acccandid(member:discord.Member,author):
 
 async def refcandid(member,author,raison):
 	_embed = discord.Embed(title = "Recrutements",
-							description ="Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas "
-										 "été acceptée pour la raison suivante "+(raison)+".\nTu pourras retenter ta "
-										"chance dans 2 semaines. \nCordialement,\nLe Staff Recrutement SweetDream"
+							description =f"""Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas 
+										été acceptée pour la raison suivante {raison}.\nTu pourras retenter ta 
+										chance dans 2 semaines. \nCordialement,\nLe Staff Recrutement SweetDream"""
 							)
 	await member.send(embed=_embed)
 	log = bot.get_channel(831615469134938112)
@@ -849,7 +868,7 @@ async def refcandid(member,author,raison):
 		interviews["Recruteur"][str(author.id)] = 1
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
-	await log.send(embed=create_small_embed(author.mention + ' à éxécuté la commande refuse pour ' + member.mention+" Pour la raison suivante : "+raison))
+	await log.send(embed=create_small_embed(f'{author.mention} à éxécuté la commande refuse pour {member.mention} Pour la raison suivante : {raison}'))
 	return f'Le message a bien été envoyé à {member.mention}'
 
 
@@ -866,13 +885,22 @@ class candid(discord.ui.View):
 	async def refuse(self,interaction: discord.Interaction, button: discord.ui.Button):
 		for embed in interaction.message.embeds:
 			member = interaction.guild.get_member(int(embed.description[23:41]))
-		channel = bot.get_channel(811651953003855882)
-		def check(m):
-			return m.author == member and m.channel == channel
-		await channel.send(f'{interaction.user.mention} pourquoi voulez vous refuser {member.mention} ?')
-		msg = await bot.wait_for('message', timeout=None,check=check)
-		await interaction.response.send_message(embed=create_small_embed(await refcandid(member,interaction.user,msg.content)))
-		await interaction.message.edit(view=None)
+		await interaction.response.send_modal(refusee(member,interaction.message))
+
+class refusee(discord.ui.Modal,title="Refus de candidature SD"):
+	def __init__(self,mem,msg):
+		super().__init__()
+		self.qq = discord.ui.TextInput(
+			label=f"Pourquoi souhaitez-vous refuser {mem.name}",
+			style=discord.TextStyle.paragraph
+		)
+		self.add_item(self.qq)
+		self.msg = msg
+		self.mem = mem
+	async def on_submit(self, interaction: discord.Interaction) -> None:
+		await interaction.response.send_message(embed=create_small_embed(await refcandid(self.mem,interaction.user,self.qq)))
+		await self.msg.edit(view=None)
+
 
 class boutonform(discord.ui.View):
 	def __init__(self):
@@ -917,37 +945,37 @@ class Formulaire(discord.ui.Modal,title="Formulaire de candidature SD"):
 		)
 		self.add_item(self.quest)
 	async def on_submit(self, interaction: discord.Interaction) -> None:
-		data = f'bouh {self.pseudo}'
+		data = [self.pseudo,self.anpseudo,self.pbo,self.description,self.quest]
 		await interaction.response.send_message('''___***Attention ! Votre candidature n'est pas encore envoyée ! Pour finir la procédure veuillez finir le deuxieme questionnaire***___''',ephemeral=True,view=boutonform2(data))
 
 class boutonform2(discord.ui.View):
-	def __init__(self,data):
+	def __init__(self,data:str):
 		super().__init__(timeout=None)
-		self.add_item(data)
+		self.data = data
 	@discord.ui.button(label='Finir ma candidature', style=discord.ButtonStyle.green, custom_id='candidat2')
 	async def candida(self,interaction: discord.Interaction, button: discord.ui.Button):
-		modal = Formulaire2()
-		await interaction.response.send_modal(modal,self.data)
+		modal = Formulaire2(self.data)
+		await interaction.response.send_modal(modal)
 
 class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
-	def __init__(self,data):
+	def __init__(self,data:str):
 		super().__init__()
 		self.av = discord.ui.TextInput(
 			label="Questions paladium",
 			style=discord.TextStyle.paragraph,
-			placeholder="Comment connaissez vous paladium. Quel est votre avancement en jeu ?",
+			placeholder="Comment connaissez vous paladium. Quel est votre avancement en jeu ? Avez vous eu des sanctions ?",
 		)
 		self.add_item(self.av)
 		self.sd = discord.ui.TextInput(
 			label="Questions SD",
 			style=discord.TextStyle.paragraph,
-			placeholder="Pourquoi voulez vous rejoindre une faction et en particulier la SD.",
+			placeholder="Pourquoi voulez vous rejoindre une faction et en particulier la SD. Que veut dire Tryhard pour vous?",
 		)
 		self.add_item(self.sd)
 		self.tryh = discord.ui.TextInput(
-			label="Questions Tryhard",
+			label="Avez vous eu des factions précédemment ?",
 			style=discord.TextStyle.paragraph,
-			placeholder="""Êtes vous prêt à "TryHard" pour la faction ? Comment définiez vous le terme Tryhard (avec vos mots)""",
+			placeholder="""Si oui lesquelles ? Pourquoi avez vous rejoint ses factions ? Et pourquoi les avez vous quittée(s) ?""",
 		)
 		self.add_item(self.tryh)
 		self.obj = discord.ui.TextInput(
@@ -961,14 +989,15 @@ class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
 			placeholder="Quelles sont vos disponibilités ?",
 		)
 		self.add_item(self.dis)
-		self.add_item(data)
+		self.data = data
 	async def on_submit(self, interaction: discord.Interaction) -> None:
-		await interaction.response.send_message(f'bv : {self.data}, {self.sd}')
+		await interaction.response.defer()
+		await envoicandid(interaction.guild,interaction.user,self.data[0],self.data[1],self.data[2],self.data[3],self.data[4],self.av,self.sd,self.tryh,self.obj,self.dis)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def sendrecru(interaction: discord.Interaction):
-	await interaction.response.send_message('Bouh',view=boutonform())
+	await interaction.response.send_message('Pour candidater appuyez sur le bouton ci-dessous',view=boutonform())
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -996,6 +1025,8 @@ async def listerecru(interaction: discord.Interaction):
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
+	if interaction.user.id != 790574682294190091:
+		interaction.response.send_message('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements')
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
@@ -1006,6 +1037,8 @@ async def refuse(interaction: discord.Interaction, member: discord.Member, *, ra
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
 async def accept(interaction: discord.Interaction, member: discord.Member):
+	if interaction.user.id != 790574682294190091:
+		interaction.response.send_message('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements')
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -3304,19 +3337,19 @@ class bl(discord.ui.View):
 
 @bot.tree.command()
 async def demande_bl(interaction: discord.Interaction) -> None:
-    await interaction.response.send_message(embed = create_embed('```​📌​ ‒ Demande de Blacklist```','''
+    await interaction.response.send_message(embed = create_embed('```​📌​ ‒ Demande de Blacklist```',f'''
                            Bonjour __{interaction.user.mention}__,
                            
                            Sachez tout d'abord qu'en cliquant sur ce bouton, vous devrez répondre à 5 questions.
                            
-                           > Vous recevrez la réponse de __<@924800267411668992>__ en MP, alors tachez de les garder ouverts, merci.
-                           
-                           • Toutes demandes troll ou visant à ne pas faire une vraie demande, seront sanctionnées.''',0xffffff),view=bl())
+                           • Toutes demandes troll ou visant à ne pas faire une vraie demande, seront sanctionnées.
+						   
+						   Le staff SweetDream''',0xffffff),view=bl())
 
 class demandebl(discord.ui.Modal, title='Demande de blacklist'):
     ide = discord.ui.TextInput(
         label='''Quel est l'id de la personne à blacklist''',# souhaitez blacklister ?
-        placeholder=f'''Pour recuperer l'id merci de suivre le tuto dans #tuto''',
+        placeholder=f'''Pour recuperer l'id, faites click droit -> Copier ID''',
     )
     nom = discord.ui.TextInput(
         label='''Quel est son nom ?''',
@@ -3325,6 +3358,7 @@ class demandebl(discord.ui.Modal, title='Demande de blacklist'):
     uuid = discord.ui.TextInput(
         label='''Quel est son UUID ? (sur https://namemc.com/)''',
         placeholder=f'''Pour trouver l'UUID mettez son pseudo sur https://namemc.com/''',
+		style=discord.TextStyle.paragraph
     )
     raison = discord.ui.TextInput(
         label='''Pour quelle raison voulez vous la blacklist ?''',
@@ -3338,7 +3372,7 @@ class demandebl(discord.ui.Modal, title='Demande de blacklist'):
 
     async def on_submit(self, interaction: discord.Interaction):
         data = requests.get(f"https://sessionserver.mojang.com/session/minecraft/profile/{self.uuid.value}").json()
-        embed = create_embed(f'```​📌​ ‒ Demande de Blacklist```','''
+        embed = create_embed(f'```​📌​ ‒ Demande de Blacklist```',f'''
                               Auteur de la demande : `{interaction.user.name}#{interaction.user.discriminator}` (*{interaction.user.id}*)
                               Joueur à Blacklister : {self.nom.value} (*`{self.ide.value}`*)
                               Pseudo IG : `{data["name"]}` (`{self.uuid.value}`)                         
@@ -3346,13 +3380,13 @@ class demandebl(discord.ui.Modal, title='Demande de blacklist'):
                               Preuves fournies : `{self.preuves.value}`''',0xffffff)
         await interaction.user.send(embed = embed)
         channel = bot.get_channel(794021749196718121)
-        msg = await channel.send(f'''__<@everyone>__ \​​📬​ Nouvelle demande''',embed = embed,view=blaccept())
+        msg = await channel.send(f'''__@everyone__ \​​📬​ Nouvelle demande''',embed = embed,view=blaccept())
         with open('blacklist.json', 'r') as f:
             bl = json.load(f)
         bl["Attente"][msg.id] = [interaction.user.id,self.ide.value,self.uuid.value,self.raison.value,self.preuves.value,self.nom.value]
         with open('blacklist.json', 'w') as f:
             json.dump(bl, f, indent=6)
-        await interaction.response.send_message(f'''<:Version:1001717913272717342> Votre demande à correctement été envoyée au Staff.''',ephemeral=True) 
+        await interaction.response.send_message(f''':white_check_mark: Votre demande à correctement été envoyée au Staff.''',ephemeral=True) 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Il y a eu un problème', ephemeral=True)
 
@@ -3394,8 +3428,6 @@ class actu(discord.ui.View):
 @discord.app_commands.checks.has_permissions(manage_guild = True)
 async def blacklist(interaction: discord.Interaction) -> None:
     await interaction.response.send_message(embed = await embed_blacklist(interaction.guild,interaction.user), view=actu())
-    channel = bot.get_channel(986990938264064040)
-    await channel.send(f'''Blacklist set on `{interaction.guild.name}`''')
 
 async def embed_blacklist(guild,user):
     with open('blacklist.json','r') as f:
@@ -3407,33 +3439,42 @@ async def embed_blacklist(guild,user):
         else:
             data = requests.get(f"https://sessionserver.mojang.com/session/minecraft/profile/{bl['black'][pers][0]}").json()
         msg += f'''\📌 | **{bl['black'][pers][3]}** *(<@{pers}>)*\n\💻 | `{data["name"]}` ({bl['black'][pers][0]})\n> __{bl['black'][pers][1]}__\n\n'''
-    embed = discord.Embed(title = 'Blacklist V8',
+    embed = discord.Embed(title = 'Blacklist V8.5',
                           description = msg,
                           timestamp = datetime.now(),
                           color = 0xc18fff)
     embed.set_author(name = f'Blacklist | {guild.name}', icon_url = guild.icon.url)
-    embed.set_footer(text = f'Dernière actualisation par {user.name}#{user.discriminator} | TheReferenceBot ')
+    embed.set_footer(text = f'Dernière actualisation par {user.name}#{user.discriminator}')
     return embed
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator = True)
+async def purge(interaction: discord.Interaction) -> None:
+	with open ('points.json','r') as f:
+		pt = json.load(f)
+	for memb in pt.keys():
+		memb = interaction.guild.get_member(memb)
+		if memb == None or infac(memb)==False:
+			pt[memb.id].pop()
+	with open ('points.json','w') as f:
+		json.dump(pt,f,indent=6)
 
 # =========== Autre ===========
 
 @bot.tree.command()
 @commands.cooldown(1, 480, commands.BucketType.user)
 async def bug_report(interaction: discord.Interaction,bug:str) -> None:
-    channel_send_bug = bot.get_channel(975472327364055140)
-    
-    embed = discord.Embed(description = f'''<:Doc:1001721683511623690> | **Bug** : `{bug}`
-                          
-                          >  <:Member:962279004428202004> | **Report de** : `{interaction.user.name}`
-                          >  <:Text:962272582919389214> | **ID** : `{interaction.user.id}`
-                          >  <:Referencement:962275482399825920> | **Serveur** : `{interaction.guild.name}` ({interaction.guild.id})''')
-    embed.set_footer(text = f'''TheReferenceBot • Demandé par {interaction.user} ''')
-    embed.set_author(name = f'Report de {interaction.user}', icon_url = interaction.user.avatar.url)
-    embed.set_thumbnail(url = interaction.guild.icon.url)
-    embed.timestamp = datetime.now()
-    await channel_send_bug.send(embed = embed)
-    await interaction.response.send_message(f'''<:Version:1001717913272717342> Votre report à bien été signalé au staff, merci de participer à l'amélioration du bot !''')
-
+	await interaction.response.defer()
+	channel_send_bug = bot.get_channel(791452088370069525)
+	embed = discord.Embed(description = f''':bookmark_tabs: | **Bug** : `{bug}`
+	
+	>  :astronaut_tone1: | **Report de** : `{interaction.user.name}`
+	>  :robot: | **ID** : `{interaction.user.id}`''')
+	embed.set_author(name = f'Report de {interaction.user}', icon_url = interaction.user.avatar.url)
+	embed.set_thumbnail(url = interaction.guild.icon.url)
+	embed.timestamp = datetime.now()
+	await channel_send_bug.send(embed = embed)
+	await interaction.followup.send(f'''Votre report à bien été signalé au staff, merci de participer à l'amélioration du bot !''')
 
 class NewHelpCommand(commands.MinimalHelpCommand):
 	async def send_pages(self):
@@ -3513,12 +3554,7 @@ async def on_message(message):
 	bonj = bot.get_channel(811653900611354704)
 	if message.channel == bonj:
 		if message.content.lower()[:11] == "bonjour tlm":
-			Roles = [821787385636585513,790675782569164820,790675782338740235,790675782364037131,790675783352975360,790675783549976579,790675783693500456,790675784120401932,790675784225521734,791066206437113897,791066207418712094,791066206109958204,1011953852427272302]
-			x = None
-			for Ro in Roles:
-				if Ro in [t.id for t in message.author.roles]:
-					x = 1
-			if x != None:
+			if await infac(message.author):
 				with open ('points.json','r') as f:
 					pt = json.load(f)
 				if str(message.author.id) in pt.keys():
@@ -3538,9 +3574,9 @@ async def on_message(message):
 					json.dump(eq,f,indent=6)
 				with open ('points.json','w') as f:
 					json.dump(pt,f,indent=6)
-			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
-			logs = bot.get_channel(1026567820311531550)
-			await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
+				await message.author.send('Vous avez gagné 20 points de bonjour tlm')
+				logs = bot.get_channel(1026567820311531550)
+				await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
 	await bot.process_commands(message)
 
 def run_bot(token=TOKEN, debug=False):
