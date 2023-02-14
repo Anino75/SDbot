@@ -42,7 +42,7 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(RouleR())
 		self.add_view(contijouer(0,0))
 		self.add_view(roulette())
-		self.add_view(rouleView())
+		self.add_view(rouleView({},0))
 		self.add_view(regl())
 		self.add_view(IsAlly())
 		self.add_view(candid(0))
@@ -53,7 +53,9 @@ class PersistentViewBot(commands.Bot):
 		self.add_view(pagecl())
 		self.add_view(actu())
 		self.add_view(boutonform())
+		self.add_view(boutonform2([]))
 		self.add_view(autoview([],[]))
+		self.add_view(blackjackview())
 #		self.add_view(divi())
 
 bot = PersistentViewBot()
@@ -646,7 +648,43 @@ async def on_ready():
 	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
 	act = discord.Game(name="/help pour voir les commandes auxquelles vous avez accès")
 	await bot.change_presence(activity=act)
+	await drops()
 
+async def drops():
+	await asyncio.sleep(random.randint(7200,86400))
+	channel = await bot.fetch_channel(791452088370069525)
+	nb = random.randint(10,100)
+	await channel.send(embed=create_embed(title='Drop !',description=f'Cliquez en premier sur le bouton pour gagner **{nb}** DP !'),view=drop(nb,1,[]))
+	await drops()
+
+class drop(discord.ui.View):
+	def __init__(self,money,win,dej):
+		super().__init__(timeout=None)
+		self.money = money
+		self.win = win
+		self.dej = dej
+	@discord.ui.button(label="Recuperer la money !", style=discord.ButtonStyle.green, custom_id='recupmmoney')
+	async def regl(self, interaction: discord.Interaction, button: discord.ui.Button):
+		dej = list(self.dej)
+		if str(interaction.user.id) in dej:
+			interaction.response.send_message(embed=create_small_embed("Vous ne pouvez participer qu'une fois à un drop !"),ephemeral=True)
+			return
+		if int(str(self.win)) == len(dej)+1:
+			await interaction.response.edit_message(embed=create_small_embed(f"Félicitation à {'<@' if len(dej)!=0 else ''}{'>, <@'.join(dej)}{'> et' if len(dej)!=0 else ''} {interaction.user.mention} qui {'ont' if len(dej)!=0 else 'à'} gagné {self.money} DP dans un drop !"),view=None)
+		else:
+			await interaction.response.edit_message(embed=create_embed(title='Drop !',description=f'''Cliquez en premier sur le bouton pour gagner **{self.money}** DP !\n{self.win} gagnants\nGagnants déjà présents : {', '.join(dej)}{' et' if len(dej)!=0 else ''} {interaction.user.mention}'''),view=drop(self.money,self.win,dej+[str(interaction.user.id)]))
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		pt[str(interaction.user.id)] += int(str(self.money))
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def createdrop(interaction: discord.Interaction,channel:discord.TextChannel,prix:int,nb_gagnants:int):
+	'''Envoyer manuellement un drop. Commande réservée aux HG.'''
+	await channel.send(embed=create_embed(title='Drop !',description=f'Cliquez en premier sur le bouton pour gagner **{prix}** DP !\n{nb_gagnants} gagnants'),view=drop(prix,nb_gagnants,[]))
+	await interaction.response.send_message(embed=create_small_embed("Message envoyé !"),ephemeral=True)
 
 async def del_message(message):
 	try:
@@ -712,6 +750,8 @@ async def edditally():
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def prepare(interaction: discord.Interaction,prep:str):
 	'''Preparer des trucs. Commande réservée aux HG.'''
+	if prep == 'BJ':
+		await interaction.channel.send('Pour jouer au blackjack, cliquez sur le bouton', view=blackjackview())
 	if prep =='encheres':
 		await interaction.channel.send('Pour être notifiés des dèrnières enchères, prennez le role en cliquant sur le bouton',view=ench())
 	if prep =='mentionvendeur':
@@ -1138,7 +1178,8 @@ async def listerecru(interaction: discord.Interaction):
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
 	'''Refuser manuellement une candidature. Commande réservée à la grande maîtresse suprême.'''
 	if interaction.user.id != 790574682294190091:
-		await interaction.response.send_message('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements')
+		await interaction.response.send_message(embed=create_small_embed('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements'))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
@@ -1151,7 +1192,8 @@ async def refuse(interaction: discord.Interaction, member: discord.Member, *, ra
 async def accept(interaction: discord.Interaction, member: discord.Member):
 	'''Accepter manuellement une candidature. Commande réservée à la grande maîtresse suprême.'''
 	if interaction.user.id != 790574682294190091:
-		await interaction.response.send_message('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements')
+		await interaction.response.send_message(embed=create_small_embed('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements'))
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
 		return
@@ -1895,7 +1937,7 @@ class Nombre(discord.ui.Select):
 			await interaction.channel.send(f"Veuillez indiquer combien de {Eco['items'][id][3]} de {Eco['items'][id][0]} vous souhaitez prendre")
 			nb = await chiffrecommande(interaction.user,interaction.channel)
 		else:
-			nb = int(self.values[0])
+			nb = int(str(self.values[0]))
 		await interaction.channel.send("Très bien, merci encore pour votre commande. Veuillez patienter un vendeur va prendre en charge votre commande.")
 		msg=f"**Acheteur :**\n{interaction.user.mention} ({interaction.user.name})\n\n**Item :**\n{Eco['items'][id][0]}\n\n**Quantité :**\n{nb} {Eco['items'][id][3]}\n\n**Prix :**\n{Eco['items'][id][1]*nb}\n\n**Pour prendre la commande, `/claim` dans le **{interaction.channel.mention}"
 		with open('economie.json', 'r') as f:
@@ -2318,8 +2360,7 @@ class mis(discord.ui.Modal,title="Mise"):
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
 		try:
-			print(self.qq)
-			mise = int(self.qq)
+			mise = round(float(str(self.qq)))
 		except:
 			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
 			return
@@ -2356,9 +2397,8 @@ class contijouer(discord.ui.View):
 		self.nb = nb
 	@discord.ui.button(label='Continuer à jouer', style=discord.ButtonStyle.green, custom_id='conti')
 	async def contiroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
-		await interaction.message.delete()
-		chance = random.randint(1, 6-int(self.nb))
-		mise = round(mise/(1-1/(6-int(self.nb))))
+		chance = random.randint(1, 6-int(str(self.nb)))
+		mise = round(float(str(self.mise)))/(1-1/(6-round(float(str(self.nb)))))
 		if chance == 1: #perdu
 			embed = discord.Embed(
 						title='Vous avez perdu...',
@@ -2366,10 +2406,10 @@ class contijouer(discord.ui.View):
 						timestamp=datetime.utcnow(),
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
-			await interaction.response.send_message(embed=embed,ephemeral=True)
+			await interaction.response.edit_message(embed=embed,view=None)
 			return
 
-		elif int(self.nb) == 4: #Max possible
+		elif int(str(self.nb)) == 4: #Max possible
 			embed = discord.Embed(
 			title='JACKPOT !',
 			description=f"Vous avez gagné {mise}$ ! Vous avez touché le maximum d'argent possible !",
@@ -2381,25 +2421,24 @@ class contijouer(discord.ui.View):
 			with open('points.json', 'w') as f:
 				json.dump(pt, f, indent=6)
 			embed.set_thumbnail(url='https://tenor.com/view/wealthy-rich-money-rain-money-money-money-fan-gif-14057775')
-			await interaction.response.send_message(embed=embed,ephemeral=True)
+			await interaction.response.edit_message(embed=embed,view=None)
 
 		else: #gain sans 
 			embed = discord.Embed(
 					title='Vous avez gagné !',
-					description=f"Vous avez gagné __**{mise}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{round(mise/(1-1/(6-int(self.nb)-1)))}$**__ ?",
+					description=f"Vous avez gagné __**{mise}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{round(mise/(1-1/(6-round(float(str(self.nb)))-1)))}$**__ ?",
 					timestamp = datetime.utcnow()
 					)
 			embed.set_thumbnail(url='https://tenor.com/view/win-obama-mic-drop-winner-peace-gif-16949541')
-			await interaction.response.send_message(embed=embed, view=contijouer(mise,int(self.nb)+1),ephemeral=True)
+			await interaction.response.edit_message(embed=embed, view=contijouer(mise,int(str(self.nb))+1))
 	@discord.ui.button(label='Ne pas jouer', style=discord.ButtonStyle.red, custom_id='arret')
 	async def Arretroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
-		pt[str(interaction.user.id)] += round(int(self.mise))
+		pt[str(interaction.user.id)] += round(float(str(self.mise)))
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
-		await interaction.response.send_message(f'vous avez arrete la partie et avez gagné {round(int(self.mise))}',ephemeral=True)
-		await interaction.message.delete()
+		await interaction.response.edit_message(embed=create_small_embed(f'Vous avez arrete la partie et avez gagné {round(float(str(self.mise)))} DP'),view=None)
 
 class Machineasous(discord.ui.View):
 	def __init__(self):
@@ -2438,99 +2477,235 @@ class Machineasous(discord.ui.View):
 			url='https://cdn.discordapp.com/attachments/772451269272928257/937037959516000286/unknown.png')
 		return embed
 
+@bot.tree.command()
+async def addpersonne(interaction: discord.Interaction,personne:discord.Member):
+	'''Ajouter quelqu'un dans votre channel de jeu. Ne marche que dans un channel de jeu.'''
+	if interaction.channel.name[:8] != 'roulette':
+		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans un salon de jeu !", discord.Color.red()))
+		return
+	await interaction.channel.edit(overwrites={personne: discord.PermissionOverwrite(read_messages=True, send_messages=True,)})
+	await interaction.response.send_message(f'{personne.mention} à bien été ajouté',ephemeral=True)
+
 class roulette(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Jouer à la Roulette Américaine', style=discord.ButtonStyle.green, custom_id='debutrouletteA')
 	async def RoulletteA(self, interaction: discord.Interaction, button: discord.ui.Button):
-		jeu = bot.get_channel(961597988613025812)
-		embed = create_embed('Roulette Américaine','Jouez à la roulette américaine, seuls ou avec vos amis !')
+		jeu = await interaction.guild.create_text_channel(f'roulette-{interaction.user.name}',overwrites={interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False,),interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True,)})
+		embed = create_embed('Roulette Américaine','''Jouez à la roulette américaine avec vos amis !\nPour ajouter quelqu'un à votre partie faites /addpersonne\n:warning: **__NE PAS MISER PLUSIEURS A LA FOIS__**''')
 		embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/772451269272928257/965658339428171876/unknown.png")
-		await jeu.send(embed=embed,view=rouleView())
+		await jeu.send(embed=embed,view=rouleView({},interaction.user.id))
 		await interaction.response.send_message(f"Nouvelle partie crée dans le channel {jeu.mention}",ephemeral=True)
 
+class rouleView(discord.ui.View):
+	def __init__(self,mises,ide):
+		super().__init__(timeout=None)
+		self.add_item(roule(mises,ide))
+		self.mises = mises
+		self.ide = ide
+	@discord.ui.button(label='Lancer la roulette', style=discord.ButtonStyle.green, custom_id='lancerrouletteA')
+	async def lanroue(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user.id != int(str(self.ide)):
+			await interaction.response.send_message(':warning: Seul le créateur de la partie peut lancer la roue !',ephemeral=True)
+			return
+		mises = dict(self.mises)
+		rouge = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		chance = random.randint(0,37)         #Tirage
+		await interaction.response.edit_message(embed=create_embed(f"{chance}. {'Rouge' if chance in rouge else 'Noir'}."),view=None)
+		if chance in mises.keys():            #Chiffre
+			for gains in mises[chance]:
+				pt[str(gains[0])] += gains[1]*36
+				await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur le {chance} et qui remporte **{gains[1]*36}** DP !')
+		if chance == 0 or chance == 37:       #0 ou 00 = aucune recompense sauf les chiffres
+			return
+		
+		bools = [[chance in rouge,['Rouge','Noir']],[chance%2 == 0,['Pair','Impair']],[chance//19 == 0,['Manque','Passe']]]
+		for boole in bools:
+			var = 1
+			if boole[0]:
+				var = 0
+			if boole[1][var] in mises.keys():
+				for gains in mises[boole[1][var]]:
+					pt[str(gains[0])] += gains[1]*2
+					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {boole[1][var]} et qui remporte **{gains[1]*2}** DP !')
+		
+		valeurs = [['douzaine 1','douzaine 2','douzaine 3'],['colone 3','colone 1','colone 2']]
+		val2 = [chance//13,chance%3]
+		for i in range(2):
+			if valeurs[i][val2[i]] in mises.keys():
+				for gains in mises[valeurs[i][val2[i]]]:
+					pt[str(gains[0])] += gains[1]*3
+					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {valeurs[i][val2[i]]} et qui remporte **{gains[1]*3}** DP !')
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
+		embed = create_embed('Roulette Américaine','''Jouez à la roulette américaine avec vos amis !\nPour ajouter quelqu'un à votre partie faites /addpersonne''')
+		embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/772451269272928257/965658339428171876/unknown.png")
+		await interaction.channel.send(embed=embed,view=rouleView({},interaction.user.id))
+	@discord.ui.button(label='Fermer la partie', style=discord.ButtonStyle.red, custom_id='fermerroul')
+	async def fermerchan(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.channel.delete()
+
+# mises = {5:[[025451164521215,100],[584415458455545,200]],"Rouge":[[05059552624595656,500]]}
 class roule(discord.ui.Select):
-	def __init__(self):
+	def __init__(self,mises,ide):
 		options = [
-			discord.SelectOption(label='Miser sur un chiffre', description='Mise x36'),
-			discord.SelectOption(label='Miser sur Rouge', description='Mise x2'),
-			discord.SelectOption(label='Miser sur Noir', description='Mise x2'),
-			discord.SelectOption(label='Miser sur Pair', description='Mise x2'),
-			discord.SelectOption(label='Miser sur Impair', description='Mise x2'),
-			discord.SelectOption(label='Miser sur Manque', description='Mise x2'),
-			discord.SelectOption(label='Miser sur Passe', description='Mise x2'),
-			discord.SelectOption(label='Miser sur la première douzaine (1-12)', description='Mise x3'),
-			discord.SelectOption(label='Miser sur la deuxième douzaine (13-24)', description='Mise x3'),
-			discord.SelectOption(label='Miser sur la troisième douzaine (25-36)', description='Mise x3'),
+			discord.SelectOption(label='Miser sur un chiffre', description='Mise x36',value='chiffre'),
+			discord.SelectOption(label='Miser sur Rouge', description='Mise x2',value='Rouge'),
+			discord.SelectOption(label='Miser sur Noir', description='Mise x2',value='Noir'),
+			discord.SelectOption(label='Miser sur Pair', description='Mise x2',value='Pair'),
+			discord.SelectOption(label='Miser sur Impair', description='Mise x2',value='Impair'),
+			discord.SelectOption(label='Miser sur Manque (1-18)', description='Mise x2',value='Manque'),
+			discord.SelectOption(label='Miser sur Passe (19-36)', description='Mise x2',value='Passe'),
+			discord.SelectOption(label='Miser sur la première douzaine (1-12)', description='Mise x3',value='douzaine 1'),
+			discord.SelectOption(label='Miser sur la deuxième douzaine (13-24)', description='Mise x3',value='douzaine 2'),
+			discord.SelectOption(label='Miser sur la troisième douzaine (25-36)', description='Mise x3',value='douzaine 3'),
+			discord.SelectOption(label='Miser sur la première colone (1-12)', description='Mise x3',value='colone 1'),
+			discord.SelectOption(label='Miser sur la deuxième colone (13-24)', description='Mise x3',value='colone 2'),
+			discord.SelectOption(label='Miser sur la troisième colone (25-36)', description='Mise x3',value='colone 3'),
 		]
 		super().__init__(placeholder='Sur quoi voulez vous miser ?', min_values=1, max_values=1, options=options,
 						 custom_id='inter')
+		self.mises = mises
+		self.ide = ide
 	async def callback(self, interaction: discord.Interaction):
-		chiffres = {'Roug': [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
-					'Noir': [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],
-					'Pair': [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36],
-					'Impa': [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35],
-					'Manq': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-					'Pass': [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
-					'la p': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-					'la d': [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-					'la t': [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]}
-		if self.values[0] == 'Miser sur un chiffre':
-			def check(m):
-				return m.author == interaction.user and m.channel == interaction.channel
-			chiffre = await bot.wait_for('message', timeout=None, check=check)
-			try:
-				if int(chiffre.content) > 36:
-					await interaction.response.send_message(":warning: Vous ne pouvez miser que sur des chiffres entre 0 et 36, ainsi que le 00")
-					return
-				if chiffre.content == "00":
-					chiffre = [37]
-				else:
-					chiffre = [int(chiffre.content)]
-			except:
-				await interaction.channel.send(":warning: Ceci n'est pas un chiffre, veuillez recommencer avec un chiffre")
-				return
-		else:
-			chiffre = chiffres[self.values[0][10:14]]
-		await interaction.channel.send(f'{interaction.user.mention} Combien voulez vous miser ?')
-		def check(m):
-			return m.author == interaction.user and m.channel == interaction.channel
-		mise = await bot.wait_for('message', timeout=None, check=check)
-		try:
-			mise = int(mise.content)
-		except:
-			await interaction.channel.send(":warning: Ceci n'est pas un chiffre, veuillez recommencer avec un chiffre")
-			return
-		await compte(interaction.user)
-		with open('economie.json', 'r') as f:
-			Eco = json.load(f)
-		if Eco["Comptes"][str(interaction.user.id)] < mise:
-			await interaction.channel.send(":warning: Vous n'avez pas assez d'argent pour miser ca !")
-			return
-		chance = random.randint(0,37)
-		if chance == 0 or chance == 37:
-			couleur = 'Vert'
-		elif chance in chiffres['Roug']:
-			couleur = 'Rouge'
-		else:
-			couleur = 'Noir'
-		if chance in chiffre:
-			if self.values[0][10:12] == 'un':
-				mise = mise * 35
-			elif self.values[0][10:12] == "la":
-				mise = mise * 2
-			await interaction.response.send_message(embed=discord.Embed(title=f'{chance}. {couleur}.',description=f'{interaction.user.mention} Vous avez misé {self.values[0][6:]} et vous avez gagné {mise}$ !'))
-			Eco["Comptes"][str(interaction.user.id)] += mise
-		else:
-			await interaction.channel.send(embed=discord.Embed(title=f'{chance}. {couleur}.',description=f'{interaction.user.mention} Vous avez perdu.'))
-			Eco["Comptes"][str(interaction.user.id)] -= mise
-		with open('economie.json', 'w') as f:
-			json.dump(Eco, f, indent=6)
+		await interaction.response.send_modal(roulemis(self.values[0],self.mises,self.ide))
 
-class rouleView(discord.ui.View):
+class roulemis(discord.ui.Modal,title="Mise"):
+	def __init__(self,choix,mises,ide):
+		super().__init__()
+		if str(choix) == 'chiffre':
+			self.quoi= discord.ui.TextInput(
+			label=f"Sur quel chiffre voulez-vous miser ?"
+		)
+			self.add_item(self.quoi)
+		self.qq = discord.ui.TextInput(
+			label=f"Combien voulez-vous miser de DP ?"
+		)
+		self.add_item(self.qq)
+		self.choix = choix
+		self.mises = mises
+		self.ide = ide
+	async def on_submit(self, interaction: discord.Interaction) -> None:
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		try:
+			mise = round(float(str(self.qq)))
+			if str(self.choix) == 'chiffre':
+				chiffre = int(str(self.quoi))
+		except:
+			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
+			return
+		if str(interaction.user.id) not in pt or pt[str(interaction.user.id)] < mise:
+			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent pour miser ca !",ephemeral=True)
+			return
+		pt[str(interaction.user.id)] -= mise
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
+		mises = dict(self.mises)
+		if str(self.choix) == 'chiffre':
+			if chiffre in mises.keys():
+				mises[chiffre].append([interaction.user.id,mise])
+			else:
+				mises[chiffre] = [[interaction.user.id,mise]]
+		else:
+			if str(self.choix) in mises.keys():
+				mises[str(self.choix)].append([interaction.user.id,mise])
+			else:
+				mises[str(self.choix)] = [[interaction.user.id,mise]]
+		await interaction.response.edit_message(view=rouleView(mises,self.ide))
+		await interaction.channel.send(f'{interaction.user.mention} à misé {mise} sur {str(self.choix)}')
+
+class blackjackview(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
-		self.add_item(roule())
+	@discord.ui.button(label='Jouer au BlackJack', style=discord.ButtonStyle.green, custom_id='debutBJ')
+	async def RoulletteA(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.response.send_modal(BJmis())
+
+class BJmis(discord.ui.Modal,title="Mise"):
+	def __init__(self):
+		super().__init__()
+		self.qq = discord.ui.TextInput(
+			label=f"Combien voulez-vous miser de DP ?"
+		)
+		self.add_item(self.qq)
+	async def on_submit(self, interaction: discord.Interaction) -> None:
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		try:
+			mise = round(float(str(self.qq)))
+		except:
+			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
+			return
+		if str(interaction.user.id) not in pt or pt[str(interaction.user.id)] < mise:
+			await interaction.response.send_message(":warning: Vous n'avez pas assez d'argent pour miser ca !",ephemeral=True)
+			return
+		pt[str(interaction.user.id)] -= mise
+		
+		cartes = addcarte([0])
+		cartes = addcarte(cartes)
+
+		croupier = addcarte([0])
+		if cartes[0] == 21:
+			croupier = addcarte(croupier)
+			if croupier[0] == 21:
+				pt[str(interaction.user.id)] += mise
+				await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nDouble Blackjack, vous recuperez votre mise.'),ephemeral=True)
+			else:
+				pt[str(interaction.user.id)] += 3*mise
+				await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nBlackjack ! Vous triplez votre mise !'),ephemeral=True)
+		else:
+			await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?'),view=jeuBJ(mise,cartes,croupier),ephemeral=True)
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
+
+def addcarte(cartes):		
+	cartess = [['un as','un deux','un trois','un quatre','un cinq','un six','un sept','un huit','un neuf','un dix','un valet','une dame','un roi'],['coeur','carreau','pique','trefle']]
+	valeur,couleur = random.randint(0,12),random.randint(0,3)
+	cartes[0] += (valeur+1 if valeur<10 else 10)
+	cartes.append(f'{cartess[0][valeur]} de {cartess[1][couleur]}')
+	return cartes
+
+class jeuBJ(discord.ui.View):
+	def __init__(self,mise,cartes,croupier):
+		super().__init__(timeout=None)
+		self.mise = mise
+		self.cartes = cartes
+		self.croupier = croupier
+	@discord.ui.button(label='Tirer une carte', style=discord.ButtonStyle.green, custom_id='contiBJ')
+	async def tir(self, interaction: discord.Interaction, button: discord.ui.Button):
+		cartess = [['un as','un deux','un trois','un quatre','un cinq','un six','un sept','un huit','un neuf','un dix','un valet','une dame','un roi'],['coeur','carreau','pique','trefle']]
+		croupier = list(self.croupier)
+		cartes = addcarte(list(self.cartes))
+		if cartes[0] > 21:
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez sauté, vous perdez votre mise."""))
+		else:
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?"""),view=jeuBJ(self.mise,cartes,croupier))
+	@discord.ui.button(label='Arreter', style=discord.ButtonStyle.red, custom_id='finBJ')
+	async def sto(self, interaction: discord.Interaction, button: discord.ui.Button):
+		cartess = [['un as','un deux','un trois','un quatre','un cinq','un six','un sept','un huit','un neuf','un dix','un valet','une dame','un roi'],['coeur','carreau','pique','trefle']]
+		croupier = list(self.croupier)
+		cartes = list(self.cartes)
+		mise = round(float(self.mise))
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		while croupier[0] < 16:
+			croupier = addcarte(croupier)
+			if croupier[0] > 21:
+				pt[str(interaction.user.id)] += 2*mise
+				await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à sauté, vous gagné deux fois votre mise ({2*mise} DP)."""))
+		if croupier[0] > cartes[0]:
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""))
+		elif croupier[0] == cartes[0]:
+			pt[str(interaction.user.id)] += mise
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à autant que vous, vous recuperez votre mise ({mise} DP)."""))
+		else:
+			pt[str(interaction.user.id)] += 2*mise
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez plus que le croupier, vous recuperez deux fois votre mise ({2*mise} DP)."""))
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3222,8 +3397,8 @@ class confach(discord.ui.View):
 	async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
 		with open ('points.json','r') as f:
 			pt = json.load(f)
-		if str(interaction.user.id) in pt.keys() and pt[str(interaction.user.id)] >= int(self.prix):
-			pt[str(interaction.user.id)] -= int(self.prix)
+		if str(interaction.user.id) in pt.keys() and pt[str(interaction.user.id)] >= int(str(self.prix)):
+			pt[str(interaction.user.id)] -= int(str(self.prix))
 		else:
 			await interaction.response.send_message("Vous n'avez pas assez de points pour cela !",ephemeral=True)
 			return
@@ -3317,8 +3492,8 @@ async def crime(interaction: discord.Interaction) -> None:
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /sleep')
-	await interaction.response.send_message(f'''Vous avez {'gagné' if nombre >= 0 else 'perdu'} {nombre} points !''')
+	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /crime')
+	await interaction.response.send_message(f'''Vous avez {f'gagné {nombre}' if nombre >= 0 else f'perdu {-nombre}'} points !''')
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
@@ -3447,7 +3622,7 @@ class auto(discord.ui.Select):
 		super().__init__(placeholder='Auto Rôles', min_values=1, max_values=1, options=options, custom_id='autor')
 	async def callback(self, interaction: discord.Interaction):
 		guild = bot.get_guild(790367917812088864)
-		t = guild.get_role(int(self.values[0]))
+		t = guild.get_role(int(str(self.values[0])))
 		if t in interaction.user.roles:
 			await interaction.user.remove_roles(t)
 			await interaction.response.send_message('Rôle retiré !',ephemeral=True)
@@ -3470,7 +3645,7 @@ class fest(discord.ui.Select):
 				await interaction.response.send_message('Vous avez déjà un rôle de ce festivau !',ephemeral=True)
 				return
 		guild = bot.get_guild(790367917812088864)
-		t = guild.get_role(int(self.values[0]))
+		t = guild.get_role(int(str(self.values[0])))
 		await interaction.user.add_roles(t)
 		await interaction.response.send_message('Rôle ajouté !',ephemeral=True)
 
