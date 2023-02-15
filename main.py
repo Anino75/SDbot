@@ -662,8 +662,7 @@ async def on_ready():
 		print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
 	print(field_placeholder)
 	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
-	act = discord.Activity(name="Never gonna give you up",emoji='🎵')
-	await bot.change_presence(activity=act)
+	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Never gonna give you up 🎵"))
 	await drops()
 
 async def drops():
@@ -959,6 +958,8 @@ async def envoicandid(guild,auteur:discord.Member,psmc,anps,pbort,prirl,cnmc,cmp
 	with open('Recrutements.json','r') as f:
 		RC = json.load(f)
 	RC['CE'][str(auteur.id)] = datetime.now().strftime('%d/%m/%Y')
+	with open('Recrutements.json', 'w') as f:
+			json.dump(RC, f, indent=6)
 	with open('Candids.json', 'w') as f:
 		json.dump(candids, f, indent=6)
 	guild = bot.get_guild(790367917812088864)
@@ -984,6 +985,7 @@ async def acccandid(member:discord.Member,author):
 							f"le passer il faudra aller dans le <#811651536622977074> et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas "
 							"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
 							)
+	RC['CE'].pop(str(member.id))
 	RC['CA'][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
 	try:
 		await member.edit(nick=f'[CA] {member.nick[5:]}')
@@ -1433,8 +1435,13 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		await member.edit(nick="")
 	except:
 		await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
-	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
-	await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
+	try:
+		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
+		await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
+	except:
+		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member))
+		await ban.send(embed=create_small_embed(member + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
+	
 
 @tasks.loop(seconds = 3600)
 async def effectif_rc():
@@ -3343,7 +3350,7 @@ class achadp(discord.ui.Select):
 			rank = {791066207418712094:10000,791066206437113897:15000,790675784225521734:20000,790675784120401932:30000,790675783693500456:40000,
 			790675783549976579:50000,790675783352975360:70000,790675782364037131:90000,790675782338740235:110000}
 			guild = interaction.guild
-			Roles = {9:790675782338740235,8:790675782364037131,7:790675783352975360,6:790675783549976579,5:790675783693500456,4:790675784120401932,3:790675784225521734,2:791066206437113897, 1:791066207418712094}
+			Roles = {9:790675782338740235,8:790675782364037131,7:790675783352975360,6:790675783549976579,5:790675783693500456,4:790675784120401932,3:790675784225521734,2:791066206437113897, 1:791066207418712094,0:791066206109958204}
 			for x in Roles.items():
 				rol = guild.get_role(x[1])
 				if rol in interaction.user.roles:
