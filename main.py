@@ -235,7 +235,7 @@ async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None
 	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {nb}{"eme" if nb != 1 else "er"}')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_permissions(move_members=True)
 async def recruteurtempsdevoc(interaction: discord.Interaction,membre:discord.Member,total_ou_mois:str) -> None:
 	'''Consultez l'activité vocale d'un membre en test. Commande réservée aux recruteurs.'''
 	if 791066206109958204 not in [x.id for x in membre.roles]:
@@ -1174,7 +1174,6 @@ async def listerecru(interaction: discord.Interaction):
 	await interaction.response.send_message(embed=create_small_embed(msg))
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
 	'''Refuser manuellement une candidature. Commande réservée à la grande maîtresse suprême.'''
 	if interaction.user.id != 790574682294190091:
@@ -1188,7 +1187,6 @@ async def refuse(interaction: discord.Interaction, member: discord.Member, *, ra
 	await log.send(await refcandid(member,interaction.user,raison))
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820,1068460789612163072)
 async def accept(interaction: discord.Interaction, member: discord.Member):
 	'''Accepter manuellement une candidature. Commande réservée à la grande maîtresse suprême.'''
 	if interaction.user.id != 790574682294190091:
@@ -1266,7 +1264,6 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 	with open('Interview.json', 'r') as f:
 		interviews = json.load(f)
 	if str(member.id) in interviews['ET'].keys():
-		interviews['ET'].pop(str(member.id))
 		with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 	try:
@@ -1284,7 +1281,7 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 	await interaction.response.send_message('Message envoyé')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_permissions(move_members=True)
 async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	'''Accepter un oral. Commande réservée aux recruteurs.'''
 	with open('Interview.json', 'r') as f:
@@ -1306,9 +1303,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
-	interviews["ET"][member.id] = str((datetime.utcnow() + timedelta(days=30)))
-	with open('Interview.json', 'w') as f:
-		json.dump(interviews, f, indent=6)
+	interviews["ET"][member.id] = str(datetime.utcnow())
 	try:
 		await member.edit(nick=f'[ET] {member.nick[5:]}')
 	except:
@@ -1321,6 +1316,13 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 		interviews["Oral"][str(interaction.user.id)] += 1
 	else:
 		interviews["Oral"][str(interaction.user.id)] = 1
+	with open('Interview.json', 'w') as f:
+		json.dump(interviews, f, indent=6)
+	with open('phases.json', 'r') as f:
+		phases = json.load(f)
+	phases["A faire"][member.id] = str(datetime.now())
+	with open('phases.json', 'w') as f:
+		json.dump(phases, f, indent=6)
 	role = interaction.guild.get_role(790675784901197905)
 	role1 = interaction.guild.get_role(791066206109958204)
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
@@ -1331,7 +1333,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_permissions(move_members=True)
 async def oralno(interaction: discord.Interaction, member: discord.Member):
 	'''Refuser un oral. Commande réservée aux recruteurs.'''
 	if not member:
@@ -1376,7 +1378,7 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 	await ban.send(embed=create_small_embed(member.mention + 'est banni pendant deux semaines car iel à été refusé.e en entretien',discord.Color.red()))
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_permissions(move_members=True)
 async def finphases(interaction: discord.Interaction, member: discord.Member,*,rendu:str):
 	'''Terminer des phases. Indiquer dans "rendu" ce que la personne à donné. Commande réservée aux recruteurs.'''
 	with open('Interview.json', 'r') as f:
@@ -1395,6 +1397,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 		interviews["Phases"][str(interaction.user.id)] += 1
 	else:
 		interviews["Phases"][str(interaction.user.id)] = 1
+	interviews["ET"].pop(member.id)
 	with open('Interview.json', 'w') as f:
 			json.dump(interviews, f, indent=6)
 	with open('phases.json', 'r') as f:
@@ -1420,7 +1423,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
 @bot.tree.command()
-@discord.app_commands.checks.has_any_role(791426367362433066,821787385636585513,790675782569164820)
+@discord.app_commands.checks.has_permissions(move_members=True)
 async def kickphases(interaction: discord.Interaction, member: discord.User, *, raison:str):
 	'''Kick quelqu'un des phases. Commande réservée aux recruteurs.'''
 	with open('Interview.json', 'r') as f:
@@ -3271,6 +3274,10 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à donné `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+	try:
+		await member.send(f'{interaction.user.mention} vous a donné {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+	except:
+		pass
 	await interaction.response.send_message(f'''{nombre} points ont été donnés à {membre.mention}.''')
 
 @bot.tree.command()
@@ -3298,6 +3305,10 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à retiré `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+	try:
+		await member.send(f'{interaction.user.mention} vous a retiré {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+	except:
+		pass
 	await interaction.response.send_message(f'''{nombre} points ont été retirés à {membre.mention}.''')
 
 @bot.tree.command()
