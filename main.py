@@ -271,6 +271,25 @@ async def joueurtempsdevoc(interaction: discord.Interaction,membre:discord.Membe
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
+async def joueurdp(interaction: discord.Interaction,membre:discord.Member) -> None:
+	'''Consultez les DP d'un membre. Commande réservée aux HG.'''
+	with open('points.json', 'r') as f:
+			pt = json.load(f)
+	await interaction.response.send_message(f'{membre.mention} a `{pt[str(membre.id)] if str(membre.id) in pt.keys() else "0"}` DP')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(move_members=True)
+async def recruteurdp(interaction: discord.Interaction,membre:discord.Member) -> None:
+	'''Consultez l'activité vocale d'un membre en test. Commande réservée aux recruteurs.'''
+	if 791066206109958204 not in [x.id for x in membre.roles]:
+		await interaction.response.send_message('''Vous ne pouvez voir que l'activité des membres en test !''')
+		return
+	with open('points.json', 'r') as f:
+			pt = json.load(f)
+	await interaction.response.send_message(f'{membre.mention} a `{pt[str(membre.id)] if str(membre.id) in pt.keys() else "0"}` DP')
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
 async def admintempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None:
 	'''Consultez l'activité vocale de tous les membres. Commande réservée aux HG.'''
 	if total_ou_mois == "mois":
@@ -339,27 +358,23 @@ class page(discord.ui.View):
 @bot.event
 async def on_member_remove(member):
 	if not member.bot:
-		with open('phases.json', 'r') as f:
-			phases = json.load(f)
-		with open('Interview.json', 'r') as f:
-			interviews = json.load(f)
+		with open('Recrutements.json', 'r') as f:
+			RC = json.load(f)
 		chanel = bot.get_channel(937312061833240586)
-		if str(member.id) in phases["A faire"].keys():
-			phases["A faire"].pop(str(member.id))
-			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des phases')
-		if str(member.id) in interviews["Dates"].keys():
-			interviews["Dates"].pop(str(member.id))
-			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
-		if str(member.id) in interviews["Wait"].keys():
-			interviews["Wait"].pop(str(member.id))
-			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
-		if str(member.id) in interviews["Responded"].keys():
-			interviews["Responded"].pop(str(member.id))
-			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en attente')
-		with open('phases.json', 'w') as f:
-			json.dump(phases, f, indent=6)
-		with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
+		if str(member.id) in RC["CE"].keys():
+			RC["CE"].pop(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des candidatures envoyées')
+		if str(member.id) in RC["CA"].keys():
+			RC["CA"].pop(str(member.id))
+			await chanel.send(f"{member.mention} ({member.name}) est parti et à été retiré des en attente d'entretien")
+		if str(member.id) in RC["ET"].keys():
+			RC["ET"].pop(str(member.id))
+			await chanel.send(f'{member.mention} ({member.name}) est parti et à été retiré des en test')
+		if str(member.id) in RC["En_attente_entree"].keys():
+			RC["En_attente_entree"].pop(str(member.id))
+			await chanel.send(f"{member.mention} ({member.name}) est parti et à été retiré des en attente d'entrée")
+		with open('Recrutements.json', 'w') as f:
+			json.dump(RC, f, indent=6)
 
 @bot.tree.command()
 async def spam(interaction: discord.Interaction,member: discord.Member,nombre: typing.Optional[int]):
@@ -524,10 +539,10 @@ class testview(discord.ui.View):
 		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
 		await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
 		await interaction.message.delete()
-'''
+
 @bot.tree.command()
 async def pati(interaction: discord.Interaction,id:str):
-	'''Kick manuellement quelqu'un des phases. Commande réservée à la grande maîtresse suprême.'''
+	"""Kick manuellement quelqu'un des phases. Commande réservée à la grande maîtresse suprême."""
 	if interaction.user.id != 790574682294190091:
 		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
@@ -540,7 +555,7 @@ async def pati(interaction: discord.Interaction,id:str):
 
 @bot.tree.command()
 async def listephases(interaction: discord.Interaction):
-	'''Voir la liste des gens qui sont encore en phase. Commande réservée à la grande maîtresse suprême.'''
+	"""Voir la liste des gens qui sont encore en phase. Commande réservée à la grande maîtresse suprême."""
 	if interaction.user.id != 790574682294190091:
 		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
 		return
@@ -557,7 +572,7 @@ async def listephases(interaction: discord.Interaction):
 		await interaction.channel.send(f'A faire :\n{af[0:1900]}')
 		await interaction.channel.send(f'{af[1900:]}')
 	else:
-		await interaction.channel.send(f'A faire :\n{af}')
+		await interaction.channel.send(f'A faire :\n{af}')'''
 
 @bot.tree.command()
 async def pluschef(interaction: discord.Interaction,member:discord.Member):
@@ -638,6 +653,7 @@ async def on_ready():
 	abs.start()
 	candids.start()
 	voc.start()
+	effectif_rc.start()
 	# prints
 	field_placeholder = '+----------------------------------+'
 	fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
@@ -646,7 +662,7 @@ async def on_ready():
 		print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
 	print(field_placeholder)
 	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
-	act = discord.Game(name="/help pour voir les commandes auxquelles vous avez accès")
+	act = discord.Activity(name="Never gonna give you up",emoji='🎵')
 	await bot.change_presence(activity=act)
 	await drops()
 
@@ -940,6 +956,11 @@ async def envoicandid(guild,auteur:discord.Member,psmc,anps,pbort,prirl,cnmc,cmp
 	candids[2]['data'].append({'psmc':str(psmc),'anps':str(anps),'pborb':str(pbort),'prirl':str(prirl),'cnmc':str(cnmc),'pqsd':str(pqsd),'fcrc':str(fcrc),'objpl':str(objpl),'disp':str(disp)})
 	with open('Candids.json', 'w') as f:
 		json.dump(candids, f, indent=6)
+	with open('Recrutements.json','r') as f:
+		RC = json.load(f)
+	RC['CE'][str(auteur.id)] = datetime.now().strftime('%d/%m/%Y')
+	with open('Candids.json', 'w') as f:
+		json.dump(candids, f, indent=6)
 	guild = bot.get_guild(790367917812088864)
 	for j in range(math.ceil(len(msg)/2000)):
 		if len(msg)<(j+1)*2000:
@@ -955,19 +976,15 @@ async def envoicandid(guild,auteur:discord.Member,psmc,anps,pbort,prirl,cnmc,cmp
 			pass
 
 async def acccandid(member:discord.Member,author):
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	for type in interviews.items():
-		for personne in type[1].keys():
-			if str(member.id) == personne:
-				return ":warning: Cet utilisateur a deja été accepté !"
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	guild = bot.get_guild(790367917812088864)
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour "
 							f"le passer il faudra aller dans le <#811651536622977074> et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas "
 							"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
 							)
-	interviews['Dates'][member.id] = str(datetime.utcnow() + timedelta(days=14))
+	RC['CA'][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
 	try:
 		await member.edit(nick=f'[CA] {member.nick[5:]}')
 	except:
@@ -980,16 +997,18 @@ async def acccandid(member:discord.Member,author):
 	role2 = guild.get_role(986686680146772038)
 	await member.remove_roles(role2, reason=f'Fait par {str(author)[:16]}')
 	await member.add_roles(role, reason=f'Fait par {str(author)[:16]}')
-	if str(author.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(author.id)] += 1
+
+	if str(author.id) in RC["Recruteur"]['Total'].keys():
+		RC["Recruteur"]['Total'][str(author.id)] += 1
 	else:
-		interviews["Recruteur"][str(author.id)] = 1
-	if str(author.id) in interviews["Candids"].keys():
-		interviews["Candids"][str(author.id)] += 1
+		RC["Recruteur"]['Total'][str(author.id)] = 1
+	if str(author.id) in RC['Recruteur']["Candids"].keys():
+		RC['Recruteur']["Candids"][str(author.id)] += 1
 	else:
-		interviews["Candids"][str(author.id)] = 1
-	with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
+		RC['Recruteur']["Candids"][str(author.id)] = 1
+
+	with open('Recrutements.json', 'w') as f:
+			json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	await log.send(embed=create_small_embed(author.mention + ' à éxécuté la commande accept pour ' + member.mention))
 	return f'Le message a bien été envoyé à {member.mention}'
@@ -1003,18 +1022,20 @@ async def refcandid(member,author,raison):
 	await member.send(embed=_embed)
 	log = bot.get_channel(831615469134938112)
 	await member.edit(nick='')
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	if str(author.id) in interviews["Candids"].keys():
-		interviews["Candids"][str(author.id)] += 1
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	RC['CE'].pop(str(member.id))
+	if str(author.id) in RC["Recruteur"]['Total'].keys():
+		RC["Recruteur"]['Total'][str(author.id)] += 1
 	else:
-		interviews["Candids"][str(author.id)] = 1
-	if str(author.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(author.id)] += 1
+		RC["Recruteur"]['Total'][str(author.id)] = 1
+	if str(author.id) in RC['Recruteur']["Candids"].keys():
+		RC['Recruteur']["Candids"][str(author.id)] += 1
 	else:
-		interviews["Recruteur"][str(author.id)] = 1
-	with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
+		RC['Recruteur']["Candids"][str(author.id)] = 1
+
+	with open('Recrutements.json', 'w') as f:
+			json.dump(RC, f, indent=6)
 	guild = bot.get_guild(790367917812088864)
 	role = guild.get_role(986686680146772038)
 	try:
@@ -1150,28 +1171,29 @@ async def sendrecru(interaction: discord.Interaction):
 	await interaction.response.send_message('Pour candidater appuyez sur le bouton ci-dessous',view=boutonform())
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
+@discord.app_commands.checks.has_permissions(manage_channels=True)
 async def listerecru(interaction: discord.Interaction):
-	'''Voir qui fait quoi chez les recruteurs. Commande réservée aux HG.'''
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-		msg = '**Total :**\n'
-	for rec in sorted(interviews["Recruteur"], key=lambda recru: interviews["Recruteur"][recru],reverse=True):
-		msg += f'<@{rec}> - {interviews["Recruteur"][rec]}\n'
+	'''Voir qui a fait quoi chez les recruteurs. Commande réservée aux membres du staff (hors Recruteurs)..'''
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	embed = discord.Embed(title='Liste des Recruteurs')
+	for categories in RC['Recruteur'].items():
+		rec = sorted(RC["Recruteur"][categories[0]], key=lambda recru: RC["Recruteur"][categories[0]][recru],reverse=True)
+		for i in range(len(rec)):
+			rec[i] = f'<@{rec[i]}> : {RC["Recruteur"][categories[0]][rec[i]]}' 
+		embed.add_field(name=categories[0],value='\n'.join(rec),inline=False)
+	await interaction.response.send_message(embed=embed)
 
-	msg += '\n**Candidatures :**\n'
-	for rec in sorted(interviews["Candids"], key=lambda recru: interviews["Candids"][recru],reverse=True):
-		msg += f'<@{rec}> - {interviews["Candids"][rec]}\n'
-
-	msg += '\n**Entretiens :**\n'
-	for rec in sorted(interviews["Oral"], key=lambda recru: interviews["Oral"][recru],reverse=True):
-		msg += f'<@{rec}> - {interviews["Oral"][rec]}\n'
-
-	msg += '\n**Phases :**\n'
-	for rec in sorted(interviews["Phases"], key=lambda recru: interviews["Phases"][recru],reverse=True):
-		msg += f'<@{rec}> - {interviews["Phases"][rec]}'
-
-	await interaction.response.send_message(embed=create_small_embed(msg))
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(manage_channels=True)
+async def resetlisterecru(interaction: discord.Interaction):
+	'''Reset la liste des recruteurs. Commande réservée aux membres du staff (hors Recruteurs)..'''
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	RC['Recruteur'] = {"Total":{},"Candids": {},"Oral": {},"Phases": {}}
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
+	await interaction.response.send_message("Tout s'est bien passé")
 
 @bot.tree.command()
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
@@ -1197,132 +1219,37 @@ async def accept(interaction: discord.Interaction, member: discord.Member):
 		return
 	await interaction.response.send_message(embed=create_small_embed(await acccandid(member,interaction.user)))
 
-@tasks.loop(seconds = 3600)
-async def inactivity():
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	guild = bot.get_guild(790367917812088864)
-	dtn = datetime.now()
-	mem = []
-	for user_id in interviews["Dates"].items():
-		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
-			user = await bot.fetch_user(user_id[0])
-			try:
-				_embed = discord.Embed(title="Recrutements",
-									   description="Bonjour, Tu avais 2 semaine pour faire ton entretien oral pour rejoindre la SweetDream mais tu ne l'as pas passé. Merci de repondre ici meme (au bot "
-													"SweetDream). de dire pourquoi tu ne peux pas passer ton oral.\nCordialement,\nLe Staff Recrutement SweetDream.")
-				await user.send(embed=_embed)
-				interviews['Wait'][user_id[0]] = str(datetime.utcnow() + timedelta(days=2))
-			except:
-				pass
-			mem.append(user_id[0])
-	for element in mem:
-		interviews['Dates'].pop(element)
-	memb = []
-	for user_id in list(interviews["Wait"].items()):
-		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
-			try:
-				user = await guild.fetch_member(user_id[0])
-				_embed2 = discord.Embed(title="Recrutements",
-										description="Bonjour, \ntu n'as pas répondu assez rapidement au bot et ta candidature a été annulée. Tu peux toujours tenter d'en refaire "
-										"une.\n A bientot,\nLe staff Recrutement SweetDream"
-											)
-				await user.send(embed=_embed2)
-				role = guild.get_role(790675784901197905)
-				await user.remove_roles(role)
-			except:
-				pass
-			memb.append(user_id[0])
-	for element in memb:
-		interviews['Wait'].pop(element)
-	guild = bot.get_guild(790367917812088864)
-	fin = guild.get_channel(937312061833240586)
-	memi = []
-	for user_id in list(interviews["ET"].items()):
-		if int(str(dtn)[5:7]) > int(str(user_id[1])[5:7]) or int(str(dtn)[8:10]) >= int(str(user_id[1])[8:10]) and int(str(dtn)[5:7]) >= int(str(user_id[1])[5:7]):
-			user = await bot.fetch_user(user_id[0])
-			if user==None:
-				memi.append(user_id[0])
-			else:
-				await fin.send(f'{user.mention} a fini sa periode de test.?')# Voulez vous le faire passer   ,view=testview()
-				memi.append(user_id[0])
-	for element in memi:
-		interviews['ET'].pop(element)
-	if len(mem)+len(memb)+len(memi)>0:
-		with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def debutphases(interaction: discord.Interaction, member: discord.Member):
-	'''Commencer manuellement les phases. Commande réservée aux HG.'''
-	with open('phases.json', 'r') as f:
-		phases = json.load(f)
-	phases["A faire"][member.id] = str(datetime.now())
-	with open('phases.json', 'w') as f:
-		json.dump(phases, f, indent=6)
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	if str(member.id) in interviews['ET'].keys():
-		with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
-	try:
-		role = interaction.guild.get_role(791066206109958204)
-		await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
-	except:
-		pass
-	role1 = interaction.guild.get_role(1011953852427272302)
-	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
-	try:
-		await member.send(embed=discord.Embed(title='Recrutements',description="Bravo à toi pour avoir rankup et réussi ta période de test ! Il ne te manque plus qu'a rendre tes phases a un recruteur dans le <#1011954323271458846>\n**__RAPPEL :__ Il est strictement interdit de parler des phases et de donner le nombre de points que vous avez fait pour rentrer sous peine de sanctions** "))
-	except:
-		await interaction.response.send_message(f'{member.mention} à désactivé ses mp mais il a quand meme été ajouté aux phases')
-		return
-	await interaction.response.send_message('Message envoyé')
-
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(move_members=True)
 async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	'''Accepter un oral. Commande réservée aux recruteurs.'''
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
-		return
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de "
-							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 2.000 points (30 max par personne)\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Obsidienne Normale -> 5 points\n- Poisonned Obsidian -> 15 points\n- Boom Obsidian -> 25 points\n- Mega Boom Obsidian -> 300 points\n- Big obsidian -> 200 points\n\n**Ressources :**\n- Lingot d'amethyste : 17 points\n- Lingot de titane : 17 points\n- 1$ -> 0,2 point\n- lingot de pala : 40 points\n- Nugget en endium : 75.000 points\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
+							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 30 points (30 max par personne)\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Obsidienne Normale -> 5 points\n- Poisonned Obsidian -> 15 points\n- Boom Obsidian -> 25 points\n- Mega Boom Obsidian -> 300 points\n- Big obsidian -> 200 points\n\n**Ressources :**\n- Lingot d'amethyste : 17 points\n- Lingot de titane : 17 points\n- 1$ -> 0,2 point\n- lingot de pala : 40 points\n- Nugget en endium : 75.000 points\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
 							" envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream")
-	for type in interviews.items():
-		for personne in type[1].keys():
-			if str(member.id) == personne:
-				a = str(member.id)
-				b = type[0]
-	try:
-		interviews[b].pop(a)
-	except:
+	if str(member.id) not in RC['CA']:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
-	interviews["ET"][member.id] = str(datetime.utcnow())
+	RC['CA'].pop(str(member.id))
+	RC["ET"][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
 	try:
 		await member.edit(nick=f'[ET] {member.nick[5:]}')
 	except:
 		await member.edit(nick=f'[ET] {member.name}')
-	if str(interaction.user.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(interaction.user.id)] += 1
+
+	if str(interaction.user.id) in RC["Recruteur"]['Total'].keys():
+		RC["Recruteur"]['Total'][str(interaction.user.id)] += 1
 	else:
-		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Oral"].keys():
-		interviews["Oral"][str(interaction.user.id)] += 1
+		RC["Recruteur"]['Total'][str(interaction.user.id)] = 1
+	if str(interaction.user.id) in RC['Recruteur']["Oral"].keys():
+		RC['Recruteur']["Oral"][str(interaction.user.id)] += 1
 	else:
-		interviews["Oral"][str(interaction.user.id)] = 1
-	with open('Interview.json', 'w') as f:
-		json.dump(interviews, f, indent=6)
-	with open('phases.json', 'r') as f:
-		phases = json.load(f)
-	phases["A faire"][member.id] = str(datetime.now())
-	with open('phases.json', 'w') as f:
-		json.dump(phases, f, indent=6)
+		RC['Recruteur']["Oral"][str(interaction.user.id)] = 1
+
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
 	role = interaction.guild.get_role(790675784901197905)
 	role1 = interaction.guild.get_role(791066206109958204)
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
@@ -1336,86 +1263,134 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 @discord.app_commands.checks.has_permissions(move_members=True)
 async def oralno(interaction: discord.Interaction, member: discord.Member):
 	'''Refuser un oral. Commande réservée aux recruteurs.'''
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
-		return
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	guild = interaction.guild
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Bonjour,\nMalheureusement ton entretien oral n'a pas été accepté mais tu "
 										 "pourras refaire une candidature écrite dans 2 semaines. \nCordialement,\n"
 										 "Le staff Recrutement SweetDream."
 							)
-	role = guild.get_role(790675784901197905)
-	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
-	for type in interviews.items():
-		for personne in type[1].keys():
-			if str(member.id) == personne:
-				a = str(member.id)
-				b = type[0]
-	try:
-		interviews[b].pop(a)
-	except:
+	role = interaction.guild.get_role(790675784901197905)
+	await member.remove_roles(role, reason=f'Fait par {interaction.user.nick}')
+	if str(member.id) not in RC['CA']:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
-	with open('Interview.json', 'w') as f:
-		json.dump(interviews, f, indent=6)
-	await member.edit(nick=f'')
-	await member.send(embed=_embed)
-	if str(interaction.user.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(interaction.user.id)] += 1
+	RC['CA'].pop(str(member.id))
+	try:
+		await member.edit(nick=f'')
+		await member.send(embed=_embed)
+	except:
+		pass
+
+	if str(interaction.user.id) in RC["Recruteur"]['Total'].keys():
+		RC["Recruteur"]['Total'][str(interaction.user.id)] += 1
 	else:
-		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Oral"].keys():
-		interviews["Oral"][str(interaction.user.id)] += 1
+		RC["Recruteur"]['Total'][str(interaction.user.id)] = 1
+	if str(interaction.user.id) in RC['Recruteur']["Oral"].keys():
+		RC['Recruteur']["Oral"][str(interaction.user.id)] += 1
 	else:
-		interviews["Oral"][str(interaction.user.id)] = 1
+		RC['Recruteur']["Oral"][str(interaction.user.id)] = 1
+	
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralno pour ' + member.mention))
 	await ban.send(embed=create_small_embed(member.mention + 'est banni pendant deux semaines car iel à été refusé.e en entretien',discord.Color.red()))
 
+@tasks.loop(seconds = 86400)
+async def inactivity():
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	guild = bot.get_guild(790367917812088864)
+	mem = []
+	for user_id in RC['CA'].items():
+		if datetime.strptime(user_id[1],'%d/%m/%Y') + timedelta(days=15) < datetime.now():
+			mem.append(user_id[0])
+			user = await bot.fetch_user(user_id[0])
+			try:
+				_embed = discord.Embed(title="Recrutements",
+									   description="Bonjour, Tu avais 2 semaine pour faire ton entretien oral pour rejoindre la SweetDream mais tu ne l'as pas passé. Ta candidature à donc été annulée mais tu peux en renvoyer une quand tu le souhaites !\nCordialement,\nLe Staff Recrutement SweetDream.")
+				await user.send(embed=_embed)
+				role = guild.get_role(790675784901197905)
+				await user.remove_roles(role)
+			except:
+				pass
+	for element in mem:
+		RC['CA'].pop(element)
+	fin = guild.get_channel(937312061833240586)
+	for user_id in RC['ET'].items():
+		if datetime.strptime(user_id[1],'%d/%m/%Y') + timedelta(days=30) < datetime.now():
+			user = await bot.fetch_user(user_id[0])
+			if user != None:
+				await fin.send(f'{user.mention} a fini sa periode de test. Veuillez le kick ou le faire passer.')
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def debutphases(interaction: discord.Interaction, member: discord.Member):
+	'''Commencer les phases d'un membre après un achat de rankup. Commande réservée aux HG.'''
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	RC["En_attente_entree"][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
+	if str(member.id) in RC['ET'].keys():
+		RC['ET'].pop(str(member.id))
+
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
+
+	try:
+		ET = interaction.guild.get_role(791066206109958204)
+		await member.remove_roles(ET, reason=f'Fait par {interaction.user.nick}')
+	except:
+		pass
+	enatt = interaction.guild.get_role(1011953852427272302)
+	await member.add_roles(enatt, reason=f'Fait par {interaction.user.nick}')
+	try:
+		await member.send(embed=discord.Embed(title='Recrutements',description="Bravo à toi pour avoir rankup et réussi ta période de test ! Il ne te manque plus qu'a rendre tes phases a un recruteur dans le <#1011954323271458846>\n**__RAPPEL :__ Il est strictement interdit de parler des phases et de donner le nombre de points que vous avez fait pour rentrer sous peine de sanctions** "))
+	except:
+		await interaction.response.send_message(f'{member.mention} à désactivé ses mp mais il a quand meme été ajouté aux phases')
+		return
+	await interaction.response.send_message('Message envoyé')
+
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(move_members=True)
 async def finphases(interaction: discord.Interaction, member: discord.Member,*,rendu:str):
 	'''Terminer des phases. Indiquer dans "rendu" ce que la personne à donné. Commande réservée aux recruteurs.'''
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	guild = interaction.guild
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Bravo, tu es désormais un.e membre officiel de la faction ! Tu as maintenant accès aux "
 										 "salons de faction. N'hésites pas a être actif.ve en vocal et en écrit pour "
 										 "monter en grade et avoir accès a plus de bases ;-)"
 							)
-	if str(interaction.user.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(interaction.user.id)] += 1
+	
+	if str(interaction.user.id) in RC["Recruteur"]['Total'].keys():
+		RC["Recruteur"]['Total'][str(interaction.user.id)] += 1
 	else:
-		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Phases"].keys():
-		interviews["Phases"][str(interaction.user.id)] += 1
+		RC["Recruteur"]['Total'][str(interaction.user.id)] = 1
+	if str(interaction.user.id) in RC['Recruteur']["Phases"].keys():
+		RC['Recruteur']["Phases"][str(interaction.user.id)] += 1
 	else:
-		interviews["Phases"][str(interaction.user.id)] = 1
-	interviews["ET"].pop(member.id)
-	with open('Interview.json', 'w') as f:
-			json.dump(interviews, f, indent=6)
-	with open('phases.json', 'r') as f:
-		phases = json.load(f)
-	phases["A faire"].pop(str(member.id))
-	phases["Fait"][member.id] = [str(datetime.now()),rendu]
-	with open('phases.json', 'w') as f:
-		json.dump(phases, f, indent=6)
+		RC['Recruteur']["Phases"][str(interaction.user.id)] = 1
+
+	RC["En_attente_entree"].pop(str(member.id))
+	RC["Fait"][str(member.id)] = [str(datetime.now()),rendu]
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
 	await member.send(embed=_embed)
 	try:
 		await member.edit(nick=f'[SD] {member.nick[5:]}')
 	except:
 		await member.edit(nick=f'[SD] {member.name}')
-	role = guild.get_role(1011953852427272302)
-	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
-	role1 = guild.get_role(791066207418712094)
-	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
-	embed_ = create_small_embed("Bienvenue à "+member.mention+" dans la faction !",discord.Color.gold())
+	enatt = guild.get_role(1011953852427272302)
+	await member.remove_roles(enatt, reason=f'Fait par {interaction.user.nick}')
+	penseur = guild.get_role(791066207418712094)
+	await member.add_roles(penseur, reason=f'Fait par {interaction.user.nick}')
+	embed_ = create_small_embed(f"Bienvenue à {member.mention} dans la faction !",discord.Color.gold())
 	rankup = guild.get_channel(791991289007570974)
 	await rankup.send(embed=embed_)
 	log = bot.get_channel(831615469134938112)
@@ -1426,57 +1401,71 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 @discord.app_commands.checks.has_permissions(move_members=True)
 async def kickphases(interaction: discord.Interaction, member: discord.User, *, raison:str):
 	'''Kick quelqu'un des phases. Commande réservée aux recruteurs.'''
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
-	guild = interaction.guild
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	_embed = discord.Embed(title="Recrutements",
-						   description="Bonjour,\nTu as été kick des phases pour la raison suivante : "+raison+" Tu pourras"
+						   description=f"Bonjour,\nTu as été kick des phases pour la raison suivante : {raison} Tu pourras"
 										" retenter ta chance en faisant une nouvelle candidature écrite dans 2 semaines.\n"
 										"Cordialement,\nle Staff Recrutement SweetDream.")
-	for type in interviews.items():
-		for personne in type[1].keys():
-			if str(member.id) == personne:
-				a = str(member.id)
-				b = type[0]
-	try:
-		interviews[b].pop(a)
-	except:
-		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien ou a fini sa limite de temps"))
-	if str(interaction.user.id) in interviews["Recruteur"].keys():
-		interviews["Recruteur"][str(interaction.user.id)] += 1
-	else:
-		interviews["Recruteur"][str(interaction.user.id)] = 1
-	if str(interaction.user.id) in interviews["Candids"].keys():
-		interviews["Phases"][str(interaction.user.id)] += 1
-	else:
-		interviews["Phases"][str(interaction.user.id)] = 1
-	with open('Interview.json', 'w') as f:
-		json.dump(interviews, f, indent=6)
+	a = []
+	for type in RC.items():
+		if str(member.id) in type[1].keys():
+			a.append(type[0])
+	for type in a:
+		RC[type].pop(str(member.id))
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
 	try:
-		with open('phases.json', 'r') as f:
-			phases = json.load(f)
-		phases["A faire"].pop(str(member.id))
-		with open('phases.json', 'w') as f:
-			json.dump(phases, f, indent=6)
-	except:
-		await interaction.channel.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en train de faire les phases"))
-	try:
 		await member.send(embed=_embed)
 		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
-		member = guild.get_member(member.id)
-		role = guild.get_role(790675784901197905)
-		await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
-		role1 = guild.get_role(791066206109958204)
-		await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
-		role1 = guild.get_role(1011953852427272302)
-		await member.remove_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
+	except:
+		pass
+	try:
+		member = interaction.guild.get_member(member.id)
+		role = interaction.guild.get_role(790675784901197905)
+		await member.remove_roles(role, reason=f'Fait par {interaction.user.nick}')
+		role1 = interaction.guild.get_role(791066206109958204)
+		await member.remove_roles(role1, reason=f'Fait par {interaction.user.nick}')
+		role1 = interaction.guild.get_role(1011953852427272302)
+		await member.remove_roles(role1, reason=f'Fait par {interaction.user.nick}')
 		await member.edit(nick="")
 	except:
 		await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member.mention))
 	await ban.send(embed=create_small_embed(member.mention + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
+
+@tasks.loop(seconds = 3600)
+async def effectif_rc():
+	channel = await bot.fetch_channel(1075422356408909915)
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	embed = discord.Embed(title="Effectif Recrutements")
+	a = ['CE','CA','ET',"En_attente_entree"]
+	for type in a:
+		embed.add_field(name=f'{type} ({len(list(RC[type].keys()))})',value='\n'.join([f'<@{t[0]}> : {t[1]}' for t in RC[type].items()]),inline=False)
+	message = await channel.fetch_message(1075436028644569129)
+	await message.edit(embed=embed)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(manage_channels=True)
+async def changetime(interaction: discord.Interaction,membre:discord.Member,categorie:str,nouvelledate:str):
+	'''Changer la date de début d'un recrutement (pour donner plus de temps). Commande réservée aux membres du staff (hors Recruteurs).'''
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
+	if categorie not in ['CE','CA','ET','En_attente_entree'] or str(membre.id) not in RC[categorie].keys():
+		await interaction.response.send_message('Catégorie invalide',ephemeral=True)
+		return
+	try:
+		datetime.strptime(nouvelledate,'%d/%m/%Y')
+	except:
+		await interaction.response.send_message('Date invalide',ephemeral=True)
+		return
+	RC[categorie][str(membre.id)] = nouvelledate
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
+	await interaction.response.send_message(f'Le temps de {membre.mention} à bien été changé dans la catégorie {categorie} pour le {nouvelledate}')
 
 # =========== Staff ===========
 
@@ -1722,11 +1711,11 @@ async def sanctions(interaction: discord.Interaction, member: discord.Member):
 		return
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
-	with open('phases.json', 'r') as f:
-		ph = json.load(f)
+	with open('Recrutements.json', 'r') as f:
+		RC = json.load(f)
 	msg = f"Mention : {member.mention} ({member.nick})\nA rejoint le serveur le {str(member.joined_at)[8:10]}/{str(member.joined_at)[5:7]}/{str(member.joined_at)[0:4]}"
-	if str(member.id) in ph["Fait"]:
-		msg += f"\nMembre de la fac depuis le {ph['Fait'][str(member.id)][0][8:10]}/{ph['Fait'][str(member.id)][0][5:7]}/{ph['Fait'][str(member.id)][0][0:4]}"
+	if str(member.id) in RC["Fait"]:
+		msg += f"\nMembre de la fac depuis le {RC['Fait'][str(member.id)][0][8:10]}/{RC['Fait'][str(member.id)][0][5:7]}/{RC['Fait'][str(member.id)][0][0:4]}"
 	for element in wb.keys():
 		msg += f"\n\n**{element} :**"
 		try:
@@ -2441,6 +2430,8 @@ class contijouer(discord.ui.View):
 		pt[str(interaction.user.id)] += round(float(str(self.mise)))
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
+		changains = interaction.guild.get_channel(1075453615780663306)
+		await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{round(float(str(self.mise)))}** DP à la roulette russe'))
 		await interaction.response.edit_message(embed=create_small_embed(f'Vous avez arrete la partie et avez gagné {round(float(str(self.mise)))} DP'),view=None)
 
 class Machineasous(discord.ui.View):
@@ -2515,11 +2506,13 @@ class rouleView(discord.ui.View):
 		rouge = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
+		changains = interaction.guild.get_channel(1075453615780663306)
 		chance = random.randint(0,37)         #Tirage
 		await interaction.response.edit_message(embed=create_embed(f"{chance}. {'Rouge' if chance in rouge else 'Noir'}."),view=None)
 		if chance in mises.keys():            #Chiffre
 			for gains in mises[chance]:
 				pt[str(gains[0])] += gains[1]*36
+				await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*36}** DP à la roulette américaine'))
 				await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur le {chance} et qui remporte **{gains[1]*36}** DP !')
 		if chance == 0 or chance == 37:       #0 ou 00 = aucune recompense sauf les chiffres
 			return
@@ -2532,6 +2525,7 @@ class rouleView(discord.ui.View):
 			if boole[1][var] in mises.keys():
 				for gains in mises[boole[1][var]]:
 					pt[str(gains[0])] += gains[1]*2
+					await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*2}** DP à la roulette américaine'))
 					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {boole[1][var]} et qui remporte **{gains[1]*2}** DP !')
 		
 		valeurs = [['douzaine 1','douzaine 2','douzaine 3'],['colone 3','colone 1','colone 2']]
@@ -2540,6 +2534,7 @@ class rouleView(discord.ui.View):
 			if valeurs[i][val2[i]] in mises.keys():
 				for gains in mises[valeurs[i][val2[i]]]:
 					pt[str(gains[0])] += gains[1]*3
+					await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*3}** DP à la roulette américaine'))
 					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {valeurs[i][val2[i]]} et qui remporte **{gains[1]*3}** DP !')
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
@@ -2652,12 +2647,15 @@ class BJmis(discord.ui.Modal,title="Mise"):
 
 		croupier = addcarte([0])
 		if cartes[0] == 21:
+		
 			croupier = addcarte(croupier)
 			if croupier[0] == 21:
 				pt[str(interaction.user.id)] += mise
 				await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nDouble Blackjack, vous recuperez votre mise.'),ephemeral=True)
 			else:
 				pt[str(interaction.user.id)] += 3*mise
+				changains = interaction.guild.get_channel(1075453615780663306)
+				await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{3*mise}** DP au blackjack'))
 				await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nBlackjack ! Vous triplez votre mise !'),ephemeral=True)
 		else:
 			await interaction.response.send_message(embed=create_small_embed(f'Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?'),view=jeuBJ(mise,cartes,croupier),ephemeral=True)
@@ -2679,7 +2677,6 @@ class jeuBJ(discord.ui.View):
 		self.croupier = croupier
 	@discord.ui.button(label='Tirer une carte', style=discord.ButtonStyle.green, custom_id='contiBJ')
 	async def tir(self, interaction: discord.Interaction, button: discord.ui.Button):
-		cartess = [['un as','un deux','un trois','un quatre','un cinq','un six','un sept','un huit','un neuf','un dix','un valet','une dame','un roi'],['coeur','carreau','pique','trefle']]
 		croupier = list(self.croupier)
 		cartes = addcarte(list(self.cartes))
 		if cartes[0] > 21:
@@ -2688,16 +2685,17 @@ class jeuBJ(discord.ui.View):
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?"""),view=jeuBJ(self.mise,cartes,croupier))
 	@discord.ui.button(label='Arreter', style=discord.ButtonStyle.red, custom_id='finBJ')
 	async def sto(self, interaction: discord.Interaction, button: discord.ui.Button):
-		cartess = [['un as','un deux','un trois','un quatre','un cinq','un six','un sept','un huit','un neuf','un dix','un valet','une dame','un roi'],['coeur','carreau','pique','trefle']]
 		croupier = list(self.croupier)
 		cartes = list(self.cartes)
 		mise = round(float(self.mise))
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
+		changains = interaction.guild.get_channel(1075453615780663306)				
 		while croupier[0] < 16:
 			croupier = addcarte(croupier)
 			if croupier[0] > 21:
-				pt[str(interaction.user.id)] += 2*mise
+				pt[str(interaction.user.id)] += 2*mise				
+				await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{2*mise}** DP au blackjack'))
 				await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à sauté, vous gagné deux fois votre mise ({2*mise} DP)."""))
 		if croupier[0] > cartes[0]:
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""))
@@ -2705,7 +2703,8 @@ class jeuBJ(discord.ui.View):
 			pt[str(interaction.user.id)] += mise
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à autant que vous, vous recuperez votre mise ({mise} DP)."""))
 		else:
-			pt[str(interaction.user.id)] += 2*mise
+			pt[str(interaction.user.id)] += 2*mise				
+			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{2*mise}** DP au blackjack'))
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez plus que le croupier, vous recuperez deux fois votre mise ({2*mise} DP)."""))
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
@@ -3275,7 +3274,7 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à donné `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	try:
-		await member.send(f'{interaction.user.mention} vous a donné {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+		await membre.send(f'{interaction.user.mention} vous a donné {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	except:
 		pass
 	await interaction.response.send_message(f'''{nombre} points ont été donnés à {membre.mention}.''')
@@ -3306,7 +3305,7 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à retiré `{nombre}` points à {membre.mention} pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	try:
-		await member.send(f'{interaction.user.mention} vous a retiré {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
+		await membre.send(f'{interaction.user.mention} vous a retiré {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	except:
 		pass
 	await interaction.response.send_message(f'''{nombre} points ont été retirés à {membre.mention}.''')
@@ -3959,12 +3958,39 @@ bot.help_command = NewHelpCommand()
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	with open('Interview.json', 'r') as f:
-		interviews = json.load(f)
 	if isinstance(message.channel, discord.DMChannel): # dont allow dm channel
 		anino = await bot.fetch_user(790574682294190091)
 		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message.content}')
-		if str(message.author.id) in list(interviews['Wait']):
+		if message.content.startswith('SD'):
+			await message.author.send("Vous ne pouvez pas m'utiliser en message privé !")
+		return
+	bonj = bot.get_channel(811653900611354704)
+	if message.channel == bonj:
+		if message.content.lower()[:11] == "bonjour tlm" and await infac(message.author):
+			with open ('points.json','r') as f:
+				pt = json.load(f)
+			if str(message.author.id) in pt.keys():
+				pt[str(message.author.id)] += 20
+			else:
+				pt[str(message.author.id)] = 20
+			with open ('equipes.json','r') as f:
+				eq = json.load(f)
+			for role in eq.keys():
+				if int(role) in [t.id for t in message.author.roles]:
+					eq[role]['total'] += 20
+					if str(message.author.id) in eq[role]['membres'].keys():
+						eq[role]['membres'][str(message.author.id)] += 20
+					else:
+						eq[role]['membres'][str(message.author.id)] = 20
+			with open ('equipes.json','w') as f:
+				json.dump(eq,f,indent=6)
+			with open ('points.json','w') as f:
+				json.dump(pt,f,indent=6)
+			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
+			logs = bot.get_channel(1026567820311531550)
+			await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
+	await bot.process_commands(message)
+'''if str(message.author.id) in list(interviews['Wait']):
 			interviews['Wait'].pop(str(message.author.id))
 			interviews['Responded'][message.author.id] = str(datetime.utcnow())
 			with open('Interview.json', 'w') as f:
@@ -3974,38 +4000,7 @@ async def on_message(message):
 				title='Demande de ralonge de temps :',
 				description=f'User: {message.author.mention}\n{message.content}',
 				color=discord.Color.magenta()
-			))
-		if message.content.startswith('SD'):
-			await message.author.send("Vous ne pouvez pas m'utiliser en message privé !")
-		return
-	bonj = bot.get_channel(811653900611354704)
-	if message.channel == bonj:
-		if message.content.lower()[:11] == "bonjour tlm":
-			if await infac(message.author):
-				with open ('points.json','r') as f:
-					pt = json.load(f)
-				if str(message.author.id) in pt.keys():
-					pt[str(message.author.id)] += 20
-				else:
-					pt[str(message.author.id)] = 20
-				with open ('equipes.json','r') as f:
-					eq = json.load(f)
-				for role in eq.keys():
-					if int(role) in [t.id for t in message.author.roles]:
-						eq[role]['total'] += 20
-						if str(message.author.id) in eq[role]['membres'].keys():
-							eq[role]['membres'][str(message.author.id)] += 20
-						else:
-							eq[role]['membres'][str(message.author.id)] = 20
-				with open ('equipes.json','w') as f:
-					json.dump(eq,f,indent=6)
-				with open ('points.json','w') as f:
-					json.dump(pt,f,indent=6)
-				await message.author.send('Vous avez gagné 20 points de bonjour tlm')
-				logs = bot.get_channel(1026567820311531550)
-				await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
-	await bot.process_commands(message)
-
+			))'''
 def run_bot(token=TOKEN, debug=False):
 	if debug: print(bot._connection.loop)
 	bot.run(token)
