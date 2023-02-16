@@ -232,7 +232,7 @@ async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None
 		await interaction.response.send_message('''Vous n'êtes jamais venu en voc !''')
 		return
 	nb = sorted(voc[total_ou_mois].values(),reverse=True).index(voc[total_ou_mois][str(interaction.user.id)])+1
-	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {nb}{"eme" if nb != 1 else "er"}')
+	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {nb}{"eme" if nb != 1 else "er"}',ephemeral=True)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(move_members=True)
@@ -1361,6 +1361,7 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 @discord.app_commands.checks.has_permissions(move_members=True)
 async def finphases(interaction: discord.Interaction, member: discord.Member,*,rendu:str):
 	'''Terminer des phases. Indiquer dans "rendu" ce que la personne à donné. Commande réservée aux recruteurs.'''
+	await interaction.response.defer()
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
 	guild = interaction.guild
@@ -1396,7 +1397,8 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	rankup = guild.get_channel(791991289007570974)
 	await rankup.send(embed=embed_)
 	log = bot.get_channel(831615469134938112)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
+	
+	await interaction.followup.send(embed=create_small_embed(f'Le message a bien été envoyé à {member.mention}'))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande finphases pour ' + member.mention))
 
 @bot.tree.command()
@@ -3181,7 +3183,7 @@ async def dreampoints(interaction: discord.Interaction):
 		points = pt[str(interaction.user.id)]
 	else:
 		points = 0
-	await interaction.response.send_message(f'Vous avez ``{points}`` points')
+	await interaction.response.send_message(f'Vous avez ``{points}`` points',ephemeral=True)
 
 @bot.tree.command()
 async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
@@ -3423,7 +3425,7 @@ class confach(discord.ui.View):
 		await salon.send(f"{interaction.user.mention} veut un {self.voeu}")
 		with open ('points.json','w') as f:
 			json.dump(pt,f,indent=6)
-		await interaction.response.send_message(f"Votre demande d'achat de {self.voeu} à été prise en compte. Sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\nPour les rankups :\n- Vous demandez plus de trois rankups a la fois\n- Vous n'avez pas le rang nécéssaire au rankup suivant\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n",ephemeral=True)
+		await interaction.response.send_message(f"Votre demande d'achat de {self.voeu} à été prise en compte. Sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\n- Vous demandez plus d'un rankup a la fois (Pour les rankups)\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n",ephemeral=True)
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3805,7 +3807,7 @@ class demandebl(discord.ui.Modal, title='Demande de blacklist'):
                               Preuves fournies : `{self.preuves.value}`''',0xffffff)
         await interaction.user.send(embed = embed)
         channel = bot.get_channel(794021749196718121)
-        msg = await channel.send(f'''__@everyone__ \​​📬​ Nouvelle demande''',embed = embed,view=blaccept())
+        msg = await channel.send(f'''​​📬​ Nouvelle demande''',embed = embed,view=blaccept())
         with open('blacklist.json', 'r') as f:
             bl = json.load(f)
         bl["Attente"][msg.id] = [interaction.user.id,self.ide.value,self.uuid.value,self.raison.value,self.preuves.value,self.nom.value]
