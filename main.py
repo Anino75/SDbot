@@ -224,12 +224,12 @@ async def tempsdevoc(interaction: discord.Interaction,total_ou_mois:str) -> None
 	if total_ou_mois == "mois":
 		total_ou_mois = str(datetime.now())[5:7]+"/"+str(datetime.now())[0:4]
 	elif total_ou_mois != "total":
-		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`')
+		await interaction.response.send_message('Vous ne pouvez voir que votre activité `totale` ou votre activité du `mois`',ephemeral=True)
 		return
 	with open('voc.json','r') as f:
 		voc = json.load(f)
 	if str(interaction.user.id) not in voc[total_ou_mois]:
-		await interaction.response.send_message('''Vous n'êtes jamais venu en voc !''')
+		await interaction.response.send_message('''Vous n'êtes jamais venu en voc !''',ephemeral=True)
 		return
 	nb = sorted(voc[total_ou_mois].values(),reverse=True).index(voc[total_ou_mois][str(interaction.user.id)])+1
 	await interaction.response.send_message(f'Vous avez `{voc[total_ou_mois][str(interaction.user.id)]}` minutes de voc et êtes {nb}{"eme" if nb != 1 else "er"}',ephemeral=True)
@@ -3174,9 +3174,6 @@ async def renduquotas(interaction: discord.Interaction,catalogue:str,member:disc
 @bot.tree.command()
 async def dreampoints(interaction: discord.Interaction):
 	'''Regarder votre solde de DreamPoints'''
-	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
-		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
 	if str(interaction.user.id) in pt.keys():
