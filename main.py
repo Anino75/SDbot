@@ -2242,7 +2242,7 @@ class basesclaimView(discord.ui.View):
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(manage_channels=True)
 async def editmarket(interaction: discord.Interaction,categorie:str,message:str):
-	'''Donner (créer) de l'argent . Commande réservée aux HG.'''
+	'''Mettre a jour le market. Commande réservée aux membres du staff (hors Recruteurs).'''
 	views={"PvP":PvPView(),"farming":farmView(),"minerais":mineraisView(),"alchimiste":alchimisteView(),"livres":livresView(),"machines":machinesView(),"outils":outilsView(),"services":servicesView(),"pillages":pillagesView(),"BC":basesclaimView()}
 	if categorie not in views.keys():
 		await interaction.response.send_message('Mauvaise catégorie')
