@@ -18,6 +18,7 @@ import mysql.connector
 import typing
 from typing import Optional
 import requests
+from discord.app_commands import AppCommandError
 
 debug = True
 SERVER = True
@@ -61,6 +62,10 @@ class PersistentViewBot(commands.Bot):
 bot = PersistentViewBot()
 
 """
+	await interaction.response.defer()
+	await interaction.followup.send('ok')
+
+
 This logs discord api actions too:
 global LOGGER
 LOGGER.basicConfig(filename='command.log', format=f"{datetime.now().strftime('%Y:%m:%d %H:%M:%S')} [%(levelname)s] %(message)s",
@@ -84,16 +89,15 @@ async def infac(member:discord.Member):
 				return True 
 	return False
 
-""" tree = bot.tree
-@tree.error()
-async def on_app_command_error(interaction: Interaction,error: AppCommandError):
-	if isinstance(error, commands.MissingPermissions):
-		await interaction.response.send_message(f'''Tu n'as pas la permission pour effectuer cette action !''')
-	elif isinstance(error, commands.MissingPermissions):
-		await interaction.response.send_message(f'''Tu n'as pas le rôle nécéssaire pour effectuer cette action !''')
-	elif isinstance(error, commands.MissingRequiredArgument):
-		await interaction.response.send_message(f'''> <:Forget:1002454977043771443> __{interaction.user.mention}__, Tu as oublié une partie de la commande, réessaies comme sa : *`r!ban <mention> <raison>`*''')
- """
+tree = bot.tree
+@tree.error
+async def on_app_command_error(interaction: discord.Interaction,error: AppCommandError):
+	if isinstance(error, discord.app_commands.MissingPermissions):
+		await interaction.response.send_message(f'''Tu n'as pas la permission d'effectuer cette action !''',ephemeral=True)
+	elif isinstance(error, discord.app_commands.BotMissingPermissions):
+		await interaction.response.send_message(f'''Le bot n'a pas la permission, nécéssaire pour effectuer cette action.''',ephemeral=True)
+	elif isinstance(error, discord.app_commands.CommandOnCooldown):
+		await interaction.response.send_message(f'''Tu as déjà fait cette commande recemment, réessaye {discord.utils.format_dt(datetime.now()+timedelta(seconds=round(error.retry_after)),style='R')}''')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235,821787385636585513,790675782569164820)
@@ -102,10 +106,8 @@ async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	if 813928386946138153 in [x.id for x in interaction.user.roles]:
 		await interaction.response.send_message('Vous êtes déjà absent.e !')
 		return
-	try:
-		if int(date[0:2]) + int(date[3:5]) + int(date[6:10]) < 2100 and len(date) == 10 and ((int(date[0:2])>int(str(datetime.now())[8:10]) and int(date[3:5])==int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4])) or (int(date[3:5])>int(str(datetime.now())[5:7]) and int(date[6:10])>=int(str(datetime.now())[0:4]))):
-			pass
-		else:
+	try:		
+		if datetime.strptime(date,'%d/%m/%Y') < datetime.now():
 			await interaction.response.send_message("La date n'est pas valide, merci de recommencer avec une date valide")
 			return
 	except:
@@ -113,10 +115,10 @@ async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 		return
 	with open('absence.json', 'r') as f:
 		ab = json.load(f)
-	if date[0:10] in ab.keys():
-		ab[date[0:10]][interaction.user.id] = raison
+	if date in ab.keys():
+		ab[date][interaction.user.id] = raison
 	else:
-		ab[date[0:10]] = {interaction.user.id:raison}
+		ab[date] = {interaction.user.id:raison}
 	with open('absence.json', 'w') as f:
 		json.dump(ab, f, indent=6)
 	chanel = bot.get_channel(790719427800858634)
@@ -124,6 +126,28 @@ async def absence(interaction: discord.Interaction,raison:str,date:str) -> None:
 	role = interaction.guild.get_role(813928386946138153)
 	await interaction.user.add_roles(role)
 	await interaction.response.send_message('Votre absence a bien été prise en compte')
+
+@tasks.loop(seconds = 36000)
+async def abs():
+	with open('absence.json', 'r') as f:
+		ab = json.load(f)
+	a = []
+	guild=bot.get_guild(790367917812088864)
+	for date in ab.keys():
+		if datetime.strptime(date,'%d/%m/%Y') < datetime.now():
+			for personne in ab[date].keys():
+				memb = guild.get_member(int(personne))
+				role = guild.get_role(813928386946138153)
+				if memb != None:
+					await memb.remove_roles(role)
+				else:
+					test = bot.get_channel(791452088370069525)
+					await test.send(f'Il y a eu un problème avec l\'absence de <@{personne}>')
+		a.append(date)
+	for date in a:
+		ab.pop(date)
+	with open('absence.json', 'w') as f:
+		json.dump(ab, f, indent=6)
 
 """ @bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 604800, commands.BucketType.user)
@@ -152,28 +176,6 @@ async def choixdivi(interaction: discord.Interaction,divi:str) -> None:
 		await interaction.user.edit(nick=f'[HD] {interaction.user.nick[5:]}')
 	await test.send(f'{interaction.user.mention} est passé dans la division {divi}')
 	await interaction.response.send_message(f'Vous etes passé dans la {divi}') """
-
-@tasks.loop(seconds = 36000)
-async def abs():
-	with open('absence.json', 'r') as f:
-		ab = json.load(f)
-	a = []
-	date = f"{str(datetime.now())[8:10]}/{str(datetime.now())[5:7]}/{str(datetime.now())[0:4]}"
-	guild=bot.get_guild(790367917812088864)
-	for dates in ab.keys():
-		if dates[6:] < date[6:] or (dates[3:5]<date[3:5] and dates[6:] == date[6:]) or (dates[0:2]<= date[0:2] and dates[3:5] == date[3:5] and dates[6:] == date[6:]):
-			for personne in ab[dates].keys():
-				personne = guild.get_member(int(personne))
-				role = guild.get_role(813928386946138153)
-				try:
-					await personne.remove_roles(role)
-				except:
-					pass
-		a.append(dates)
-	for dates in a:
-		ab.pop(dates)
-	with open('absence.json', 'w') as f:
-		json.dump(ab, f, indent=6)
 
 @tasks.loop(seconds = 60)
 async def voc():
@@ -379,7 +381,8 @@ async def on_member_remove(member):
 async def spam(interaction: discord.Interaction,member: discord.Member,nombre: typing.Optional[int]):
 	'''Spam allegrement quelqu'un. Commande réservée à la grande maîtresse suprême.'''
 	if interaction.user.id != 790574682294190091:
-		await interaction.response.send_message("t'es pas la grande maitresse supreme toi")
+		for i in range(nombre):
+			await interaction.channel.send(f"{interaction.user.mention} t'es pas la grande maitresse supreme toi")
 		return
 	for i in range(nombre):
 		await interaction.channel.send(member.mention)
@@ -681,12 +684,12 @@ class drop(discord.ui.View):
 	async def regl(self, interaction: discord.Interaction, button: discord.ui.Button):
 		dej = list(self.dej)
 		if str(interaction.user.id) in dej:
-			interaction.response.send_message(embed=create_small_embed("Vous ne pouvez participer qu'une fois à un drop !"),ephemeral=True)
+			await interaction.response.send_message(embed=create_small_embed("Vous ne pouvez participer qu'une fois à un drop !"),ephemeral=True)
 			return
 		if int(str(self.win)) == len(dej)+1:
 			await interaction.response.edit_message(embed=create_small_embed(f"Félicitation à {'<@' if len(dej)!=0 else ''}{'>, <@'.join(dej)}{'> et' if len(dej)!=0 else ''} {interaction.user.mention} qui {'ont' if len(dej)!=0 else 'à'} gagné {self.money} DP dans un drop !"),view=None)
 		else:
-			await interaction.response.edit_message(embed=create_embed(title='Drop !',description=f'''Cliquez en premier sur le bouton pour gagner **{self.money}** DP !\n{self.win} gagnants\nGagnants déjà présents : {', '.join(dej)}{' et' if len(dej)!=0 else ''} {interaction.user.mention}'''),view=drop(self.money,self.win,dej+[str(interaction.user.id)]))
+			await interaction.response.edit_message(embed=create_embed(title='Drop !',description=f'''Cliquez en premier sur le bouton pour gagner **{self.money}** DP !\n{self.win} gagnants\nGagnants déjà présents : {('<@'+'>, <@'.join(dej)+'> et') if len(dej)!=0 else ''} {interaction.user.mention}'''),view=drop(self.money,self.win,dej+[str(interaction.user.id)]))
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
 		pt[str(interaction.user.id)] += int(str(self.money))
@@ -834,6 +837,9 @@ async def prepare(interaction: discord.Interaction,prep:str):
 	if prep == 'rouletteA' or prep == 'tout' or prep == "jeux":
 		jeux = bot.get_channel(961592610412167270)
 		await jeux.send(embed = create_embed('Roulette Américaine','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette américaine et tenter de **__multiplier par 36 votre mise !__**'),view=roulette())
+	if prep == 'BJ' or prep == 'tout' or prep == "jeux":
+		jeux = bot.get_channel(961592610412167270)
+		await jeux.send(embed = create_embed('Blackjack','Cliquez sur le bouton ci-dessous pour demarrer une partie de blackjack et tenter de **__multiplier par 3 votre mise !__**'),view=blackjackview())
 	if prep == 'ally' or prep == 'tout':
 		with open('rela.json', 'r') as f:
 			rela = json.load(f)
@@ -871,7 +877,7 @@ async def edimarket(item):
 	b = views[item][1]
 	for tt in Eco["items"].items():
 		if a<int(tt[0])<b: 
-			msg += f'{tt[1][2]} {tt[1][0]} -> {tt[1][1]}$/{tt[1][3]}\n'
+			msg += f'{tt[1][2]} {tt[1][0]} -> {tt[1][3]}\n'
 	return msg
 
 # =========== Effectif ===========
@@ -1770,7 +1776,7 @@ class PersistentView(discord.ui.View):
 		with open('tickets.json', 'r') as f:
 			ticket = json.load(f)
 		for x in list(ticket['auteurs'].items()):
-			if not interaction.permissions.administrator:
+			if x[1] == interaction.user.id and not interaction.permissions.administrator:
 				await interaction.response.send_message(":warning: Vous avez déjà un ticket ouvert !", ephemeral=True)
 				return
 		guild = bot.get_guild(790367917812088864)
@@ -2498,7 +2504,8 @@ class roulette(discord.ui.View):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Jouer à la Roulette Américaine', style=discord.ButtonStyle.green, custom_id='debutrouletteA')
 	async def RoulletteA(self, interaction: discord.Interaction, button: discord.ui.Button):
-		jeu = await interaction.guild.create_text_channel(f'roulette-{interaction.user.name}',overwrites={interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False,),interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True,)})
+		cate = bot.get_channel(1077953877531430962)
+		jeu = await interaction.guild.create_text_channel(f'roulette-{interaction.user.name}',overwrites={interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False,),interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True,)},category=cate)
 		embed = create_embed('Roulette Américaine','''Jouez à la roulette américaine avec vos amis !\nPour ajouter quelqu'un à votre partie faites /addpersonne\n:warning: **__NE PAS MISER PLUSIEURS A LA FOIS__**''')
 		embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/772451269272928257/965658339428171876/unknown.png")
 		await jeu.send(embed=embed,view=rouleView({},interaction.user.id))
@@ -3262,6 +3269,7 @@ async def blbl(interaction: discord.Interaction):
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombre:int,motif:str,preuve:typing.Optional[str]):
 	'''Donner (créer) des dreampoints à un membre. Commande réservée aux HG'''
+	await interaction.response.defer()
 	with open ('points.json','r') as f:
 		pt = json.load(f)
 	if str(membre.id) in pt.keys():
@@ -3287,7 +3295,7 @@ async def addpoints(interaction: discord.Interaction,membre:discord.Member,nombr
 		await membre.send(f'{interaction.user.mention} vous a donné {nombre} points pour {motif} {"(preuve : "+preuve+")" if preuve !=None else ""}')
 	except:
 		pass
-	await interaction.response.send_message(f'''{nombre} points ont été donnés à {membre.mention}.''')
+	await interaction.followup.send(f'''{nombre} points ont été donnés à {membre.mention}.''')
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3346,7 +3354,8 @@ class achadp(discord.ui.Select):
 	def __init__(self):
 		options=[discord.SelectOption(label='Rankup',description='Prix variable',value='Rankup',emoji="\u2705"),
 				discord.SelectOption(label='Grade perso',description='20.000 DP',value='Grade perso',emoji='<:Brisestorm:1024423730585276486>'),
-				discord.SelectOption(label='Emoji perso',description='20.000 DP',value='Emoji perso',emoji='<:derp:804803664824238080>')]
+				discord.SelectOption(label='Emoji perso',description='20.000 DP',value='Emoji perso',emoji='<:derp:804803664824238080>'),
+				discord.SelectOption(label='Rôle lien',description='10.000 DP',value='Rôle lien',emoji='\U0001f517')]
 		super().__init__(placeholder='Achats', min_values=1, max_values=1, options=options, custom_id='achdp')
 	async def callback(self, interaction: discord.Interaction):
 		if self.values[0] == 'Rankup':
@@ -3370,6 +3379,9 @@ class achadp(discord.ui.Select):
 			await interaction.response.send_message(f"Confirmez-vous l'achat du rank {role_voulu.mention} pour {rank[role_voulu.id]} DP ?",ephemeral=True,view=confach(f'Rankup {role_voulu.mention}',rank[role_voulu.id]))
 		elif self.values[0] == 'Grade perso' or self.values[0] == 'Emoji perso':
 			await interaction.response.send_modal(emojgr(self.values[0]))
+		elif self.values[0] == 'Rôle lien':
+			await interaction.response.send_message(f"Confirmez-vous l'achat d'un {self.values[0]} pour 10.000 DP ?",ephemeral=True,view=confach(self.values[0],10000))
+
 
 class emojgr(discord.ui.Modal, title='Demande de recompense personalisée'):
     def __init__(self,voeu) -> None:
