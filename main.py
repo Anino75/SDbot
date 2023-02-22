@@ -669,7 +669,7 @@ async def on_ready():
 
 async def drops():
 	await asyncio.sleep(random.randint(7200,86400))
-	channel = await bot.fetch_channel(791452088370069525)
+	channel = await bot.fetch_channel(811652811786813471)
 	nb = random.randint(10,100)
 	await channel.send(embed=create_embed(title='Drop !',description=f'Cliquez en premier sur le bouton pour gagner **{nb}** DP !'),view=drop(nb,1,[]))
 	await drops()
@@ -2717,6 +2717,9 @@ class jeuBJ(discord.ui.View):
 				pt[str(interaction.user.id)] += 2*mise				
 				await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{2*mise}** DP au blackjack'))
 				await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à sauté, vous gagné deux fois votre mise ({2*mise} DP)."""))
+				with open('points.json', 'w') as f:
+					json.dump(pt, f, indent=6)
+				return
 		if croupier[0] > cartes[0]:
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""))
 		elif croupier[0] == cartes[0]:
@@ -3332,7 +3335,7 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 async def achatdp(interaction: discord.Interaction):
 	'''Acheter une récompense avec des DP'''
 	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <@#811653993033891870>',ephemeral=True)
+		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
 		return
 	await interaction.response.send_message('Que voulez-vous acheter ?',ephemeral=True,view=achatdpp())
 	
@@ -3441,10 +3444,12 @@ class confach(discord.ui.View):
 		await interaction.response.send_message(f"Votre demande d'achat de {self.voeu} à été prise en compte. Sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\n- Vous demandez plus d'un rankup a la fois (Pour les rankups)\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n",ephemeral=True)
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
 @discord.app_commands.checks.cooldown(1, 604800)
 async def sleep(interaction: discord.Interaction) -> None:
 	'''Dormez pour recuperer des DP toutes les semaines ! Offre entre 100 et 200 DP.'''
+	if not await infac(interaction.user):
+		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
+		return
 	nombre = random.randint(100,200)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3470,10 +3475,12 @@ async def sleep(interaction: discord.Interaction) -> None:
 	await interaction.response.send_message(f'''Vous avez gagné {nombre} points !''')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
 @discord.app_commands.checks.cooldown(1, 86400)
 async def work(interaction: discord.Interaction) -> None:
 	'''Travaillez pour recuperer des DP tous les jours ! Offre entre 5 et 25 DP.'''
+	if not await infac(interaction.user):
+		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
+		return
 	nombre = random.randint(5,25)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3499,10 +3506,12 @@ async def work(interaction: discord.Interaction) -> None:
 	await interaction.response.send_message(f'''Vous avez gagné {nombre} points !''')
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
 @discord.app_commands.checks.cooldown(1, 3600)
 async def crime(interaction: discord.Interaction) -> None:
 	'''Volez des DP toutes les heures, mais faites attention a la police ! Offre entre -10 et 15 DP.'''
+	if not await infac(interaction.user):
+		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
+		return
 	nombre = random.randint(-10,15)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
