@@ -28,36 +28,11 @@ class PersistentViewBot(commands.Bot):
 	def __init__(self):
 		super().__init__(command_prefix=commands.when_mentioned_or('SD'), help_command=None, case_insensitive=True, intents=intents)
 	async def setup_hook(self) -> None:
-		self.add_view(PersistentView())
-		self.add_view(fermerticket())
-		self.add_view(PvPView())
-		self.add_view(farmView())
-		self.add_view(mineraisView())
-		self.add_view(alchimisteView())
-		self.add_view(livresView())
-		self.add_view(machinesView())
-		self.add_view(outilsView())
-		self.add_view(servicesView())
-		self.add_view(pillagesView())
-		self.add_view(basesclaimView())
-		self.add_view(RouleR())
-		self.add_view(contijouer(0,0))
-		self.add_view(roulette())
-		self.add_view(rouleView({},0))
-		self.add_view(regl())
-		self.add_view(IsAlly())
-		self.add_view(candid(0))
-		self.add_view(page())
-		self.add_view(NombreView(0))
-		self.add_view(ench())
-		self.add_view(vend())
-		self.add_view(pagecl())
-		self.add_view(actu())
-		self.add_view(boutonform())
-		self.add_view(boutonform2([]))
-		self.add_view(autoview([],[]))
-		self.add_view(blackjackview())
-#		self.add_view(divi())
+		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
+	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(0,0),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
+	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2([]),autoview([],[]),blackjackview()]
+		for element in views:
+			self.add_view(element)
 
 bot = PersistentViewBot()
 
@@ -646,26 +621,39 @@ def get_left_space(str1_, str2_):
 	rv = len(str1_) - len(str2_)
 	return "".join([' ' for x in range(rv)])
 
+
 @bot.event
 async def on_ready():
-	print(f'[{datetime.now().strftime("%Y:%m:%d %H:%M:%S")}]', 'Bot is online!')
-	# functions
-	effectif.start()
-	inactivity.start()
-	abs.start()
-	candids.start()
-	voc.start()
-	effectif_rc.start()
-	# prints
-	field_placeholder = '+----------------------------------+'
-	fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
-	print(field_placeholder)
-	for field in fields:
-		print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
-	print(field_placeholder)
-	BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
-	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Never gonna give you up 🎵"))
-	await drops()
+	try:
+		global read
+		read = 0
+		BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
+		await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Never gonna give you up 🎵"))
+		# functions
+		effectif.start()
+		abs.start()
+		voc.start()
+		effectif_rc.start()
+		inactivity.start()
+		#await asyncio.sleep(10)
+		#candids.start()
+		print(f'[{datetime.now().strftime("%Y:%m:%d %H:%M:%S")}]', 'Bot is online!')
+		# prints
+		field_placeholder = '+----------------------------------+'
+		fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
+		print(field_placeholder)
+		for field in fields:
+			print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
+		print(field_placeholder)
+		await drops()
+	except:
+		# prints
+		field_placeholder = '+----------------------------------+'
+		fields = [f"| Username: {bot.user}", f"| ID: {bot.user.id}", f"| Version: {str(discord.__version__)}"]
+		print(field_placeholder)
+		for field in fields:
+			print(f"{field}{get_left_space(field_placeholder, field)[:-1]}|")
+		print(field_placeholder)
 
 async def drops():
 	await asyncio.sleep(random.randint(7200,86400))
@@ -2372,6 +2360,9 @@ class mis(discord.ui.Modal,title="Mise"):
 			pt = json.load(f)
 		try:
 			mise = round(float(str(self.qq)))
+			if mise > 10000:
+				await interaction.response.send_message(":warning: Vous pouvez miser 10k DP max !",ephemeral=True)
+				return
 		except:
 			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
 			return
@@ -2390,6 +2381,8 @@ class mis(discord.ui.Modal,title="Mise"):
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
 			await interaction.response.send_message(embed=embed,ephemeral=True)
+			changains = interaction.guild.get_channel(1075453615780663306)
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{round(float(str(mise)))}** DP à la roulette russe'))
 			return
 		else: #gain sans 
 			mise = round(mise/(1-1/6))
@@ -2417,6 +2410,13 @@ class contijouer(discord.ui.View):
 						timestamp=datetime.utcnow(),
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
+			a = int(self.nb)
+			misedb = mise
+			while a >= 0:
+				misedb = misedb*(1-1/(6-a))
+				a-= 1
+			changains = interaction.guild.get_channel(1075453615780663306)
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{misedb}** DP à la roulette russe'))
 			await interaction.response.edit_message(embed=embed,view=None)
 			return
 
@@ -2432,6 +2432,9 @@ class contijouer(discord.ui.View):
 			with open('points.json', 'w') as f:
 				json.dump(pt, f, indent=6)
 			embed.set_thumbnail(url='https://tenor.com/view/wealthy-rich-money-rain-money-money-money-fan-gif-14057775')
+			
+			changains = interaction.guild.get_channel(1075453615780663306)
+			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise}** DP à la roulette russe'))
 			await interaction.response.edit_message(embed=embed,view=None)
 
 		else: #gain sans 
@@ -2465,6 +2468,9 @@ class Machineasous(discord.ui.View):
 		msg = await bot.wait_for('message', timeout=None, check=check)
 		try:
 			mise = int(msg.content)
+			if mise > 10000:
+				await interaction.response.send_message(":warning: Vous pouvez miser 10k DP max !",ephemeral=True)
+				return
 		except:
 			await com.send(':warning: Veuillez indiquer un chiffre !')
 			return
@@ -2528,34 +2534,35 @@ class rouleView(discord.ui.View):
 			pt = json.load(f)
 		changains = interaction.guild.get_channel(1075453615780663306)
 		chance = random.randint(0,37)         #Tirage
-		await interaction.response.edit_message(embed=create_embed(f"{chance}. {'Rouge' if chance in rouge else 'Noir'}."),view=None)
+		if chance == 0 or chance == 37:       #0 ou 00 = aucune recompense sauf les chiffres
+			await interaction.response.edit_message(embed=create_embed(f"{'0' if chance == 0 else '00'}. Vert."),view=None)
+		else:
+			await interaction.response.edit_message(embed=create_embed(f"{chance}. {'Rouge' if chance in rouge else 'Noir'}."),view=None)
 		if chance in mises.keys():            #Chiffre
 			for gains in mises[chance]:
 				pt[str(gains[0])] += gains[1]*36
 				await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*36}** DP à la roulette américaine'))
 				await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur le {chance} et qui remporte **{gains[1]*36}** DP !')
-		if chance == 0 or chance == 37:       #0 ou 00 = aucune recompense sauf les chiffres
-			return
+		if chance != 0 and chance != 37:
+			bools = [[chance in rouge,['Rouge','Noir']],[chance%2 == 0,['Pair','Impair']],[chance//19 == 0,['Manque','Passe']]]
+			for boole in bools:
+				var = 1
+				if boole[0]:
+					var = 0
+				if boole[1][var] in mises.keys():
+					for gains in mises[boole[1][var]]:
+						pt[str(gains[0])] += gains[1]*2
+						await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*2}** DP à la roulette américaine'))
+						await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {boole[1][var]} et qui remporte **{gains[1]*2}** DP !')
 		
-		bools = [[chance in rouge,['Rouge','Noir']],[chance%2 == 0,['Pair','Impair']],[chance//19 == 0,['Manque','Passe']]]
-		for boole in bools:
-			var = 1
-			if boole[0]:
-				var = 0
-			if boole[1][var] in mises.keys():
-				for gains in mises[boole[1][var]]:
-					pt[str(gains[0])] += gains[1]*2
-					await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*2}** DP à la roulette américaine'))
-					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {boole[1][var]} et qui remporte **{gains[1]*2}** DP !')
-		
-		valeurs = [['douzaine 1','douzaine 2','douzaine 3'],['colone 3','colone 1','colone 2']]
-		val2 = [chance//13,chance%3]
-		for i in range(2):
-			if valeurs[i][val2[i]] in mises.keys():
-				for gains in mises[valeurs[i][val2[i]]]:
-					pt[str(gains[0])] += gains[1]*3
-					await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*3}** DP à la roulette américaine'))
-					await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {valeurs[i][val2[i]]} et qui remporte **{gains[1]*3}** DP !')
+			valeurs = [['douzaine 1','douzaine 2','douzaine 3'],['colone 3','colone 1','colone 2']]
+			val2 = [chance//13,chance%3]
+			for i in range(2):
+				if valeurs[i][val2[i]] in mises.keys():
+					for gains in mises[valeurs[i][val2[i]]]:
+						pt[str(gains[0])] += gains[1]*3
+						await changains.send(embed=create_small_embed(f'Félicitation à <@{gains[0]}> qui a gagné **{gains[1]*3}** DP à la roulette américaine'))
+						await interaction.channel.send(f'Félicitations à <@{gains[0]}> qui avait misé sur {valeurs[i][val2[i]]} et qui remporte **{gains[1]*3}** DP !')
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
 		embed = create_embed('Roulette Américaine','''Jouez à la roulette américaine avec vos amis !\nPour ajouter quelqu'un à votre partie faites /addpersonne''')
@@ -2610,6 +2617,9 @@ class roulemis(discord.ui.Modal,title="Mise"):
 			pt = json.load(f)
 		try:
 			mise = round(float(str(self.qq)))
+			if mise > 10000:
+				await interaction.response.send_message(":warning: Vous pouvez miser 10k DP max !",ephemeral=True)
+				return
 			if str(self.choix) == 'chiffre':
 				chiffre = int(str(self.quoi))
 		except:
@@ -2654,6 +2664,9 @@ class BJmis(discord.ui.Modal,title="Mise"):
 			pt = json.load(f)
 		try:
 			mise = round(float(str(self.qq)))
+			if mise > 10000:
+				await interaction.response.send_message(":warning: Vous pouvez miser 10k DP max !",ephemeral=True)
+				return
 		except:
 			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
 			return
@@ -2687,6 +2700,8 @@ def addcarte(cartes):
 	valeur,couleur = random.randint(0,12),random.randint(0,3)
 	cartes[0] += (valeur+1 if valeur<10 else 10)
 	cartes.append(f'{cartess[0][valeur]} de {cartess[1][couleur]}')
+	if valeur == 0:
+		cartes[0] += 10
 	return cartes
 
 class jeuBJ(discord.ui.View):
@@ -2700,6 +2715,8 @@ class jeuBJ(discord.ui.View):
 		croupier = list(self.croupier)
 		cartes = addcarte(list(self.cartes))
 		if cartes[0] > 21:
+			changains = interaction.guild.get_channel(1075453615780663306)
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{round(float(str(self.mise)))}** DP au blackjack'))
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez sauté, vous perdez votre mise."""),view=None)
 		else:
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?"""),view=jeuBJ(self.mise,cartes,croupier))
@@ -2722,6 +2739,9 @@ class jeuBJ(discord.ui.View):
 				return
 		if croupier[0] > cartes[0]:
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""),view=None)
+			changains = interaction.guild.get_channel(1075453615780663306)
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{round(float(str(self.mise)))}** DP au blackjack'))
+			
 		elif croupier[0] == cartes[0]:
 			pt[str(interaction.user.id)] += mise
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à autant que vous, vous recuperez votre mise ({mise} DP)."""),view=None)
