@@ -2700,7 +2700,7 @@ class jeuBJ(discord.ui.View):
 		croupier = list(self.croupier)
 		cartes = addcarte(list(self.cartes))
 		if cartes[0] > 21:
-			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez sauté, vous perdez votre mise."""))
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez sauté, vous perdez votre mise."""),view=None)
 		else:
 			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nQue voulez-vous faire ?"""),view=jeuBJ(self.mise,cartes,croupier))
 	@discord.ui.button(label='Arreter', style=discord.ButtonStyle.red, custom_id='finBJ')
@@ -2716,19 +2716,19 @@ class jeuBJ(discord.ui.View):
 			if croupier[0] > 21:
 				pt[str(interaction.user.id)] += 2*mise				
 				await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{2*mise}** DP au blackjack'))
-				await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à sauté, vous gagné deux fois votre mise ({2*mise} DP)."""))
+				await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à sauté, vous gagné deux fois votre mise ({2*mise} DP)."""),view=None)
 				with open('points.json', 'w') as f:
 					json.dump(pt, f, indent=6)
 				return
 		if croupier[0] > cartes[0]:
-			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""))
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à plus que vous, vous perdez votre mise."""),view=None)
 		elif croupier[0] == cartes[0]:
 			pt[str(interaction.user.id)] += mise
-			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à autant que vous, vous recuperez votre mise ({mise} DP)."""))
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nLe croupier à autant que vous, vous recuperez votre mise ({mise} DP)."""),view=None)
 		else:
 			pt[str(interaction.user.id)] += 2*mise				
 			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{2*mise}** DP au blackjack'))
-			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez plus que le croupier, vous recuperez deux fois votre mise ({2*mise} DP)."""))
+			await interaction.response.edit_message(embed=create_small_embed(f"""Vous avez {", ".join([cartes[i] for i in range(1,len(cartes))])}.\nLe croupier à {", ".join([croupier[i] for i in range(1,len(croupier))])}.\nVous avez plus que le croupier, vous recuperez deux fois votre mise ({2*mise} DP)."""),view=None)
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
 
