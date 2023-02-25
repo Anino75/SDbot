@@ -704,7 +704,7 @@ async def embed(interaction: discord.Interaction,channel:discord.TextChannel,*,m
 	await channel.send(embed=create_small_embed(message))
 	await interaction.response.send_message(embed=create_small_embed("Message envoyé !"))
 
-def create_embed(title=None, description=None, color=discord.Color.blue()):
+def create_embed(title=None, description=None, color=discord.Color.yellow()):
 	embed = discord.Embed(
 		title=title,
 		description=description,
@@ -715,7 +715,7 @@ def create_embed(title=None, description=None, color=discord.Color.blue()):
 	embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/772451269272928257/937037959516000286/unknown.png')
 	return embed
 
-def create_small_embed(description=None, color=discord.Color.blue()):
+def create_small_embed(description=None, color=discord.Color.dark_gray()):
 	embed = discord.Embed(
 		description=description,
 		color=color
@@ -749,7 +749,7 @@ async def edditally():
 	if pna == '':
 		pna = "\nNous n'avons aucun pacte de non agression pour l'instant"
 	await message.edit(embed=create_embed('Relations Factions',
-										f'Voici ici la liste de toutes nos relations :\n\n**Ally :**{ally}\n\n**Truces :**{truces}\n\n**Pacte de non agression :**{pna}'))
+										f'Voici ici la liste de toutes nos relations :\n\n**Ally :**{ally}\n\n**Truces :**{truces}\n\n**Pacte de non agression :**{pna}',color=discord.Color.blue()))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -792,23 +792,22 @@ async def prepare(interaction: discord.Interaction,prep:str):
 														"__Vous vous exposez également à de très lourdes sanctions si vous contournez une de ces sanctions en ne la faisant pas ou en trouvant une manière de la contourner__ (Ex : contourner un ban avec un double compte)"))
 		await reg.send(embed=discord.Embed(title="Différents types de sanctions:", description ="Il existe sur ce serveur plusieurs types de punitions ou de sanctions :\n\n"
 																						  "__**Infractions :**__ Ce sont des petites punitions automatiquement données par le bot quand vous ne respectez pas une des règles ci-dessus. Attention tout de même : à deux infractions dans la même journée vous serez **kick**, et a 3 infractions en 3 jours vous serez **bannis**. Les infractions restent cependant de petites sanctions, en effet elles sont reset tous les trois jours (le but étant surtout de kick les bots/joueurs qui spamment ou font n'importe quoi)\n\n"
-																						  f"__**Warns :**__ Un warn est une autre sanction cette fois donnée par un {chef.mention} ou un {rev.mention} (comme toutes les suivantes). C'est une sanction un peu plus forte mais ils ne font toujours rien en eux même, cependant si vous en avez deux ils entraînent un blâme (le nombre de deux pour être augmenté à trois pour des raisons exceptionnelles, par exemple si les warns sont très espacés dans le temps ou si ce ne sont pas des choses graves). Ces sanctions peuvent être effacées si la personne est présente et ne fait plus rien d’interdit.\n\n"
+																						  f"__**Warns :**__ Un warn est une autre sanction cette fois donnée par un HG (comme toutes les suivantes). C'est une sanction un peu plus forte mais ils ne font toujours rien en eux même, cependant si vous en avez deux ils entraînent un blâme (le nombre de deux pour être augmenté à trois pour des raisons exceptionnelles, par exemple si les warns sont très espacés dans le temps ou si ce ne sont pas des choses graves). Ces sanctions peuvent être effacées si la personne est présente et ne fait plus rien d’interdit.\n\n"
 																						  "__**Mutes :**__ Un mute est considéré comme un warn, mais en plus il vous sera impossible de parler. Le temps de mute peut être défini ou non..\n\n"
-																						  "__**Blâmes :**__ Les blâmes sont de lourdes sanctions qui entraînent de grosses conséquences. Pour quelqu’un hors faction, un blâme correspond à un bannissement du serveur, pour quelqu’un dans la faction un blâme correspond à des ressources a farmer en dédommagement ainsi qu’un derank pour le deuxième et un bannissement de la faction pour le troisième. Ils sont généralements donnés à cause de deux (voire trois) warns mais ils peuvent être également donnés directement lors de fautes graves (exemple : piller un(e) membre/truce/ally)\n\n"
-																						  "__**Deranks :**__ Entraînés automatiquement lors du second blâme, ils peuvent également être directement donnés en cas de faute grave, d’absence prolongée, etc. **Un dérank en tant que penseur ou maître penseur entraîne un kick de la faction**\n\n"
+																						  "__**Blâmes :**__ Les blâmes sont de lourdes sanctions qui entraînent de grosses conséquences. Pour quelqu’un hors faction, un blâme correspond à un bannissement du serveur, pour quelqu’un dans la faction un blâme correspond à des ressources a farmer en dédommagement ainsi qu’un derank. Un deuxième blame correspond à un kick faction et un bannissement du serveur définitif pour le troisième. Ils sont généralements donnés à cause de deux (voire trois) warns mais ils peuvent être également donnés directement lors de fautes graves (exemple : piller un(e) membre/truce/ally)\n\n"
+																						  "__**Deranks :**__ Entraînés automatiquement lors d'un blâme, ils peuvent également être directement donnés en cas de faute grave, d’absence prolongée, etc. **Un dérank en tant que penseur ou maître penseur entraîne un kick de la faction**\n\n"
 																						  "__**Kicks :**__ Il y a deux types de kicks : Faction ou discord. Un kick faction signifie le départ forcé de quelqu’un de la faction, un kick discord signifie l’exclusion du serveur.\n\n"
 																						  "__**Bans : **__ Il y a deux types de ban : Faction ou discord. Un ban faction signifie le départ forcé de quelqu’un de la faction sans possibilité de revenir, un ban discord signifie l’exclusion du serveur sans possibilité de revenir.\n\n"
 																						  "__ ** TOUT STAFF PEUT VOUS INFLIGER N'IMPORTE LAQUELLE DE CES SANCTIONS S’IL TROUVE CELA JUSTIFIE.**__ Si vous considérez que vous sanction est illégitime, vous pouvez ouvrir un ticket dans le <#790717340923985930>"))
 		await reg.send(embed=discord.Embed(title="Recrutements :",description="Pour postuler, il faut remplir le formulaire dans le <#790695566334099467>, si vous êtes acceptés, vous passerez un entretien vocal à la suite de quoi vous saurez si vous êtes acceptés ou pas. **NE PAS DEMANDER UNE RÉPONSE PAR TICKETS OU PAR MP**\n\n"
-																			  "La sweetdream est composée de plusieurs divisions en jeu. Chaque division a son préfixe qui sera noté devant les pseudos des membres sur le serveur discord pour permettre de savoir dans quelle faction IG ils sont. Voici la liste des divisions ainsi que leur sigle entre crochets :\n"
-																			  "- SweetDream [SD]\n- BadDream [BD]\n- HighDream [HD]\n- RainbowDream [RD]\n"
-																			  'Le préfixe [ET] ne veut pas dire "Extra-Terrestre" mais bel et bien "En Test"\n'
+																			  "Les membres de la sweetdream ont un préfixe [SD] suivi de leur pseudo en jeu.\nLes prefixes [CE] et [CA] signifie candidature envoyée et candidature accéptée."
+																			  'Quant au préfixe [ET], il ne veut pas dire "Extra-Terrestre" mais bel et bien "En Test"\n'
 																			  "Les ally et truces ont aussi leur faction en préfixe.\n"
-																			  "Enfin, les consultants ont souvent des préfixes changeants\n"
-																			  f"Pour précision, HG signifie “Hauts Gradés” et représentent les {chef.mention} et les {rev.mention}\n\n"
+																			  f"Pour précision, HG signifie “Hauts Gradés” et représentent les <@&821787385636585513>, les <@&790675782569164820> et les <@1068460789612163072>.\n\n"
 																			  "__**Autre :**__\n"
 																			  "Ce règlement est susceptible de changer. En restant sur le serveur vous reconnaissez avoir lu et compris le dernier règlement en date.\n"
-																			  f"Les truces sont disponibles dans le <#797862044765388830>, pour obtenir votre rôle {ally.mention} ou faire une demande de truce veuillez ouvrir un ticket\n"
+																			  f"Les truces sont disponibles dans le <#797862044765388830>, pour obtenir votre rôle <@790675785412640768> veuillez faire /askally [nom de votre faction].\n"
+																			"Pour faire une demande de truce veuillez ouvrir un ticket.\n"
 																			  "Pour toute mise en relation avec le staff, merci d’ouvrir un ticket plutôt que d’aller en mp avec les HG ou un membre\n"
 																			  "Pour ouvrir un ticket, il faut aller dans le <#790717340923985930> et cliquer sur le bouton\n"
 																			  "Le règlement s’applique dans tous les discord, salons privés et tickets inclus\n"
@@ -818,7 +817,7 @@ async def prepare(interaction: discord.Interaction,prep:str):
 		await support.send(embed=create_embed("Tickets",
 			"Bonjour à tous, voici notre système de support. Cela vous permettra de nous poser toutes "
 			"vos questions, vos demandes ou nous faire des plaintes.\n\nPour ouvrir un salon de support, clique sur"
-			" la réaction. Les HG pourront répondre à vos questions."), view=PersistentView())
+			" la réaction. Les HG pourront répondre à vos questions.",color=discord.Color.dark_grey()), view=PersistentView())
 	if prep == 'RouleR' or prep == 'tout' or prep == 'jeux':
 		jeux = bot.get_channel(961592610412167270)
 		await jeux.send(embed = create_embed('Roulette Russe','Cliquez sur le bouton ci-dessous pour demarrer une partie de roulette russe et tenter de **__multiplier par 5 votre mise !__**'),view=RouleR())
@@ -848,7 +847,7 @@ async def prepare(interaction: discord.Interaction,prep:str):
 		if pna == '':
 			pna = "Nous n'avons aucun pacte de non agression pour l'instant"
 		await relat.send(embed=create_embed('Relations Factions',
-											  f'Voici ici la liste de toutes nos relations :\n\n**Ally :**\n{ally}\n\n**Truces :**\n{truces}\n\n**Pacte de non agression :**\n{pna}'))
+											  f'Voici ici la liste de toutes nos relations :\n\n**Ally :**\n{ally}\n\n**Truces :**\n{truces}\n\n**Pacte de non agression :**\n{pna}',color=discord.Color.dark_gray()))
 	if prep == 'tout' or prep == 'market':
 		views={"PvP":[PvPView(),819576587846418432],"farming":[farmView(),820047258597720094],"minerais":[mineraisView(),819575989003747400],"alchimiste":[alchimisteView(),819576467284295701],"livres":[livresView(),823930348047695952],"machines":[machinesView(),819577657711657011],"outils":[outilsView(),819576748651839498],"services":[servicesView(),819578071875059712],"pillages":[pillagesView(),819577906761695242],"BC":[basesclaimView(),1012658806406262795]}
 		for tu in views.items():
@@ -1011,8 +1010,7 @@ async def acccandid(member:discord.Member,author):
 async def refcandid(member,author,raison):
 	_embed = discord.Embed(title = "Recrutements",
 							description =f"""Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas 
-										été acceptée pour la raison suivante {raison}.\nTu pourras retenter ta 
-										chance dans 2 semaines. \nCordialement,\nLe Staff Recrutement SweetDream"""
+										été acceptée pour la raison suivante : {raison}.\nCordialement,\nLe Staff Recrutement SweetDream"""
 							)
 	await member.send(embed=_embed)
 	log = bot.get_channel(831615469134938112)
@@ -1327,6 +1325,34 @@ async def inactivity():
 				await fin.send(f'{user.mention} a fini sa periode de test. Veuillez le kick ou le faire passer.')
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def majregl(interaction: discord.Interaction):
+	msg = interaction.channel.fetch_message(965694402116866048)
+	await msg.edit(embed=discord.Embed(title="Différents types de sanctions:", description ="Il existe sur ce serveur plusieurs types de punitions ou de sanctions :\n\n"
+																						  "__**Infractions :**__ Ce sont des petites punitions automatiquement données par le bot quand vous ne respectez pas une des règles ci-dessus. Attention tout de même : à deux infractions dans la même journée vous serez **kick**, et a 3 infractions en 3 jours vous serez **bannis**. Les infractions restent cependant de petites sanctions, en effet elles sont reset tous les trois jours (le but étant surtout de kick les bots/joueurs qui spamment ou font n'importe quoi)\n\n"
+																						  f"__**Warns :**__ Un warn est une autre sanction cette fois donnée par un HG (comme toutes les suivantes). C'est une sanction un peu plus forte mais ils ne font toujours rien en eux même, cependant si vous en avez deux ils entraînent un blâme (le nombre de deux pour être augmenté à trois pour des raisons exceptionnelles, par exemple si les warns sont très espacés dans le temps ou si ce ne sont pas des choses graves). Ces sanctions peuvent être effacées si la personne est présente et ne fait plus rien d’interdit.\n\n"
+																						  "__**Mutes :**__ Un mute est considéré comme un warn, mais en plus il vous sera impossible de parler. Le temps de mute peut être défini ou non..\n\n"
+																						  "__**Blâmes :**__ Les blâmes sont de lourdes sanctions qui entraînent de grosses conséquences. Pour quelqu’un hors faction, un blâme correspond à un bannissement du serveur, pour quelqu’un dans la faction un blâme correspond à des ressources a farmer en dédommagement ainsi qu’un derank. Un deuxième blame correspond à un kick faction et un bannissement du serveur définitif pour le troisième. Ils sont généralements donnés à cause de deux (voire trois) warns mais ils peuvent être également donnés directement lors de fautes graves (exemple : piller un(e) membre/truce/ally)\n\n"
+																						  "__**Deranks :**__ Entraînés automatiquement lors d'un blâme, ils peuvent également être directement donnés en cas de faute grave, d’absence prolongée, etc. **Un dérank en tant que penseur ou maître penseur entraîne un kick de la faction**\n\n"
+																						  "__**Kicks :**__ Il y a deux types de kicks : Faction ou discord. Un kick faction signifie le départ forcé de quelqu’un de la faction, un kick discord signifie l’exclusion du serveur.\n\n"
+																						  "__**Bans : **__ Il y a deux types de ban : Faction ou discord. Un ban faction signifie le départ forcé de quelqu’un de la faction sans possibilité de revenir, un ban discord signifie l’exclusion du serveur sans possibilité de revenir.\n\n"
+																						  "__ ** TOUT STAFF PEUT VOUS INFLIGER N'IMPORTE LAQUELLE DE CES SANCTIONS S’IL TROUVE CELA JUSTIFIE.**__ Si vous considérez que vous sanction est illégitime, vous pouvez ouvrir un ticket dans le <#790717340923985930>"))
+	await reg.send(embed=discord.Embed(title="Recrutements :",description="Pour postuler, il faut remplir le formulaire dans le <#790695566334099467>, si vous êtes acceptés, vous passerez un entretien vocal à la suite de quoi vous saurez si vous êtes acceptés ou pas. **NE PAS DEMANDER UNE RÉPONSE PAR TICKETS OU PAR MP**\n\n"
+																			  "Les membres de la sweetdream ont un préfixe [SD] suivi de leur pseudo en jeu.\nLes prefixes [CE] et [CA] signifie candidature envoyée et candidature accéptée."
+																			  'Quant au préfixe [ET], il ne veut pas dire "Extra-Terrestre" mais bel et bien "En Test"\n'
+																			  "Les ally et truces ont aussi leur faction en préfixe.\n"
+																			  f"Pour précision, HG signifie “Hauts Gradés” et représentent les <@&821787385636585513>, les <@&790675782569164820> et les <@1068460789612163072>.\n\n"
+																			  "__**Autre :**__\n"
+																			  "Ce règlement est susceptible de changer. En restant sur le serveur vous reconnaissez avoir lu et compris le dernier règlement en date.\n"
+																			  f"Les truces sont disponibles dans le <#797862044765388830>, pour obtenir votre rôle <@790675785412640768> veuillez faire /askally [nom de votre faction].\n"
+																			"Pour faire une demande de truce veuillez ouvrir un ticket.\n"
+																			  "Pour toute mise en relation avec le staff, merci d’ouvrir un ticket plutôt que d’aller en mp avec les HG ou un membre\n"
+																			  "Pour ouvrir un ticket, il faut aller dans le <#790717340923985930> et cliquer sur le bouton\n"
+																			  "Le règlement s’applique dans tous les discord, salons privés et tickets inclus\n"
+																			  "Il est interdit de faire sortir n'importe quelle information de la ou elle a été donnée (les infos à propos des recrutements restent en recrutement, les infos de fac restent dans la fac, les infos projets restent dans les projets, etc)"),view=regl())
+	
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -3492,7 +3518,27 @@ async def sleep(interaction: discord.Interaction) -> None:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /sleep')
-	await interaction.response.send_message(f'''Vous avez gagné {nombre} points !''')
+	messages =[f"Félicitations ! Vous avez pris soin de vous en vous reposant bien et vous avez gagné {nombre} points."
+f"Excellent travail ! Vous avez suivi les conseils de votre médecin et vous avez gagné {nombre} points pour votre temps de repos."
+f"Bravo pour votre engagement envers votre santé mentale et physique ! Vous avez pris le temps de vous reposer et vous avez gagné {nombre} points."
+f"Superbe performance ! Vous avez su trouver l'équilibre entre le travail et le repos et vous avez gagné {nombre} points."
+f"Fantastique ! Vous avez bien géré votre temps libre en vous reposant suffisamment et vous avez gagné {nombre} points."
+f"Bravo ! Votre engagement envers votre bien-être est exemplaire et vous avez gagné {nombre} points supplémentaires."
+f"Félicitations pour avoir pris le temps de vous reposer ! Vous avez gagné {nombre} points pour votre choix judicieux."
+f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires."
+f"Super ! Vous avez profité de votre temps libre pour vous reposer et vous avez gagné {nombre} points."
+f"Bravo pour votre prise de conscience de l'importance du repos ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être."
+f"Félicitations ! Vous avez pris une pause bien méritée et vous avez gagné {nombre} points."
+f"Excellent travail ! Vous avez écouté votre corps et vous avez pris le temps de vous reposer, vous avez donc gagné {nombre} points."
+f"Bravo pour votre engagement envers votre bien-être ! Vous avez pris soin de vous en vous reposant et vous avez gagné {nombre} points."
+f"Superbe performance ! Vous avez été très efficace en prenant le temps de vous reposer et vous avez gagné {nombre} points."
+f"Fantastique ! Vous avez suivi les conseils de votre thérapeute en prenant le temps de vous reposer et vous avez gagné {nombre} points."
+f"Bravo ! Votre choix de prendre du temps pour vous-même a été remarquable et vous avez gagné {nombre} points supplémentaires."
+f"Félicitations pour avoir pris soin de vous ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être."
+f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires."
+f"Super ! Vous avez été sage en prenant le temps de vous reposer et vous avez gagné {nombre} points."
+f"Bravo pour votre engagement envers une vie équilibrée ! Vous avez gagné {nombre} points pour votre choix de vous reposer."]
+	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
 
 @bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 86400)
@@ -3523,7 +3569,27 @@ async def work(interaction: discord.Interaction) -> None:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /work')
-	await interaction.response.send_message(f'''Vous avez gagné {nombre} points !''')
+	messages = [f"Bravo ! Vous avez terminé cette tâche avec succès et vous avez gagné {nombre} points.",
+		f"Félicitations ! Vous avez été très productif aujourd'hui et vous avez gagné {nombre} points supplémentaires.",
+		f"Excellente performance ! Vous avez mérité {nombre} points pour votre travail acharné.",
+		f"Fantastique ! Vous avez atteint votre objectif et vous avez gagné {nombre} points.",
+		f"Super ! Vous avez accompli une tâche difficile avec succès et vous avez gagné {nombre} points.",
+		f"Bravo pour votre engagement ! Vous avez gagné {nombre} points pour votre contribution remarquable.",
+		f"Félicitations pour votre performance exceptionnelle ! Vous avez mérité {nombre} points.",
+		f"Superbe travail ! Votre diligence et votre engagement ont été récompensés avec {nombre} points supplémentaires.",
+		f"Excellent travail ! Vous avez été très efficace aujourd'hui et vous avez gagné {nombre} points supplémentaires.",
+		f"Bravo ! Vous avez dépassé les attentes et vous avez gagné {nombre} points.",
+		f"Félicitations ! Vous avez accompli une tâche importante et vous avez gagné {nombre} points.",
+		f"Excellent travail ! Vous avez démontré un grand professionnalisme et vous avez gagné {nombre} points.",
+		f"Bravo pour votre engagement ! Vous avez été un atout précieux pour l'équipe et vous avez gagné {nombre} points.",
+		f"Superbe performance ! Vous avez atteint un nouveau record et vous avez gagné {nombre} points.",
+		f"Fantastique ! Vous avez travaillé dur pour atteindre cet objectif et vous avez gagné {nombre} points.",
+		f"Bravo ! Votre contribution a été exceptionnelle et vous avez gagné {nombre} points supplémentaires.",
+		f"Félicitations pour votre performance exceptionnelle ! Vous avez gagné {nombre} points pour vos réalisations remarquables.",
+		f"Excellent travail ! Vous avez été très efficace aujourd'hui et vous avez gagné {nombre} points supplémentaires.",
+		f"Super ! Vous avez surmonté un obstacle difficile avec succès et vous avez gagné {nombre} points.",
+		f"Bravo pour votre persévérance ! Vous avez travaillé dur malgré les défis et vous avez gagné {nombre} points."]
+	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
 
 @bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 3600)
@@ -3554,7 +3620,52 @@ async def crime(interaction: discord.Interaction) -> None:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /crime')
-	await interaction.response.send_message(f'''Vous avez {f'gagné {nombre}' if nombre >= 0 else f'perdu {-nombre}'} points !''')
+	if nombre < 0:
+		messages = [f"Malheureusement, votre tentative de braquage a échoué et vous avez été capturé par la sécurité avant de pouvoir atteindre le coffre-fort. Vous laissez tomber {-nombre} points pendant votre fuite",
+f"Votre plan de vol à main armée a été découvert avant même que vous ne puissiez entrer dans la banque, et vous avez dû fuir les lieux en catastrophe. Dans une fusillade, la police vous touche mais la balle est arrétée par le lingot de {-nombre} points dans votre poche, le détruisant mais vous laissant en vie.",
+f"Votre tentative de cambriolage de nuit a été contrecarrée lorsque vous avez accidentellement déclenché l'alarme de la maison et alerté les voisins. Leur chien vous mange {-nombre} points en essayant de vous attraper mais vous vous enfuyez en vie.",
+f"Vous avez malencontreusement laissé des indices qui ont permis aux autorités de remonter jusqu'à vous et vous avez été arrêté pour votre tentative de vol. Vous devez payer {-nombre} points de caution.",
+f"Vous avez tenté de voler une voiture de luxe, mais vous avez été repéré par le propriétaire qui a alerté la police. Vous êtes contraints de laisser votre sac a dos contenant {-nombre} points pour vous echapper par les egouts.",
+f"Votre braquage de magasin a échoué lorsque vous avez réalisé que le coffre-fort était vide, vous laissant les mains vides et en cavale. Vous devez payer votre complice {-nombre} points pour changer d'identitée et continuer a vivre une vie normale.",
+f"Votre tentative de vol à main armée a été stoppée lorsque vous avez maladroitement laissé tomber votre arme, permettant aux témoins de vous identifier plus facilement. Vous allez devoir les corrompre et vous utilisez {-nombre} points pour cela.",
+f"Votre plan minutieusement préparé pour cambrioler une maison s'est avéré être un échec lorsque vous avez été piégé par le système de sécurité sophistiqué du propriétaire. Le propriétaite ne veut pas de soucis avec la police et vous demande juste {-nombre} points pour réparer sa fenêtre cassée.",
+f"Votre tentative de vol de bijoux dans un magasin de luxe a été découverte lorsque vous avez été filmé par les caméras de sécurité, conduisant à votre arrestation. Vous prennez le meilleur avocat de la ville et devez payer {-nombre} points en frais de justice.",
+f"Votre plan pour voler un fourgon blindé a échoué lorsque vous avez réalisé trop tard que celui-ci était équipé d'un dispositif de sécurité qui a empêché l'ouverture des portes. Vous devez effacer les preuves et brulez la voiture qui vous avait couté {-nombre} points.",
+f"Votre tentative de vol à l'étalage a été repérée par un agent de sécurité qui vous a appréhendé avant que vous ne puissiez sortir du magasin. Vous devez payer une amende de {-nombre} points.",
+f"Votre plan pour cambrioler une villa de luxe s'est effondré lorsque vous avez accidentellement déclenché l'alarme, attirant l'attention des voisins et de la police. Heureusement, le commissaire est un bon ami a vous et contre {-nombre} points vous repartez libre.",
+f"Votre braquage d'un casino a été mis en échec lorsque vous vous êtes trompé de chemin pour la sortie, vous conduisant droit dans les bras des gardes de sécurité. Vos complices vous font sortir de prison en piochant {-nombre} points de votre compte.",
+f"Votre tentative de vol à main armée a échoué lorsque vous avez accidentellement tiré en l'air, alertant les autorités et conduisant à votre arrestation. Vous passez un accord avec le gérant du magasin et contre {-nombre} points il ne porte pas plainte."]
+	elif nombre == 0:
+		messages = [f"Votre plan pour braquer la banque a été mis en échec par la présence inattendue de policiers en civil, vous forçant à battre en retraite les mains vides.",
+	      f"Votre tentative de vol de voitures a été mise en échec lorsque vous avez été repéré par des témoins qui ont alerté la police, vous obligeant à prendre la fuite les mains vides."]
+	else:
+		messages = [f"Félicitations, votre hold-up a été un succès total et vous avez réussi à mettre la main sur {nombre} points",
+f"Bravo, vous avez mené à bien votre cambriolage et vous êtes reparti avec un butin de {nombre} points !",
+f"Vous avez accompli votre braquage avec brio et vous avez réussi à dérober la précieuse œuvre d'art de {nombre} points sans vous faire prendre !",
+f"Le casse s'est parfaitement déroulé et vous avez réussi à vous enfuir avec {nombre} points en liquide !",
+f"Chapeau bas, vous avez effectué une attaque de banque parfaitement orchestrée et vous avez empoché {nombre} points !",
+f"Vous avez réussi votre hold-up avec succès et vous avez pu voler la voiture de luxe de {nombre} points tant convoitée par vos complices !",
+f"Le braquage de la bijouterie a été un franc succès et vous avez réussi à repartir avec des bijoux d'une valeur de {nombre} points !",
+f"Vous avez brillamment réalisé votre braquage de train et vous êtes désormais l'heureux propriétaire de {nombre} points en lingots d'or !",
+f"Votre cambriolage a été couronné de succès et vous avez réussi à voler tous les bijoux de la joaillerie pour un total de {nombre} points !",
+f"Félicitations, vous avez mené à bien votre attaque de fourgon blindé et vous êtes reparti avec un butin de {nombre} points !",
+f"Votre braquage de casino a été une réussite totale et vous avez réussi à vider les coffres de la maison de jeu ! Vous remportez {nombre} points en jetons !",
+f"Bravo, vous avez accompli votre hold-up de banque avec brio et vous êtes désormais l'heureux propriétaire de {nombre} points !",
+f"Vous avez réussi votre casse avec succès et vous avez obtenu les informations confidentielles tant convoitées ! L'état vous paie {nombre} points pour les difuser et déstabiliser les terroristes.",
+f"Le cambriolage s'est déroulé sans accroc et vous avez réussi à voler l'ordinateur contenant les données sensibles ! Vous les revendez sur le dark net pour {nombre} points",
+f"Vous avez brillamment mené à bien votre braquage de supérette et vous êtes reparti avec des provisions pour plusieurs semaines valant {nombre} points !",
+f"Le hold-up de la galerie d'art a été un véritable succès et vous avez pu repartir avec des tableaux de maître d'une valeur de {nombre} points !"]
+	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
+
+@bot.tree.command()
+async def histoires(interaction: discord.Interaction,personne:str):
+	'''Qui pourrait avoir sa propre histoire ?'''
+	with open('histoires.json','r') as f:
+		his = json.load(f)
+	if personne in his.keys():
+		await interaction.response.send_message(create_embed(title=personne,description=his[personne]),ephemeral=True)
+	else:
+		await interaction.response.send_message('Non',ephemeral=True)
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
