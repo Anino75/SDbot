@@ -73,6 +73,8 @@ async def on_app_command_error(interaction: discord.Interaction,error: AppComman
 		await interaction.response.send_message(f'''Le bot n'a pas la permission, nécéssaire pour effectuer cette action.''',ephemeral=True)
 	elif isinstance(error, discord.app_commands.CommandOnCooldown):
 		await interaction.response.send_message(f'''Tu as déjà fait cette commande recemment, réessaye {discord.utils.format_dt(datetime.now()+timedelta(seconds=round(error.retry_after)),style='R')}''')
+	else:
+		traceback.print_exc()
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(791066206109958204,1011953852427272302,791066207418712094,791066206437113897,790675784225521734,790675784120401932,790675783693500456,790675783549976579,790675783352975360,790675782364037131,790675782338740235,821787385636585513,790675782569164820)
@@ -704,7 +706,7 @@ async def embed(interaction: discord.Interaction,channel:discord.TextChannel,*,m
 	await channel.send(embed=create_small_embed(message))
 	await interaction.response.send_message(embed=create_small_embed("Message envoyé !"))
 
-def create_embed(title=None, description=None, color=discord.Color.yellow()):
+def create_embed(title=None, description=None, color=discord.Color.gold()):
 	embed = discord.Embed(
 		title=title,
 		description=description,
@@ -1207,9 +1209,14 @@ async def accept(interaction: discord.Interaction, member: discord.Member):
 	if interaction.user.id != 790574682294190091:
 		await interaction.response.send_message(embed=create_small_embed('Cette commande est obsolete, merci de mp <@790574682294190091> pour plus de renseignements'))
 		return
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !", discord.Color.red()))
-		return
+	with open('Recrutements.json','r') as f:
+		RC = json.load(f)
+	RC['CE'][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
+	role = interaction.guild.get_role(986686680146772038)
+	await member.add_roles(role)
+	await member.edit(nick=f'[CE] {member.name}')
 	await interaction.response.send_message(embed=create_small_embed(await acccandid(member,interaction.user)))
 
 @bot.tree.command()
@@ -1220,9 +1227,51 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
 	_embed = discord.Embed(title = "Recrutements",
-							description ="Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de "
-							"test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\nAfin de verifier ton activité tu devra farmer un maximum de points parmis le catalogue suivant :\n**Farmer :**\n- Graines de paladium -> 25 points\n- Graine d'endium -> 500 points\n- Bouteilles de farmer (1000xp) -> 100 points\n\n**Hunter :**\n- Spawner T4 witch -> 1.000.000 points\n- Autre spawner T4 -> 250.000 points\n- Empty spawner -> 6.500 points\n- Broken spawners -> 4.000 points\n\n**Miner :**\n- Findium -> 60 points\n- Minerais d'améthyste -> 35 points\n- Minerais de titane -> 35 points\n- Minerais de paladium -> 80 points\n- Cobblebreaker -> 100 points\n- Cobblestone -> 0.125 points\n\n**Alchimiste :**\n- Lightning potion -> 30 points (30 max par personne)\n- Extractor -> 200 points\n- Fleurs -> 50 points/stack\n- Harpagophytum -> 1.000 points\n\n**BC :**\n- Obsidienne Normale -> 5 points\n- Poisonned Obsidian -> 15 points\n- Boom Obsidian -> 25 points\n- Mega Boom Obsidian -> 300 points\n- Big obsidian -> 200 points\n\n**Ressources :**\n- Lingot d'amethyste : 17 points\n- Lingot de titane : 17 points\n- 1$ -> 0,2 point\n- lingot de pala : 40 points\n- Nugget en endium : 75.000 points\n\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
-							" envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream")
+							description ="""Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de 
+							test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\n
+							Afin de verifier ton activité en jeu tu devra farmer un maximum de points parmis le catalogue suivant :
+							**Farmer :**
+							- Graines de paladium -> 25 points
+							- Graine d'endium -> 500 points
+							- Bouteilles de farmer (1000xp) -> 100 points
+							
+							**Hunter :**
+							- Spawner T4 witch -> 1.000.000 points
+							- Autre spawner T4 -> 250.000 points
+							- Empty spawner -> 6.500 points
+							- Broken spawners -> 4.000 points
+							
+							**Miner :**
+							- Findium -> 60 points
+							- Minerais d'améthyste -> 35 points
+							- Minerais de titane -> 35 points
+							- Minerais de paladium -> 80 points
+							- Cobblebreaker -> 100 points
+							- Cobblestone -> 0.125 points
+							
+							**Alchimiste :**
+							- Lightning potion -> 30 points (30 max par personne)
+							- Extractor -> 200 points
+							- Fleurs -> 50 points/stack
+							- Harpagophytum -> 1.000 points
+							
+							**BC :**
+							- Obsidienne Normale -> 5 points
+							- Poisonned Obsidian -> 15 points
+							- Boom Obsidian -> 25 points
+							- Mega Boom Obsidian -> 300 points
+							- Big obsidian -> 200 points
+							
+							**Ressources :**
+							- Lingot d'amethyste : 17 points
+							- Lingot de titane : 17 points
+							- 1$ -> 0,2 point
+							- lingot de pala : 40 points
+							- Nugget en endium : 75.000 points
+							
+							Afin de verifier ton activité sur discord, tu devras acheter un rankup penseur qui coute 10.000 DreamPoints. Les listes ci-dessous resument toutes les facons de gagner des DP (DreamPoints) et que faire avec (Elles sont aussi épinglées dans le <#790717766759481375>).
+							\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
+							 envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream""")
 	if str(member.id) not in RC['CA']:
 		await interaction.followup.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
@@ -1253,7 +1302,9 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 		if interaction.user in channel.members:
 			await oraux.send(f'Recrutement de {member} fait par {", ".join([x.mention for x in channel.members])}')
 	log = bot.get_channel(831615469134938112)
+	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','liste_rankup.png']]
 	await member.send(embed=_embed)
+	await member.send(files=files_)
 	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
 
@@ -1329,7 +1380,7 @@ async def inactivity():
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def majregl(interaction: discord.Interaction):
-	msg = interaction.channel.fetch_message(965694400812441600)
+	msg = await interaction.channel.fetch_message(965694400812441600)
 	await msg.edit(embed=discord.Embed(title="Bienvenue a tous.tes sur les serveur de la SweetDream, voici notre règlement :"
 										   ,description="__**Loi Française et règlement de discord**__\n"
 														"Ce serveur respecte la loi française et le règlement de discord, retrouvez tous les articles de lois ici : https://www.legifrance.gouv.fr/ et le règlement de discord ici : https://discord.com/terms?locale=fr\n"
@@ -1354,25 +1405,25 @@ async def majregl(interaction: discord.Interaction):
 														"- Critiquer mon magnifique bot sous peine d’un ban (non ca c’est une blague ||... Quoi que :eyes:||)\n\n"
 														"__Vous vous exposez également à de très lourdes sanctions si vous contournez une de ces sanctions en ne la faisant pas ou en trouvant une manière de la contourner__ (Ex : contourner un ban avec un double compte)"))
 		
-	msg = interaction.channel.fetch_message(965694402116866048)
+	msg = await interaction.channel.fetch_message(965694402116866048)
 	await msg.edit(embed=discord.Embed(title="Différents types de sanctions:", description ="Il existe sur ce serveur plusieurs types de punitions ou de sanctions :\n\n"
 																						  "__**Infractions :**__ Ce sont des petites punitions automatiquement données par le bot quand vous ne respectez pas une des règles ci-dessus. Attention tout de même : à deux infractions dans la même journée vous serez **kick**, et a 3 infractions en 3 jours vous serez **bannis**. Les infractions restent cependant de petites sanctions, en effet elles sont reset tous les trois jours (le but étant surtout de kick les bots/joueurs qui spamment ou font n'importe quoi)\n\n"
-																						  f"__**Warns :**__ Un warn est une autre sanction cette fois donnée par un HG (comme toutes les suivantes). C'est une sanction un peu plus forte mais ils ne font toujours rien en eux même, cependant si vous en avez deux ils entraînent un blâme (le nombre de deux pour être augmenté à trois pour des raisons exceptionnelles, par exemple si les warns sont très espacés dans le temps ou si ce ne sont pas des choses graves). Ces sanctions peuvent être effacées si la personne est présente et ne fait plus rien d’interdit.\n\n"
+																						  f"__**Warns :**__ Un warn est une autre sanction cette fois donnée par un HG ou un responsable (comme toutes les suivantes). C'est une sanction un peu plus forte mais ils ne font toujours rien en eux même, cependant si vous en avez deux ils entraînent un blâme (le nombre de deux pour être augmenté à trois pour des raisons exceptionnelles, par exemple si les warns sont très espacés dans le temps ou si ce ne sont pas des choses graves). Ces sanctions peuvent être effacées si la personne est présente et ne fait plus rien d’interdit.\n\n"
 																						  "__**Mutes :**__ Un mute est considéré comme un warn, mais en plus il vous sera impossible de parler. Le temps de mute peut être défini ou non..\n\n"
-																						  "__**Blâmes :**__ Les blâmes sont de lourdes sanctions qui entraînent de grosses conséquences. Pour quelqu’un hors faction, un blâme correspond à un bannissement du serveur, pour quelqu’un dans la faction un blâme correspond à des ressources a farmer en dédommagement ainsi qu’un derank. Un deuxième blame correspond à un kick faction et un bannissement du serveur définitif pour le troisième. Ils sont généralements donnés à cause de deux (voire trois) warns mais ils peuvent être également donnés directement lors de fautes graves (exemple : piller un(e) membre/truce/ally)\n\n"
+																						  "__**Blâmes :**__ Les blâmes sont de lourdes sanctions données par un HG seulement (comme toutes les suivantes). qui entraînent de grosses conséquences. Pour quelqu’un hors faction, un blâme correspond à un bannissement du serveur, pour quelqu’un dans la faction un blâme correspond à des ressources a farmer en dédommagement ainsi qu’un derank. Un deuxième blame correspond à un kick faction et un bannissement du serveur définitif pour le troisième. Ils sont généralements donnés à cause de deux (voire trois) warns mais ils peuvent être également donnés directement lors de fautes graves (exemple : piller un(e) membre/truce/ally)\n\n"
 																						  "__**Deranks :**__ Entraînés automatiquement lors d'un blâme, ils peuvent également être directement donnés en cas de faute grave, d’absence prolongée, etc. **Un dérank en tant que penseur ou maître penseur entraîne un kick de la faction**\n\n"
 																						  "__**Kicks :**__ Il y a deux types de kicks : Faction ou discord. Un kick faction signifie le départ forcé de quelqu’un de la faction, un kick discord signifie l’exclusion du serveur.\n\n"
 																						  "__**Bans : **__ Il y a deux types de ban : Faction ou discord. Un ban faction signifie le départ forcé de quelqu’un de la faction sans possibilité de revenir, un ban discord signifie l’exclusion du serveur sans possibilité de revenir.\n\n"
-																						  "__ ** TOUT STAFF PEUT VOUS INFLIGER N'IMPORTE LAQUELLE DE CES SANCTIONS S’IL TROUVE CELA JUSTIFIE.**__ Si vous considérez que vous sanction est illégitime, vous pouvez ouvrir un ticket dans le <#790717340923985930>"))
-	msg = interaction.channel.fetch_message(965694403454828594)
+																						  "__ ** TOUT HG PEUT VOUS INFLIGER N'IMPORTE LAQUELLE DE CES SANCTIONS S’IL TROUVE CELA JUSTIFIE.**__ Si vous considérez que vous sanction est illégitime, vous pouvez ouvrir un ticket dans le <#790717340923985930>"))
+	msg = await interaction.channel.fetch_message(965694403454828594)
 	await msg.edit(embed=discord.Embed(title="Recrutements :",description="Pour postuler, il faut remplir le formulaire dans le <#790695566334099467>, si vous êtes acceptés, vous passerez un entretien vocal à la suite de quoi vous saurez si vous êtes acceptés ou pas. **NE PAS DEMANDER UNE RÉPONSE PAR TICKETS OU PAR MP**\n\n"
 																			  "Les membres de la sweetdream ont un préfixe [SD] suivi de leur pseudo en jeu.\nLes prefixes [CE] et [CA] signifie candidature envoyée et candidature accéptée."
 																			  'Quant au préfixe [ET], il ne veut pas dire "Extra-Terrestre" mais bel et bien "En Test"\n'
 																			  "Les ally et truces ont aussi leur faction en préfixe.\n"
-																			  f"Pour précision, HG signifie “Hauts Gradés” et représentent les <@&821787385636585513>, les <@&790675782569164820> et les <@1068460789612163072>.\n\n"
+																			  f"Pour précision, HG signifie “Hauts Gradés” et représentent les <@&821787385636585513>, les <@&790675782569164820> et les <@&1068460789612163072>.\n\n"
 																			  "__**Autre :**__\n"
 																			  "Ce règlement est susceptible de changer. En restant sur le serveur vous reconnaissez avoir lu et compris le dernier règlement en date.\n"
-																			  f"Les truces sont disponibles dans le <#797862044765388830>, pour obtenir votre rôle <@790675785412640768> veuillez faire /askally [nom de votre faction].\n"
+																			  f"Les truces sont disponibles dans le <#797862044765388830>, pour obtenir votre rôle <@&790675785412640768> veuillez faire /askally [nom de votre faction].\n"
 																			"Pour faire une demande de truce veuillez ouvrir un ticket.\n"
 																			  "Pour toute mise en relation avec le staff, merci d’ouvrir un ticket plutôt que d’aller en mp avec les HG ou un membre\n"
 																			  "Pour ouvrir un ticket, il faut aller dans le <#790717340923985930> et cliquer sur le bouton\n"
@@ -1544,9 +1595,9 @@ async def unlock(interaction: discord.Interaction):
 
 
 @bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
+@discord.app_commands.checks.has_permissions(moderate_members=True)
 async def warn(interaction: discord.Interaction, member : discord.Member, *, raison:str):
-	'''Warn un membre. Commande réservée aux HG.'''
+	'''Warn un membre. Commande réservée aux HG et responsables.'''
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",
 												 discord.Color.red()))
@@ -3271,8 +3322,8 @@ async def dreampoints(interaction: discord.Interaction):
 @bot.tree.command()
 async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
 	'''Donner à un membre un certain nombre de dp depuis votre solde'''
-	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
+	if montant <=0:
+		await interaction.response.send_message('Vous ne pouvez pas donner un montant négatif',ephemeral=True)
 		return
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3284,9 +3335,15 @@ async def paydp(interaction: discord.Interaction,member:discord.Member,montant:i
 			pt[str(member.id)] = montant
 		with open ('points.json','w') as f:
 			json.dump(pt,f,indent=6)
-		await interaction.response.send_message(f'Vous avez payé {montant} points à {member.mention}')
+		try:
+			member.send(f'{interaction.user.mention} vous à donné {montant} DP')
+		except:
+			pass
+		logs = interaction.guild.get_channel(1026567820311531550)
+		await logs.send(f'{interaction.user.mention} à donné `{montant}` points à {member.mention}')
+		await interaction.response.send_message(f'Vous avez payé {montant} points à {member.mention}',ephemeral=True)
 	else:
-		await interaction.response.send_message(f'''Vous n'avez pas assez de DreamPoints pour faire cela''')
+		await interaction.response.send_message(f'''Vous n'avez pas assez de DreamPoints pour faire cela !''',ephemeral=True)
 
 """@bot.tree.command()
 async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
@@ -3544,25 +3601,25 @@ async def sleep(interaction: discord.Interaction) -> None:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
 	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /sleep')
-	messages =[f"Félicitations ! Vous avez pris soin de vous en vous reposant bien et vous avez gagné {nombre} points."
-f"Excellent travail ! Vous avez suivi les conseils de votre médecin et vous avez gagné {nombre} points pour votre temps de repos."
-f"Bravo pour votre engagement envers votre santé mentale et physique ! Vous avez pris le temps de vous reposer et vous avez gagné {nombre} points."
-f"Superbe performance ! Vous avez su trouver l'équilibre entre le travail et le repos et vous avez gagné {nombre} points."
-f"Fantastique ! Vous avez bien géré votre temps libre en vous reposant suffisamment et vous avez gagné {nombre} points."
-f"Bravo ! Votre engagement envers votre bien-être est exemplaire et vous avez gagné {nombre} points supplémentaires."
-f"Félicitations pour avoir pris le temps de vous reposer ! Vous avez gagné {nombre} points pour votre choix judicieux."
-f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires."
-f"Super ! Vous avez profité de votre temps libre pour vous reposer et vous avez gagné {nombre} points."
-f"Bravo pour votre prise de conscience de l'importance du repos ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être."
-f"Félicitations ! Vous avez pris une pause bien méritée et vous avez gagné {nombre} points."
-f"Excellent travail ! Vous avez écouté votre corps et vous avez pris le temps de vous reposer, vous avez donc gagné {nombre} points."
-f"Bravo pour votre engagement envers votre bien-être ! Vous avez pris soin de vous en vous reposant et vous avez gagné {nombre} points."
-f"Superbe performance ! Vous avez été très efficace en prenant le temps de vous reposer et vous avez gagné {nombre} points."
-f"Fantastique ! Vous avez suivi les conseils de votre thérapeute en prenant le temps de vous reposer et vous avez gagné {nombre} points."
-f"Bravo ! Votre choix de prendre du temps pour vous-même a été remarquable et vous avez gagné {nombre} points supplémentaires."
-f"Félicitations pour avoir pris soin de vous ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être."
-f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires."
-f"Super ! Vous avez été sage en prenant le temps de vous reposer et vous avez gagné {nombre} points."
+	messages =[f"Félicitations ! Vous avez pris soin de vous en vous reposant bien et vous avez gagné {nombre} points.",
+f"Excellent travail ! Vous avez suivi les conseils de votre médecin et vous avez gagné {nombre} points pour votre temps de repos.",
+f"Bravo pour votre engagement envers votre santé mentale et physique ! Vous avez pris le temps de vous reposer et vous avez gagné {nombre} points.",
+f"Superbe performance ! Vous avez su trouver l'équilibre entre le travail et le repos et vous avez gagné {nombre} points.",
+f"Fantastique ! Vous avez bien géré votre temps libre en vous reposant suffisamment et vous avez gagné {nombre} points.",
+f"Bravo ! Votre engagement envers votre bien-être est exemplaire et vous avez gagné {nombre} points supplémentaires.",
+f"Félicitations pour avoir pris le temps de vous reposer ! Vous avez gagné {nombre} points pour votre choix judicieux.",
+f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires.",
+f"Super ! Vous avez profité de votre temps libre pour vous reposer et vous avez gagné {nombre} points.",
+f"Bravo pour votre prise de conscience de l'importance du repos ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être.",
+f"Félicitations ! Vous avez pris une pause bien méritée et vous avez gagné {nombre} points.",
+f"Excellent travail ! Vous avez écouté votre corps et vous avez pris le temps de vous reposer, vous avez donc gagné {nombre} points.",
+f"Bravo pour votre engagement envers votre bien-être ! Vous avez pris soin de vous en vous reposant et vous avez gagné {nombre} points.",
+f"Superbe performance ! Vous avez été très efficace en prenant le temps de vous reposer et vous avez gagné {nombre} points.",
+f"Fantastique ! Vous avez suivi les conseils de votre thérapeute en prenant le temps de vous reposer et vous avez gagné {nombre} points.",
+f"Bravo ! Votre choix de prendre du temps pour vous-même a été remarquable et vous avez gagné {nombre} points supplémentaires.",
+f"Félicitations pour avoir pris soin de vous ! Vous avez gagné {nombre} points pour votre engagement envers votre bien-être.",
+f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires.",
+f"Super ! Vous avez été sage en prenant le temps de vous reposer et vous avez gagné {nombre} points.",
 f"Bravo pour votre engagement envers une vie équilibrée ! Vous avez gagné {nombre} points pour votre choix de vous reposer."]
 	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
 
@@ -3686,12 +3743,13 @@ f"Le hold-up de la galerie d'art a été un véritable succès et vous avez pu r
 @bot.tree.command()
 async def histoires(interaction: discord.Interaction,personne:str):
 	'''Qui pourrait avoir sa propre histoire ?'''
+	await interaction.response.defer()
 	with open('histoires.json','r') as f:
 		his = json.load(f)
 	if personne in his.keys():
-		await interaction.response.send_message(create_embed(title=personne,description=his[personne]),ephemeral=True)
+		await interaction.followup.send(embed=create_embed(title=personne,description=his[personne]),ephemeral=True)
 	else:
-		await interaction.response.send_message('Non',ephemeral=True)
+		await interaction.followup.send('Non',ephemeral=True)
 
 @bot.tree.command()
 async def classement(interaction: discord.Interaction):
