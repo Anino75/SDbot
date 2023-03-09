@@ -973,9 +973,9 @@ async def acccandid(member:discord.Member,author):
 		RC = json.load(f)
 	guild = bot.get_guild(790367917812088864)
 	_embed = discord.Embed(title = "Recrutements",
-							description ="Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour "
-							f"le passer il faudra aller dans le <#811651536622977074> et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas "
-							"disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."
+							description ="""Salut déjà toutes mes Félicitations, ta candidature SweetDream a été accéptée !\nMaintenant tu vas devoir passer un entretien oral. Pour 
+							le passer il faudra aller dans le <#811651536622977074> et ping un recruteur. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas 
+							disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.\nCordialement,\nLe Staff Recrutement SweetDream."""
 							)
 	RC['CE'].pop(str(member.id))
 	RC['CA'][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
@@ -1329,6 +1329,31 @@ async def inactivity():
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def majregl(interaction: discord.Interaction):
+	msg = interaction.channel.fetch_message(965694400812441600)
+	await msg.edit(embed=discord.Embed(title="Bienvenue a tous.tes sur les serveur de la SweetDream, voici notre règlement :"
+										   ,description="__**Loi Française et règlement de discord**__\n"
+														"Ce serveur respecte la loi française et le règlement de discord, retrouvez tous les articles de lois ici : https://www.legifrance.gouv.fr/ et le règlement de discord ici : https://discord.com/terms?locale=fr\n"
+														"**Ce qui signifie que vous vous exposez à de lourdes sanctions si vous :**\n"
+														"- Consommez des produits illicites\n"
+														"- Tenez des propos discriminants\n"
+														"- Tenez des propos injurieux et/ou insultants\n"
+														"- Partagez toute représentation, même suggestive de pornographie à des mineurs (des mineurs ayant accès a tous les salons, cette règle s’applique sur tout le serveur) dans les tchat et même en photo de profil\n"
+														"Par exemple\n\n"
+														"__ ** En plus de la loi française, il est strictement interdit de :**__\n"
+														"- Flood\n"
+														"- Spam (de messages, de mentions d'emojis, etc)\n"
+														"- Poster quelque lien que ce soit, discord ou autre (seuls les gifs sont autorisés, si vous pensez que votre lien doit être ici veuillez ouvrir un ticket) (envoyer un lien en mp entraînera un warn/bannissement)\n"
+														"- Mentionner @everyone et @here (ces mentions sont de toute façon désactivées pour les membres)\n"
+														"**Sous peine de recevoir une __infraction__**\n\n"
+														"- Abuser de ses permissions, notamment dans les salons privés\n"
+														"- Consommer des produits interdits aux mineurs en vocal (toutes drogues dures ou douces comme l'alcool, le tabac, etc)\n"
+														"- Crier dans les salons vocaux\n"
+														"- Utiliser des soundboards et autres modificateurs de voix\n"
+														"- Bloquer un hg ou le bot. Des dérogations peuvent être faites mais dans ce cas veuillez ouvrir un ticket. Veillez à avoir vos mp d’ouverts afin de recevoir des messages des hg ou du bots\n"
+														"**Sous peine de recevoir un __warn__**\n\n"
+														"- Critiquer mon magnifique bot sous peine d’un ban (non ca c’est une blague ||... Quoi que :eyes:||)\n\n"
+														"__Vous vous exposez également à de très lourdes sanctions si vous contournez une de ces sanctions en ne la faisant pas ou en trouvant une manière de la contourner__ (Ex : contourner un ban avec un double compte)"))
+		
 	msg = interaction.channel.fetch_message(965694402116866048)
 	await msg.edit(embed=discord.Embed(title="Différents types de sanctions:", description ="Il existe sur ce serveur plusieurs types de punitions ou de sanctions :\n\n"
 																						  "__**Infractions :**__ Ce sont des petites punitions automatiquement données par le bot quand vous ne respectez pas une des règles ci-dessus. Attention tout de même : à deux infractions dans la même journée vous serez **kick**, et a 3 infractions en 3 jours vous serez **bannis**. Les infractions restent cependant de petites sanctions, en effet elles sont reset tous les trois jours (le but étant surtout de kick les bots/joueurs qui spamment ou font n'importe quoi)\n\n"
@@ -1339,7 +1364,8 @@ async def majregl(interaction: discord.Interaction):
 																						  "__**Kicks :**__ Il y a deux types de kicks : Faction ou discord. Un kick faction signifie le départ forcé de quelqu’un de la faction, un kick discord signifie l’exclusion du serveur.\n\n"
 																						  "__**Bans : **__ Il y a deux types de ban : Faction ou discord. Un ban faction signifie le départ forcé de quelqu’un de la faction sans possibilité de revenir, un ban discord signifie l’exclusion du serveur sans possibilité de revenir.\n\n"
 																						  "__ ** TOUT STAFF PEUT VOUS INFLIGER N'IMPORTE LAQUELLE DE CES SANCTIONS S’IL TROUVE CELA JUSTIFIE.**__ Si vous considérez que vous sanction est illégitime, vous pouvez ouvrir un ticket dans le <#790717340923985930>"))
-	await reg.send(embed=discord.Embed(title="Recrutements :",description="Pour postuler, il faut remplir le formulaire dans le <#790695566334099467>, si vous êtes acceptés, vous passerez un entretien vocal à la suite de quoi vous saurez si vous êtes acceptés ou pas. **NE PAS DEMANDER UNE RÉPONSE PAR TICKETS OU PAR MP**\n\n"
+	msg = interaction.channel.fetch_message(965694403454828594)
+	await msg.edit(embed=discord.Embed(title="Recrutements :",description="Pour postuler, il faut remplir le formulaire dans le <#790695566334099467>, si vous êtes acceptés, vous passerez un entretien vocal à la suite de quoi vous saurez si vous êtes acceptés ou pas. **NE PAS DEMANDER UNE RÉPONSE PAR TICKETS OU PAR MP**\n\n"
 																			  "Les membres de la sweetdream ont un préfixe [SD] suivi de leur pseudo en jeu.\nLes prefixes [CE] et [CA] signifie candidature envoyée et candidature accéptée."
 																			  'Quant au préfixe [ET], il ne veut pas dire "Extra-Terrestre" mais bel et bien "En Test"\n'
 																			  "Les ally et truces ont aussi leur faction en préfixe.\n"
