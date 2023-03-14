@@ -29,7 +29,7 @@ class PersistentViewBot(commands.Bot):
 		super().__init__(command_prefix=commands.when_mentioned_or('SD'), help_command=None, case_insensitive=True, intents=intents)
 	async def setup_hook(self) -> None:
 		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
-	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(0,0),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
+	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
 	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2([]),autoview([],[]),blackjackview()]
 		for element in views:
 			self.add_view(element)
@@ -660,8 +660,8 @@ async def on_ready():
 async def drops():
 	await asyncio.sleep(random.randint(7200,86400))
 	channel = await bot.fetch_channel(811652811786813471)
-	nb = random.randint(10,100)
-	await channel.send(embed=create_embed(title='Drop !',description=f'Cliquez en premier sur le bouton pour gagner **{nb}** DP !'),view=drop(nb,1,[]))
+	nb = random.randint(20,200)
+	await channel.send(embed=create_embed(title='Drop !',description=f'Cliquez en premier sur le bouton pour gagner **{nb}** DP !'),view=drop(nb,3,[]))
 	await drops()
 
 class drop(discord.ui.View):
@@ -1290,17 +1290,23 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 		RC['Recruteur']["Oral"][str(interaction.user.id)] += 1
 	else:
 		RC['Recruteur']["Oral"][str(interaction.user.id)] = 1
-
-	with open('Recrutements.json', 'w') as f:
-		json.dump(RC, f, indent=6)
 	role = interaction.guild.get_role(790675784901197905)
 	role1 = interaction.guild.get_role(791066206109958204)
+	rc = interaction.guild.get_role(791426367362433066)
 	await member.remove_roles(role, reason=f'Fait par {str(interaction.user)[:16]}')
 	await member.add_roles(role1, reason=f'Fait par {str(interaction.user)[:16]}')
 	oraux = bot.get_channel(1031214049993695322)
 	for channel in interaction.guild.voice_channels:
 		if interaction.user in channel.members:
-			await oraux.send(f'Recrutement de {member} fait par {", ".join([x.mention for x in channel.members])}')
+			await oraux.send(f'Recrutement de {member} fait par {" ".join([(x.mention if rc in x.roles else "") for x in channel.members])}')
+			for memberr in [(x if rc in x.roles else "") for x in channel.members]:
+				if memberr != "":
+					if str(memberr.id) in RC['Recruteur']["Ecoute"].keys():
+						RC['Recruteur']["Ecoute"][str(memberr.id)] += 1
+					else:
+						RC['Recruteur']["Ecoute"][str(memberr.id)] = 1
+	with open('Recrutements.json', 'w') as f:
+		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','liste_rankup.png']]
 	await member.send(embed=_embed)
@@ -1331,6 +1337,8 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 	except:
 		pass
 
+	rc = interaction.guild.get_role(791426367362433066)
+	oraux = bot.get_channel(1031214049993695322)
 	if str(interaction.user.id) in RC["Recruteur"]['Total'].keys():
 		RC["Recruteur"]['Total'][str(interaction.user.id)] += 1
 	else:
@@ -1340,6 +1348,15 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 	else:
 		RC['Recruteur']["Oral"][str(interaction.user.id)] = 1
 	
+	for channel in interaction.guild.voice_channels:
+		if interaction.user in channel.members:
+			await oraux.send(f'Recrutement de {member} fait par {" ".join([(x.mention if rc in x.roles else "") for x in channel.members])}')
+			for memberr in [(x if rc in x.roles else "") for x in channel.members]:
+				if memberr != "":
+					if str(memberr.id) in RC['Recruteur']["Ecoute"].keys():
+						RC['Recruteur']["Ecoute"][str(memberr.id)] += 1
+					else:
+						RC['Recruteur']["Ecoute"][str(memberr.id)] = 1
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
@@ -2451,6 +2468,11 @@ class RouleR(discord.ui.View):
 	async def mise1(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await interaction.response.send_modal(mis())
 
+def calculmiseroule(mise,nb):
+	for i in range(nb):
+		mise = mise/(1-1/(6-i))
+	return round(mise)
+
 class mis(discord.ui.Modal,title="Mise"):
 	def __init__(self):
 		super().__init__()
@@ -2465,6 +2487,9 @@ class mis(discord.ui.Modal,title="Mise"):
 			mise = round(float(str(self.qq)))
 			if mise > 10000:
 				await interaction.response.send_message(":warning: Vous pouvez miser 10k DP max !",ephemeral=True)
+				return
+			if mise<0:
+				await interaction.response.send_message(":warning: Vous ne pouvez pas miser en négatif !",ephemeral=True)
 				return
 		except:
 			await interaction.response.send_message(":warning: Veuillez mettre un chiffre valide !",ephemeral=True)
@@ -2485,45 +2510,50 @@ class mis(discord.ui.Modal,title="Mise"):
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
 			await interaction.response.send_message(embed=embed,ephemeral=True)
 			changains = interaction.guild.get_channel(1075453615780663306)
-			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{round(float(str(mise)))}** DP à la roulette russe'))
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{mise}** DP à la roulette russe'))
 			return
-		else: #gain sans 
-			mise = round(mise/(1-1/6))
+		else: #gain sans
 			embed = discord.Embed(
 					title='Vous avez gagné !',
-					description=f"Vous avez gagné __**{mise}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{round(mise/(1-1/5))}$**__ ?",
+					description=f"Vous avez gagné __**{calculmiseroule(mise,1)}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{calculmiseroule(mise,2)}$**__ ?",
 					timestamp = datetime.utcnow()
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/YjPBups7H48AAAAC/6m-rain.gif')
-			await interaction.response.send_message(embed=embed, view=contijouer(mise,1),ephemeral=True)
+			await interaction.response.send_message(embed=embed, view=contijouer(),ephemeral=True)
+			msg = await interaction.original_response()
+			with open('casino.json', 'r') as f:
+				cas = json.load(f)
+			cas[str(msg.id)] = [mise,1,datetime.now().strftime('%d/%m/%Y')]
+			with open('casino.json', 'w') as f:
+				json.dump(cas, f, indent=6)
 
 class contijouer(discord.ui.View):
-	def __init__(self,mise,nb):
+	def __init__(self):
 		super().__init__(timeout=None)
-		self.mise = mise
-		self.nb = nb
 	@discord.ui.button(label='Continuer à jouer', style=discord.ButtonStyle.green, custom_id='conti')
 	async def contiroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
-		chance = random.randint(1, 6-int(str(self.nb)))
-		mise = round(float(str(self.mise)))/(1-1/(6-round(float(str(self.nb)))))
+		with open('casino.json', 'r') as f:
+			cas = json.load(f)
+		misedb,nb = cas[str(interaction.message.id)][0],cas[str(interaction.message.id)][1]
+		chance = random.randint(1, 6-int(str(nb)))
+		mise = calculmiseroule(misedb,nb)
 		if chance == 1: #perdu
+			with open('casino.json', 'r') as f:
+				cas = json.load(f)
+			cas.pop(str(interaction.message.id))
+			with open('casino.json', 'w') as f:
+				json.dump(cas, f, indent=6)
 			embed = discord.Embed(
 						title='Vous avez perdu...',
 						description='Vous pouvez toujours retenter votre chance !',
 						timestamp=datetime.utcnow(),
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
-			a = int(self.nb)
-			misedb = mise
-			while a >= 0:
-				misedb = misedb*(1-1/(6-a))
-				a-= 1
 			changains = interaction.guild.get_channel(1075453615780663306)
 			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{misedb}** DP à la roulette russe'))
 			await interaction.response.edit_message(embed=embed,view=None)
-			return
 
-		elif int(str(self.nb)) == 4: #Max possible
+		elif nb == 4: #Max possible
 			embed = discord.Embed(
 			title='JACKPOT !',
 			description=f"Vous avez gagné {mise}$ ! Vous avez touché le maximum d'argent possible !",
@@ -2534,30 +2564,48 @@ class contijouer(discord.ui.View):
 			pt[str(interaction.user.id)] += mise
 			with open('points.json', 'w') as f:
 				json.dump(pt, f, indent=6)
+			with open('casino.json', 'r') as f:
+				cas = json.load(f)
+			cas.pop(str(interaction.message.id))
+			with open('casino.json', 'w') as f:
+				json.dump(cas, f, indent=6)
 			embed.set_thumbnail(url='https://tenor.com/view/wealthy-rich-money-rain-money-money-money-fan-gif-14057775')
-			
 			changains = interaction.guild.get_channel(1075453615780663306)
-			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise}** DP à la roulette russe'))
+			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP à la roulette russe'))
 			await interaction.response.edit_message(embed=embed,view=None)
 
 		else: #gain sans 
 			embed = discord.Embed(
 					title='Vous avez gagné !',
-					description=f"Vous avez gagné __**{mise}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{round(mise/(1-1/(6-round(float(str(self.nb)))-1)))}$**__ ?",
+					description=f"Vous avez gagné __**{mise}$**__ !\nTenterez vous de rejouer afin d'augmenter votre gain à __**{calculmiseroule(misedb,nb+1)}$**__ ?",
 					timestamp = datetime.utcnow()
 					)
 			embed.set_thumbnail(url='https://tenor.com/view/win-obama-mic-drop-winner-peace-gif-16949541')
-			await interaction.response.edit_message(embed=embed, view=contijouer(mise,int(str(self.nb))+1))
+			with open('casino.json', 'r') as f:
+				cas = json.load(f)
+			cas[str(interaction.message.id)] = [cas[str(interaction.message.id)][0],cas[str(interaction.message.id)][1]+1,cas[str(interaction.message.id)][2]]
+			with open('casino.json', 'w') as f:
+				json.dump(cas, f, indent=6)
+			await interaction.response.edit_message(embed=embed, view=contijouer())
 	@discord.ui.button(label='Ne pas jouer', style=discord.ButtonStyle.red, custom_id='arret')
 	async def Arretroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
+		with open('casino.json', 'r') as f:
+			cas = json.load(f)
+		misedb = cas[str(interaction.message.id)][0]
+		mise = calculmiseroule(misedb,cas[str(interaction.message.id)][1])
+		with open('casino.json', 'r') as f:
+			cas = json.load(f)
+		cas.pop(str(interaction.message.id))
+		with open('casino.json', 'w') as f:
+			json.dump(cas, f, indent=6)
 		with open('points.json', 'r') as f:
 			pt = json.load(f)
-		pt[str(interaction.user.id)] += round(float(str(self.mise)))
+		pt[str(interaction.user.id)] += mise
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
 		changains = interaction.guild.get_channel(1075453615780663306)
-		await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{round(float(str(self.mise)))}** DP à la roulette russe'))
-		await interaction.response.edit_message(embed=create_small_embed(f'Vous avez arrete la partie et avez gagné {round(float(str(self.mise)))} DP'),view=None)
+		await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP à la roulette russe'))
+		await interaction.response.edit_message(embed=create_small_embed(f'Vous avez arrete la partie et avez gagné {mise} DP'),view=None)
 
 class Machineasous(discord.ui.View):
 	def __init__(self):
@@ -3463,9 +3511,6 @@ async def removepoints(interaction: discord.Interaction,membre:discord.Member,no
 @bot.tree.command()
 async def achatdp(interaction: discord.Interaction):
 	'''Acheter une récompense avec des DP'''
-	if interaction.channel.id != 811653993033891870:
-		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
-		return
 	await interaction.response.send_message('Que voulez-vous acheter ?',ephemeral=True,view=achatdpp())
 	
 	
@@ -3487,7 +3532,8 @@ class achadp(discord.ui.Select):
 		options=[discord.SelectOption(label='Rankup',description='Prix variable',value='Rankup',emoji="\u2705"),
 				discord.SelectOption(label='Grade perso',description='20.000 DP',value='Grade perso',emoji='<:Brisestorm:1024423730585276486>'),
 				discord.SelectOption(label='Emoji perso',description='20.000 DP',value='Emoji perso',emoji='<:derp:804803664824238080>'),
-				discord.SelectOption(label='Rôle lien',description='10.000 DP',value='Rôle lien',emoji='\U0001f517')]
+				discord.SelectOption(label='Rôle lien',description='10.000 DP',value='Rôle lien',emoji='\U0001f517'),
+				discord.SelectOption(label='Rôle citations',description='10.000 DP',value='Rôle citations',emoji='\U0001fab6')]
 		super().__init__(placeholder='Achats', min_values=1, max_values=1, options=options, custom_id='achdp')
 	async def callback(self, interaction: discord.Interaction):
 		if self.values[0] == 'Rankup':
@@ -3511,7 +3557,7 @@ class achadp(discord.ui.Select):
 			await interaction.response.send_message(f"Confirmez-vous l'achat du rank {role_voulu.mention} pour {rank[role_voulu.id]} DP ?",ephemeral=True,view=confach(f'Rankup {role_voulu.mention}',rank[role_voulu.id]))
 		elif self.values[0] == 'Grade perso' or self.values[0] == 'Emoji perso':
 			await interaction.response.send_modal(emojgr(self.values[0]))
-		elif self.values[0] == 'Rôle lien':
+		elif self.values[0] == 'Rôle lien' or self.values[0] == 'Rôle citations':
 			await interaction.response.send_message(f"Confirmez-vous l'achat d'un {self.values[0]} pour 10.000 DP ?",ephemeral=True,view=confach(self.values[0],10000))
 
 
@@ -3630,6 +3676,9 @@ async def work(interaction: discord.Interaction) -> None:
 	if not await infac(interaction.user):
 		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
 		return
+	if interaction.channel.name[:3] == '『🍺』':
+		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
+		return
 	nombre = random.randint(5,25)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3680,6 +3729,9 @@ async def crime(interaction: discord.Interaction) -> None:
 	'''Volez des DP toutes les heures, mais faites attention a la police ! Offre entre -10 et 15 DP.'''
 	if not await infac(interaction.user):
 		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
+		return
+	if interaction.channel.name[:3] == '『🍺』':
+		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
 		return
 	nombre = random.randint(-10,15)
 	with open ('points.json','r') as f:
@@ -3756,6 +3808,9 @@ async def classement(interaction: discord.Interaction):
 	'''Voir le classement du Festivau'''
 	if interaction.channel.id not in [811653993033891870,791452088370069525,1037477592573415545,1037478755821686864]:
 		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
+		return
+	if interaction.channel.name[:3] == '『🍺』':
+		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
 		return
 	with open('equipes.json','r') as f:
 		eq = json.load(f)
