@@ -1,6 +1,6 @@
 import asyncio
 from code import interact
-from inspect import stack
+#from inspect import stack
 import io
 import json
 import random
@@ -1540,11 +1540,6 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
 	try:
-		await member.send(embed=_embed)
-		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
-	except:
-		pass
-	try:
 		member = interaction.guild.get_member(member.id)
 		role = interaction.guild.get_role(790675784901197905)
 		await member.remove_roles(role, reason=f'Fait par {interaction.user.nick}')
@@ -1553,6 +1548,8 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		role1 = interaction.guild.get_role(1011953852427272302)
 		await member.remove_roles(role1, reason=f'Fait par {interaction.user.nick}')
 		await member.edit(nick="")
+		await member.send(embed=_embed)
+		await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	except:
 		await interaction.response.send_message(embed=create_small_embed("La commande a été prise en compte mais le message n'a pas pu être envoyé car la personne a quitté le serveur"))
 	try:
