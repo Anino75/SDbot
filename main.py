@@ -69,6 +69,8 @@ tree = bot.tree
 async def on_app_command_error(interaction: discord.Interaction,error: AppCommandError):
 	if isinstance(error, discord.app_commands.MissingPermissions):
 		await interaction.response.send_message(f'''Tu n'as pas la permission d'effectuer cette action !''',ephemeral=True)
+	elif isinstance(error, discord.app_commands.MissingAnyRole):
+		await interaction.response.send_message(f'''Tu n'as pas le role nécessaire pour effectuer cette action !''',ephemeral=True)
 	elif isinstance(error, discord.app_commands.BotMissingPermissions):
 		await interaction.response.send_message(f'''Le bot n'a pas la permission, nécéssaire pour effectuer cette action.''',ephemeral=True)
 	elif isinstance(error, discord.app_commands.CommandOnCooldown):
