@@ -30,7 +30,7 @@ class PersistentViewBot(commands.Bot):
 	async def setup_hook(self) -> None:
 		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
 	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
-	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2([]),autoview([],[]),blackjackview()]
+	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview()]
 		for element in views:
 			self.add_view(element)
 
@@ -50,6 +50,31 @@ with open('token.txt', 'r') as f:
 	TOKEN = f.read()
 
 # =========== Tools ===========
+
+"""@bot.tree.command()
+async def fish(interaction: discord.Interaction):
+	'''Fish. Commande réservée à la grande maîtresse suprême.'''
+	if interaction.user.id != 790574682294190091:
+		await interaction.channel.send(f"{interaction.user.mention} t'es pas la grande maitresse supreme toi")		
+		return
+	await interaction.response.defer()
+	for role in interaction.guild.roles:
+		try:
+			await role.edit(name=''.join([role.name[-i-1] for i in range(len(role.name))]))
+		except:
+			print(role.name)
+	for chan in interaction.guild.channels:
+		try:
+			await chan.edit(name=''.join([chan.name[-i-1] for i in range(len(chan.name))]))
+		except:
+			print(chan.name)
+	for personne in interaction.guild.members:
+		try:
+			if personne.nick != None:
+				await personne.edit(nick=''.join([personne.nick[-i-1] for i in range(len(personne.nick))]))
+		except:
+			print(personne.name)
+	await interaction.followup.send('Fait')"""
 
 @bot.command()
 async def sync(ctx):
@@ -289,6 +314,26 @@ async def admintempsdevoc(interaction: discord.Interaction,total_ou_mois:str) ->
 			msg += f'{i+1} : <@{s[i]}> - ({voc[total_ou_mois][s[i]]})\n'
 	await interaction.response.send_message(embed=discord.Embed(title=f'Page 1',description=("Total :\n" if total_ou_mois == "total" else "Mois :\n")+msg),view=page())
 
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def ftg(interaction: discord.Interaction) -> None:
+	'''Mute tous les membres du channel. Commande réservée aux HG.'''
+	for channel in interaction.guild.voice_channels:
+		if interaction.user.id in channel.members:
+			for member in channel.members:
+				await member.edit(mute=True)
+	await interaction.response.send_message('Ok',ephemeral=True)
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def deftg(interaction: discord.Interaction) -> None:
+	'''Démute tous les membres du channel. Commande réservée aux HG.'''
+	for channel in interaction.guild.voice_channels:
+		if interaction.user.id in channel.members:
+			for member in channel.members:
+				await member.edit(mute=False)
+	await interaction.response.send_message('Ok',ephemeral=True)
+
 class page(discord.ui.View):
 	def __init__(self):
 		super().__init__(timeout=None)
@@ -357,13 +402,15 @@ async def on_member_remove(member):
 			json.dump(RC, f, indent=6)
 
 @bot.tree.command()
-async def spam(interaction: discord.Interaction,member: discord.Member,nombre: typing.Optional[int]):
+async def spam(interaction: discord.Interaction,member: discord.Member,nombre: int):
 	'''Spam allegrement quelqu'un. Commande réservée à la grande maîtresse suprême.'''
-	if interaction.user.id != 790574682294190091:
+	await interaction.response.defer()
+	if interaction.user.id != 790574682294190091 and interaction.user.id != 367341761271693313:
 		for i in range(nombre):
-			await interaction.channel.send(f"{interaction.user.mention} t'es pas la grande maitresse supreme toi")
+			await interaction.channel.send(f"{interaction.user.mention} t'es pas la grande maîtresse supreme toi")
 		return
-	for i in range(nombre):
+	await interaction.followup.send(f'Vos désirs sont des ordres, je vais spam {nombre} fois {member.mention}')
+	for i in range(nombre-1):
 		await interaction.channel.send(member.mention)
 
 '''
@@ -1113,20 +1160,23 @@ class Formulaire(discord.ui.Modal,title="Formulaire de candidature SD"):
 		)
 		self.add_item(self.quest)
 	async def on_submit(self, interaction: discord.Interaction) -> None:
-		data = [self.pseudo,self.anpseudo,self.pbo,self.description,self.quest]
-		await interaction.response.send_message('''___***Attention ! Votre candidature n'est pas encore envoyée ! Pour finir la procédure veuillez finir le deuxieme questionnaire***___''',ephemeral=True,view=boutonform2(data))
+		with open('essaicandid.json', 'r') as f:
+			es = json.load(f)
+		es[str(interaction.user.id)] = [str(self.pseudo),str(self.anpseudo),str(self.pbo),str(self.description),str(self.quest),datetime.now().strftime('%d/%m/%Y')]
+		with open('essaicandid.json', 'w') as f:
+			json.dump(es, f, indent=6)
+		await interaction.response.send_message('''___***Attention ! Votre candidature n'est pas encore envoyée ! Pour finir la procédure veuillez finir le deuxieme questionnaire***___''',ephemeral=True,view=boutonform2())
 
 class boutonform2(discord.ui.View):
-	def __init__(self,data:str):
+	def __init__(self):
 		super().__init__(timeout=None)
-		self.data = data
 	@discord.ui.button(label='Finir ma candidature', style=discord.ButtonStyle.green, custom_id='candidat2')
 	async def candida(self,interaction: discord.Interaction, button: discord.ui.Button):
-		modal = Formulaire2(self.data)
+		modal = Formulaire2()
 		await interaction.response.send_modal(modal)
 
 class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
-	def __init__(self,data:str):
+	def __init__(self):
 		super().__init__()
 		self.av = discord.ui.TextInput(
 			label="Questions paladium",
@@ -1157,10 +1207,16 @@ class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
 			placeholder="Quelles sont vos disponibilités ?",
 		)
 		self.add_item(self.dis)
-		self.data = data
 	async def on_submit(self, interaction: discord.Interaction) -> None:
 		await interaction.response.defer()
-		await envoicandid(interaction.guild,interaction.user,self.data[0],self.data[1],self.data[2],self.data[3],self.data[4],self.av,self.sd,self.tryh,self.obj,self.dis)
+		with open('essaicandid.json', 'r') as f:
+			es = json.load(f)
+		data = es[str(interaction.user.id)]
+		es.pop(str(interaction.user.id))
+		with open('essaicandid.json', 'w') as f:
+			json.dump(es, f, indent=6)
+		await envoicandid(interaction.guild,interaction.user,data[0],data[1],data[2],data[3],data[4],self.av,self.sd,self.tryh,self.obj,self.dis)
+		await interaction.followup.edit(content='Vous avez bien postulé !')
 
 @bot.tree.command()
 async def sendrecru(interaction: discord.Interaction):
@@ -1187,7 +1243,7 @@ async def resetlisterecru(interaction: discord.Interaction):
 	'''Reset la liste des recruteurs. Commande réservée aux membres du staff (hors Recruteurs)..'''
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
-	RC['Recruteur'] = {"Total":{},"Candids": {},"Oral": {},"Phases": {}}
+	RC['Recruteur'] = {"Total":{},"Candids": {},"Oral": {},"Phases": {},"Ecoute":{}}
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
 	await interaction.response.send_message("Tout s'est bien passé")
@@ -1229,51 +1285,15 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
 	_embed = discord.Embed(title = "Recrutements",
-							description ="""Félicitation, tu viens de passer ton entretien oral et tu as réussi !\nTu es désormais en test dans la faction. Pendant cette periode de 
-							test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\n
-							Afin de verifier ton activité en jeu tu devra farmer un maximum de points parmis le catalogue suivant :
-							**Farmer :**
-							- Graines de paladium -> 25 points
-							- Graine d'endium -> 500 points
-							- Bouteilles de farmer (1000xp) -> 100 points
-							
-							**Hunter :**
-							- Spawner T4 witch -> 1.000.000 points
-							- Autre spawner T4 -> 250.000 points
-							- Empty spawner -> 6.500 points
-							- Broken spawners -> 4.000 points
-							
-							**Miner :**
-							- Findium -> 60 points
-							- Minerais d'améthyste -> 35 points
-							- Minerais de titane -> 35 points
-							- Minerais de paladium -> 80 points
-							- Cobblebreaker -> 100 points
-							- Cobblestone -> 0.125 points
-							
-							**Alchimiste :**
-							- Lightning potion -> 30 points (30 max par personne)
-							- Extractor -> 200 points
-							- Fleurs -> 50 points/stack
-							- Harpagophytum -> 1.000 points
-							
-							**BC :**
-							- Obsidienne Normale -> 5 points
-							- Poisonned Obsidian -> 15 points
-							- Boom Obsidian -> 25 points
-							- Mega Boom Obsidian -> 300 points
-							- Big obsidian -> 200 points
-							
-							**Ressources :**
-							- Lingot d'amethyste : 17 points
-							- Lingot de titane : 17 points
-							- 1$ -> 0,2 point
-							- lingot de pala : 40 points
-							- Nugget en endium : 75.000 points
-							
-							Afin de verifier ton activité sur discord, tu devras acheter un rankup penseur qui coute 10.000 DreamPoints. Les listes ci-dessous resument toutes les facons de gagner des DP (DreamPoints) et que faire avec (Elles sont aussi épinglées dans le <#790717766759481375>).
-							\nSi nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs' Nous t'invitons donc rester présent et actif.\nEn cas de problèmes tu peux"
-							 envoyer un message a un recruteur afin de signaler une absence.\nCordialement,\nLe Staff Recrutement SweetDream""")
+		description ="""Félicitation, tu viens de passer ton entretien oral et tu as réussi !
+		Tu es désormais en test dans la faction. Pendant cette periode de test nous allons t'évaluer sur ton activité (en jeu, en vocal, écrit) et sur ta capacité à farmer.\n		
+		Afin de verifier ton activité sur discord, tu devras acheter un rankup penseur qui coute 10.000 DreamPoints avec la commande `/achatdp`. La liste en bleu ci-dessous resument toutes les facons de gagner des DP (DreamPoints). Elle est aussi épinglée dans le <#790717766759481375>. Tu peux egalement voir ton nombre de points en faisant `/dreampoints`.			
+		Une fois cette étape validée tu devras farmer un maximum de points phases parmis la liste rose, c'est ce qu'on appelle les "phases"
+		Si nous considérons que tu es suffisament actif pour entrer tu pourras nous montrer tout ce que tu as farmé. Si c'est suffisant tu pourras nous le donner et entrer dirrectement dans la faction sinon tu n'auras plus qu'une semaine pour farmer un nombre d'une ressource choisie par toi et les recruteurs Nous t'invitons donc rester présent et actif.
+		En résumé, ce que tu dois faire : Faire 10.000 DP (dreampoints) dans la liste bleue -> Acheter un rankup avec le `/achatdp` -> Farmer autant de pointphases que tu peux -> Profiter de ta place dans la faction !
+		En cas de problèmes tu peux envoyer un message a un recruteur.
+		Cordialement,
+		Le Staff Recrutement SweetDream""")
 	if str(member.id) not in RC['CA']:
 		await interaction.followup.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
@@ -1310,9 +1330,8 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
-	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','liste_rankup.png']]
-	await member.send(embed=_embed)
-	await member.send(files=files_)
+	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','pointphases.png']]
+	await member.send(embed=_embed,files=files_)
 	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
 
@@ -1399,6 +1418,7 @@ async def inactivity():
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def majregl(interaction: discord.Interaction):
+	''''''
 	msg = await interaction.channel.fetch_message(965694400812441600)
 	await msg.edit(embed=discord.Embed(title="Bienvenue a tous.tes sur les serveur de la SweetDream, voici notre règlement :"
 										   ,description="__**Loi Française et règlement de discord**__\n"
@@ -1447,7 +1467,7 @@ async def majregl(interaction: discord.Interaction):
 																			  "Pour toute mise en relation avec le staff, merci d’ouvrir un ticket plutôt que d’aller en mp avec les HG ou un membre\n"
 																			  "Pour ouvrir un ticket, il faut aller dans le <#790717340923985930> et cliquer sur le bouton\n"
 																			  "Le règlement s’applique dans tous les discord, salons privés et tickets inclus\n"
-																			  "Il est interdit de faire sortir n'importe quelle information de la ou elle a été donnée (les infos à propos des recrutements restent en recrutement, les infos de fac restent dans la fac, les infos projets restent dans les projets, etc)"),view=regl())
+																			  "Il est interdit de faire sortir n'importe quelle information de la ou elle a été donnée (les infos à propos des recrutements restent en recrutement, les infos de fac restent dans la fac, les infos projets restent dans les projets, etc)\nEn acceptant le règlement, vous consentez a ce que votre voix soit enregistrée et partagée avec les HG de la SweetDream en cas de litige."),view=regl())
 	
 
 @bot.tree.command()
@@ -1471,7 +1491,7 @@ async def debutphases(interaction: discord.Interaction, member: discord.Member):
 	enatt = interaction.guild.get_role(1011953852427272302)
 	await member.add_roles(enatt, reason=f'Fait par {interaction.user.nick}')
 	try:
-		await member.send(embed=discord.Embed(title='Recrutements',description="Bravo à toi pour avoir rankup et réussi ta période de test ! Il ne te manque plus qu'a rendre tes phases a un recruteur dans le <#1011954323271458846>\n**__RAPPEL :__ Il est strictement interdit de parler des phases et de donner le nombre de points que vous avez fait pour rentrer sous peine de sanctions** "))
+		await member.send(embed=discord.Embed(title='Recrutements',description="Bravo à toi pour avoir rankup et réussi ta période de test ! Il ne te manque plus qu'a rendre tes phases a un recruteur dans le <#1011954323271458846>\n**__RAPPEL :__ Il est strictement interdit de parler des phases et de donner le nombre de points que vous avez fait pour rentrer sous peine de sanctions**\nPS : Le reccord est à 1.250.000 points, une petite recompense attendra celui qui le battra !"))
 	except:
 		await interaction.response.send_message(f'{member.mention} à désactivé ses mp mais il a quand meme été ajouté aux phases')
 		return
@@ -1487,7 +1507,7 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	guild = interaction.guild
 	_embed = discord.Embed(title = "Recrutements",
 							description ="Bravo, tu es désormais un.e membre officiel de la faction ! Tu as maintenant accès aux "
-										 "salons de faction. N'hésites pas a être actif.ve en vocal et en écrit pour "
+										 "salons de faction. Les DreamPoints (DP) te seront nécéssaires tout au long de ton aventure dans la faction. Tu verras ci-joint la liste bleue pour savoir comment les gagner et la liste noire pour savoir les points nécéssaires au rankup.\n N'hésites donc pas a être actif.ve en vocal et en écrit pour "
 										 "monter en grade et avoir accès a plus de bases ;-)"
 							)
 	
@@ -1504,7 +1524,8 @@ async def finphases(interaction: discord.Interaction, member: discord.Member,*,r
 	RC["Fait"][str(member.id)] = [str(datetime.now()),rendu]
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
-	await member.send(embed=_embed)
+	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','liste_rankup.png']]
+	await member.send(embed=_embed,files=files_)
 	try:
 		await member.edit(nick=f'[SD] {member.nick[5:]}')
 	except:
@@ -1600,14 +1621,14 @@ async def changetime(interaction: discord.Interaction,membre:discord.Member,cate
 async def lock(interaction: discord.Interaction):
 	'''Fermer un salon. Commande réservée aux HG.'''
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False,)})
-	await interaction.response.send_message(create_small_embed('''Ce channel à été **lock** par un membre du staff. Vous ne pouvez donc plus y parler jusqu'a ce qu'il soit unlock.\nIl peut avoir été lock pour plusieurs raisons mais généralement il s'agit d'une prévention (afin d'éviter que la discussion actuelle ne dégénère).\nMerci de votre comprehension,\nLe staff Sweetdream'''))
+	await interaction.response.send_message(embed=create_small_embed('''Ce channel à été **lock** par un membre du staff. Vous ne pouvez donc plus y parler jusqu'a ce qu'il soit unlock.\nIl peut avoir été lock pour plusieurs raisons mais généralement il s'agit d'une prévention (afin d'éviter que la discussion actuelle ne dégénère).\nMerci de votre comprehension,\nLe staff Sweetdream'''))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def unlock(interaction: discord.Interaction):
 	'''Rouvrir un salon. Commande réservée aux HG.'''
 	await interaction.channel.edit(overwrites={interaction.guild.default_role: discord.PermissionOverwrite(send_messages=None,)})
-	await interaction.response.send_message(create_small_embed('''Le channel à été unlock'''))
+	await interaction.response.send_message(embed=create_small_embed('''Le channel à été unlock'''))
 
 
 @bot.tree.command()
@@ -1679,12 +1700,11 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 	_embed = discord.Embed(title="Blame",
 						   description="Vous venez de recevoir un blâme sur le serveur SweetDream pour la raison "
 									   "suivante : "+raison+"\nLes blames sont de très lourdes sanctions, pour vous "
-										"racheter vous devrez donc payer :\n**Au premier :** 10 000 obsidian et 32 "
-															"blocs de paladium\n**Pour le second blâme vous vous verrez"
-															" derank de la faction ainsi qu'une punition de** 10 000 "
-															"obsidian, deux stacks de blocs de pala et 200 000$\n**Au "
-															"bout de 3 blâmes vous serez temporairement banni de la "
-															"faction pour un mois**")
+										"racheter vous devrez donc payer :\n__Au premier :__ 100.000 obsidian, 128 "
+										"blocs de paladium, 100.000$ et un dérank faction.\n__Pour le second blâme__ vous vous verrez "
+										"**triple derank** de la faction ainsi qu'une punition de 200.000 "
+										"obsidian, quatre stacks de blocs de pala et 200.000$\n__Au "
+										"bout de 3 blâmes__ vous serez **banni** de la faction**")
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1743,7 +1763,9 @@ async def rankup(interaction: discord.Interaction, member:discord.Member):
 		rol = guild.get_role(x[1])
 		if rol in member.roles:
 			role = x[0]
-	if not role:
+	try:
+		role = role
+	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'existe pas ou ne peux pas etre rankup !",
 												 discord.Color.red()))
 		return
@@ -1796,6 +1818,10 @@ async def ban(interaction: discord.Interaction, member:discord.Member,*,raison:s
 		except:
 			pass
 		await interaction.guild.ban(interaction.user,reason='Tente de ban la grande maitresse supreme')
+		return
+	if not interaction.user.guild_permissions.administrator:
+		await interaction.response.send_message(f'''Le bot n'a pas la permission, nécéssaire pour effectuer cette action.''',ephemeral=True)
+		return
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
@@ -2522,7 +2548,7 @@ class mis(discord.ui.Modal,title="Mise"):
 			msg = await interaction.original_response()
 			with open('casino.json', 'r') as f:
 				cas = json.load(f)
-			cas[str(msg.id)] = [mise,1,datetime.now().strftime('%d/%m/%Y')]
+			cas[str(msg.id)] = [mise,1,datetime.now().strftime('%d/%m/%Y'),interaction.user.id]
 			with open('casino.json', 'w') as f:
 				json.dump(cas, f, indent=6)
 
@@ -2531,10 +2557,15 @@ class contijouer(discord.ui.View):
 		super().__init__(timeout=None)
 	@discord.ui.button(label='Continuer à jouer', style=discord.ButtonStyle.green, custom_id='conti')
 	async def contiroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.response.defer()
 		with open('casino.json', 'r') as f:
 			cas = json.load(f)
+		if str(interaction.message.id) not in cas.keys():
+			await interaction.followup.send("Cette partie n'est plus ouverte !",ephemeral=True)
+			return
 		misedb,nb = cas[str(interaction.message.id)][0],cas[str(interaction.message.id)][1]
 		chance = random.randint(1, 6-int(str(nb)))
+		nb+=1
 		mise = calculmiseroule(misedb,nb)
 		if chance == 1: #perdu
 			with open('casino.json', 'r') as f:
@@ -2550,9 +2581,9 @@ class contijouer(discord.ui.View):
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
 			changains = interaction.guild.get_channel(1075453615780663306)
 			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{misedb}** DP à la roulette russe'))
-			await interaction.response.edit_message(embed=embed,view=None)
+			await interaction.followup.edit_message(interaction.message.id,embed=embed,view=None)
 
-		elif nb == 4: #Max possible
+		elif nb == 5: #Max possible
 			embed = discord.Embed(
 			title='JACKPOT !',
 			description=f"Vous avez gagné {mise}$ ! Vous avez touché le maximum d'argent possible !",
@@ -2571,7 +2602,7 @@ class contijouer(discord.ui.View):
 			embed.set_thumbnail(url='https://tenor.com/view/wealthy-rich-money-rain-money-money-money-fan-gif-14057775')
 			changains = interaction.guild.get_channel(1075453615780663306)
 			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP à la roulette russe'))
-			await interaction.response.edit_message(embed=embed,view=None)
+			await interaction.followup.edit_message(interaction.message.id,embed=embed,view=None)
 
 		else: #gain sans 
 			embed = discord.Embed(
@@ -2582,10 +2613,10 @@ class contijouer(discord.ui.View):
 			embed.set_thumbnail(url='https://tenor.com/view/win-obama-mic-drop-winner-peace-gif-16949541')
 			with open('casino.json', 'r') as f:
 				cas = json.load(f)
-			cas[str(interaction.message.id)] = [cas[str(interaction.message.id)][0],cas[str(interaction.message.id)][1]+1,cas[str(interaction.message.id)][2]]
+			cas[str(interaction.message.id)] = [misedb,nb,cas[str(interaction.message.id)][2],cas[str(interaction.message.id)][3]]
 			with open('casino.json', 'w') as f:
 				json.dump(cas, f, indent=6)
-			await interaction.response.edit_message(embed=embed, view=contijouer())
+			await interaction.followup.edit_message(interaction.message.id,embed=embed, view=contijouer())
 	@discord.ui.button(label='Ne pas jouer', style=discord.ButtonStyle.red, custom_id='arret')
 	async def Arretroulette(self, interaction: discord.Interaction, button: discord.ui.Button):
 		with open('casino.json', 'r') as f:
@@ -2645,6 +2676,35 @@ class Machineasous(discord.ui.View):
 		embed.set_thumbnail(
 			url='https://cdn.discordapp.com/attachments/772451269272928257/937037959516000286/unknown.png')
 		return embed
+
+@bot.tree.command()
+async def recupmise(interaction: discord.Interaction):
+	'''Vous permet de recuperer votre mise au casino si les boutons ne fonctionnent plus'''
+	with open('casino.json', 'r') as f:
+		cas = json.load(f)
+	a = []
+	prix = 0
+	for personne in cas.items():
+		if personne[1][3] == interaction.user.id:
+			a.append(personne[0])
+			prix += calculmiseroule(personne[1][0],personne[1][1]) 
+	if a == []:
+		await interaction.response.send_message("Vous n'avez rien à récuperer !",ephemeral=True)
+		return
+	with open('casino.json', 'r') as f:
+		cas = json.load(f)
+	for i in a:
+		cas.pop(i)
+	with open('casino.json', 'w') as f:
+		json.dump(cas, f, indent=6)
+	with open('points.json', 'r') as f:
+		pt = json.load(f)
+	pt[str(interaction.user.id)] += prix
+	with open('points.json', 'w') as f:
+		json.dump(pt, f, indent=6)
+	changains = interaction.guild.get_channel(1075453615780663306)
+	await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a récupéré **{prix}** DP à la roulette russe'))
+	await interaction.response.send_message(embed=create_small_embed(f'Vous avez récupéré {prix} DP'),ephemeral=True)
 
 @bot.tree.command()
 async def addpersonne(interaction: discord.Interaction,personne:discord.Member):
@@ -3366,7 +3426,7 @@ async def dreampoints(interaction: discord.Interaction):
 		points = 0
 	await interaction.response.send_message(f'Vous avez ``{points}`` points',ephemeral=True)
 
-@bot.tree.command()
+"""@bot.tree.command()
 async def paydp(interaction: discord.Interaction,member:discord.Member,montant:int):
 	'''Donner à un membre un certain nombre de dp depuis votre solde'''
 	if montant <=0:
@@ -3392,7 +3452,7 @@ async def paydp(interaction: discord.Interaction,member:discord.Member,montant:i
 	else:
 		await interaction.response.send_message(f'''Vous n'avez pas assez de DreamPoints pour faire cela !''',ephemeral=True)
 
-"""@bot.tree.command()
+@bot.tree.command()
 async def claimpoints(interaction: discord.Interaction,nombre:int,motif:str,preuve:typing.Optional[str]):
 	if interaction.channel.id != 811653993033891870:
 		await interaction.response.send_message('Vous ne pouvez utiliser cette commande que dans le <#811653993033891870>',ephemeral=True)
@@ -3532,7 +3592,8 @@ class achadp(discord.ui.Select):
 				discord.SelectOption(label='Grade perso',description='20.000 DP',value='Grade perso',emoji='<:Brisestorm:1024423730585276486>'),
 				discord.SelectOption(label='Emoji perso',description='20.000 DP',value='Emoji perso',emoji='<:derp:804803664824238080>'),
 				discord.SelectOption(label='Rôle lien',description='10.000 DP',value='Rôle lien',emoji='\U0001f517'),
-				discord.SelectOption(label='Rôle citations',description='10.000 DP',value='Rôle citations',emoji='\U0001fab6')]
+				discord.SelectOption(label='Rôle citations',description='10.000 DP',value='Rôle citations',emoji='\U0001fab6'),
+				discord.SelectOption(label='Histoire perso',description='10.000 DP',value='Histoire perso',emoji='\U0001f4dc')]
 		super().__init__(placeholder='Achats', min_values=1, max_values=1, options=options, custom_id='achdp')
 	async def callback(self, interaction: discord.Interaction):
 		if self.values[0] == 'Rankup':
@@ -3556,7 +3617,7 @@ class achadp(discord.ui.Select):
 			await interaction.response.send_message(f"Confirmez-vous l'achat du rank {role_voulu.mention} pour {rank[role_voulu.id]} DP ?",ephemeral=True,view=confach(f'Rankup {role_voulu.mention}',rank[role_voulu.id]))
 		elif self.values[0] == 'Grade perso' or self.values[0] == 'Emoji perso':
 			await interaction.response.send_modal(emojgr(self.values[0]))
-		elif self.values[0] == 'Rôle lien' or self.values[0] == 'Rôle citations':
+		elif self.values[0] == 'Rôle lien' or self.values[0] == 'Rôle citations' or self.values[0] == 'Histoire perso':
 			await interaction.response.send_message(f"Confirmez-vous l'achat d'un {self.values[0]} pour 10.000 DP ?",ephemeral=True,view=confach(self.values[0],10000))
 
 
