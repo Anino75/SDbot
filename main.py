@@ -1640,7 +1640,7 @@ async def warn(interaction: discord.Interaction, member : discord.Member, *, rai
 												 discord.Color.red()))
 		return
 	_embed = discord.Embed(title="Warn",
-						   description="Bonjour,\nTu as été averti.e pour la raison suivante : "+raison)
+						   description=f"Bonjour,\nTu as été averti.e pour la raison suivante : {raison}")
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1652,7 +1652,7 @@ async def warn(interaction: discord.Interaction, member : discord.Member, *, rai
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été warn par ' +interaction.user.mention+" pour "+raison))
+	await log.send(embed=create_small_embed(f"{member.mention} à été warn par {interaction.user.mention} pour {raison}"))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -1665,9 +1665,9 @@ async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:
 		nbw=int(nbw)-1
 	except:
 		if nbw != None:
-			raison = str(nbw)+raison
+			raison = str(nbw)+str(raison)
 	_embed = discord.Embed(title="Unwarn",
-						   description="Bonjour,\nTon warn a été retiré pour la raison suivante : "+raison)
+						   description=f"Bonjour,\nTon warn a été retiré pour la raison suivante : {raison}")
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1687,7 +1687,7 @@ async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
 	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
-	await log.send(embed=create_small_embed(member.mention+ ' à été unwarn par ' +interaction.user.mention+" pour "+raison))
+	await log.send(embed=create_small_embed(f"{member.mention} à été unwarn par {interaction.user.mention} pour {raison}"))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -1699,7 +1699,7 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 		return
 	_embed = discord.Embed(title="Blame",
 						   description="Vous venez de recevoir un blâme sur le serveur SweetDream pour la raison "
-									   "suivante : "+raison+"\nLes blames sont de très lourdes sanctions, pour vous "
+									   f"suivante : {raison}\nLes blames sont de très lourdes sanctions, pour vous "
 										"racheter vous devrez donc payer :\n__Au premier :__ 100.000 obsidian, 128 "
 										"blocs de paladium, 100.000$ et un dérank faction.\n__Pour le second blâme__ vous vous verrez "
 										"**triple derank** de la faction ainsi qu'une punition de 200.000 "
@@ -3387,7 +3387,7 @@ async def ww(interaction: discord.Interaction,ll):
 @discord.app_commands.checks.has_any_role(790675781789155329,821787385636585513,790675782569164820)
 async def renduquotas(interaction: discord.Interaction,catalogue:str,member:discord.Member):
 	'''Annoncer le rendu d'un quota. Commande réservée aux membres du staff (hors recruteurs)'''
-	cat = {"poussin":400,'tranquillou':800,'intermediaire':1200,'tryharder':2100,'giga chad':3000}
+	cat = {"poussin":550,'tranquillou':1100,'intermediaire':1600,'tryharder':2600,'giga chad':4000}
 	if catalogue not in cat.keys():
 		await interaction.response.send_message("Ce n'est pas un catalogue valide !")
 		return
