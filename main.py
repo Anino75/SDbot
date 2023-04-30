@@ -20,6 +20,9 @@ from typing import Optional
 import requests
 from discord.app_commands import AppCommandError
 
+ID_role_fac = 791066207418712094
+ID_role_touriste = 790675785643196428
+
 debug = True
 SERVER = True
 intents = discord.Intents().all()
@@ -30,7 +33,7 @@ class PersistentViewBot(commands.Bot):
 	async def setup_hook(self) -> None:
 		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
 	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
-	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview()]
+	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview(),actueff(),actueffrc()]
 		for element in views:
 			self.add_view(element)
 
@@ -194,7 +197,9 @@ async def voc():
 	if dtn not in voc.keys():
 		voc[dtn] = {}
 	for channel in guild.voice_channels:
-		if len(channel.members)-1 > [mem.bot for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_deaf for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.deaf for mem in channel.members].count(True):
+		role_fac = guild.get_role(ID_role_fac)
+		touriste = guild.get_role(ID_role_touriste)
+		if len(channel.members)-1 > [mem.bot for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_deaf for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.deaf for mem in channel.members].count(True) and channel.user_limit > 3 and (channel.permissions_for(touriste).connect or channel.permissions_for(role_fac).connect):
 			for member in channel.members:
 				if len(channel.members)>1 and member.voice.mute == False and member.voice.self_mute == False and member.voice.deaf == False and member.voice.self_deaf == False and member.bot == False:
 					if str(member.id) in voc["total"].keys():
@@ -681,10 +686,8 @@ async def on_ready():
 		BOT_INVITE_LINK = f'https://discord.com/api/oauth2/authorize?client_id={str(bot.user.id)}&permissions=8&scope=applications.commands%20bot'
 		await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Never gonna give you up 🎵"))
 		# functions
-		effectif.start()
 		abs.start()
 		voc.start()
-		effectif_rc.start()
 		inactivity.start()
 		#await asyncio.sleep(10)
 		#candids.start()
@@ -920,8 +923,7 @@ async def edimarket(item):
 
 # =========== Effectif ===========
 
-@tasks.loop(seconds = 3600)
-async def effectif():
+async def effectif(user):
 	guild = bot.get_guild(790367917812088864)
 	channel = await bot.fetch_channel(937006102653071452)
 	role_ids = {'Staff': [1068460789612163072,790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066,1011394095383580843],
@@ -947,7 +949,26 @@ async def effectif():
 			v_field = ", ".join([x.mention for x in role.members])
 				# _embed.add_field(name=role.name, value=v_field if v_field != '' else ' - ')
 			_embed.description += f"{role.mention} : {v_field}\n\n"
+	_embed.set_footer(text = f'Dernière actualisation par {user.name}#{user.discriminator}')
 	await message.edit(embed=_embed)
+
+class actueff(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actueff',emoji='\U0001f504')
+    async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await effectif(interaction.user)
+        await interaction.response.send_message("L'effectif à été actualisée",ephemeral=True) 
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def bloup(interaction: discord.Interaction):
+	channel = await bot.fetch_channel(937006102653071452)
+	message = await channel.fetch_message(937008348597997628)
+	await message.edit(view=actueff)
+	channel = await bot.fetch_channel(1075422356408909915)
+	message = await channel.fetch_message(1075436028644569129)
+	await message.edit(view=actueffrc)
 
 # =========== Recrutements ===========
 
@@ -1216,7 +1237,7 @@ class Formulaire2(discord.ui.Modal,title="Formulaire de candidature SD"):
 		with open('essaicandid.json', 'w') as f:
 			json.dump(es, f, indent=6)
 		await envoicandid(interaction.guild,interaction.user,data[0],data[1],data[2],data[3],data[4],self.av,self.sd,self.tryh,self.obj,self.dis)
-		await interaction.followup.edit(content='Vous avez bien postulé !')
+		await interaction.followup.edit_message(interaction.message.id,content='Vous avez bien postulé !')
 
 @bot.tree.command()
 async def sendrecru(interaction: discord.Interaction):
@@ -1241,12 +1262,21 @@ async def listerecru(interaction: discord.Interaction):
 @discord.app_commands.checks.has_permissions(manage_channels=True)
 async def resetlisterecru(interaction: discord.Interaction):
 	'''Reset la liste des recruteurs. Commande réservée aux membres du staff (hors Recruteurs)..'''
-	with open('Recrutements.json', 'r') as f:
-		RC = json.load(f)
-	RC['Recruteur'] = {"Total":{},"Candids": {},"Oral": {},"Phases": {},"Ecoute":{}}
-	with open('Recrutements.json', 'w') as f:
-		json.dump(RC, f, indent=6)
-	await interaction.response.send_message("Tout s'est bien passé")
+	await interaction.response.send_message(f"Confirmez-vous le reset de la liste recruteurs ?",ephemeral=True,view=confres())
+
+class confres(discord.ui.View):
+	def __init__(self) -> None:
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Confirmer", style=discord.ButtonStyle.green, custom_id='confre',emoji="\u2705")
+	async def reseeeeeeeeeeeeeee(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if 790675781789155329 not in [x.id for x in interaction.user.roles]:
+			await interaction.response.send_message(f":warning: Vous devez être <@&790675781789155329> pour faire ça !")
+		with open('Recrutements.json', 'r') as f:
+			RC = json.load(f)
+		RC['Recruteur'] = {"Total":{},"Candids": {},"Oral": {},"Phases": {},"Ecoute":{}}
+		with open('Recrutements.json', 'w') as f:
+			json.dump(RC, f, indent=6)
+		await interaction.response.send_message(f"Vous avez bien reset la liste des recruteurs")
 
 @bot.tree.command()
 async def refuse(interaction: discord.Interaction, member: discord.Member, *, raison:str):
@@ -1279,7 +1309,7 @@ async def accept(interaction: discord.Interaction, member: discord.Member):
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(move_members=True)
-async def oralyes(interaction: discord.Interaction, member: discord.Member):
+async def oralyes(interaction: discord.Interaction, member: discord.Member,parrain:discord.Member=None):
 	'''Accepter un oral. Commande réservée aux recruteurs.'''
 	await interaction.response.defer()
 	with open('Recrutements.json', 'r') as f:
@@ -1297,6 +1327,12 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	if str(member.id) not in RC['CA']:
 		await interaction.followup.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
+	if parrain != None:
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		pt[str(parrain.id)] += 1500
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
 	RC['CA'].pop(str(member.id))
 	RC["ET"][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
 	try:
@@ -1330,7 +1366,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member):
 	with open('Recrutements.json', 'w') as f:
 		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
-	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','pointphases.png']]
+	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','pointphases.png','liste_rankup.png']]
 	await member.send(embed=_embed,files=files_)
 	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
@@ -1582,9 +1618,7 @@ async def kickphases(interaction: discord.Interaction, member: discord.User, *, 
 		await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande kickphases pour ' + member))
 		await ban.send(embed=create_small_embed(member + ' est banni.e pendant deux semaines car iel à été kick des phases ',discord.Color.red()))
 	
-
-@tasks.loop(seconds = 3600)
-async def effectif_rc():
+async def effectif_rc(user):
 	channel = await bot.fetch_channel(1075422356408909915)
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
@@ -1593,7 +1627,16 @@ async def effectif_rc():
 	for type in a:
 		embed.add_field(name=f'{type} ({len(list(RC[type].keys()))})',value='\n'.join([f'<@{t[0]}> : {t[1]}' for t in RC[type].items()]),inline=False)
 	message = await channel.fetch_message(1075436028644569129)
+	embed.set_footer(text = f'Dernière actualisation par {user.name}#{user.discriminator}')
 	await message.edit(embed=embed)
+
+class actueffrc(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actueffrc',emoji='\U0001f504')
+    async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await effectif_rc(interaction.user)
+        await interaction.response.send_message("L'effectif à été actualisée",ephemeral=True) 
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(manage_channels=True)
@@ -2099,7 +2142,12 @@ async def chiffrecommande(member,channel):
 		return m.author == member and m.channel == channel
 	msg = await bot.wait_for('message', timeout=None,check=check)
 	try:
-		return int(msg.content)
+		a = int(msg.content)
+		if a>0:
+			return a
+		else:
+			await channel.send(':warning: Veuillez indiquer un chiffre positif')
+			return await chiffrecommande(member,channel)
 	except:
 		await channel.send(':warning: Veuillez indiquer un chiffre')
 		return await chiffrecommande(member,channel)
@@ -4197,11 +4245,10 @@ class blaccept(discord.ui.View):
 class actu(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actu',emoji='<a:TR_Online:1005062612138066010>')
+    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actu',emoji='\U0001f504')
     async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.message.edit(embed = await embed_blacklist(interaction.guild,interaction.user))
         await interaction.response.send_message('La blacklist à été actualisée',ephemeral=True) 
-
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator = True)
