@@ -926,7 +926,7 @@ async def edimarket(item):
 async def effectif(user):
 	guild = bot.get_guild(790367917812088864)
 	channel = await bot.fetch_channel(937006102653071452)
-	role_ids = {'Staff': [1068460789612163072,790675782569164820, 821787385636585513, 790675781789155329, 791426367362433066,1011394095383580843],
+	role_ids = {'Staff': [1068460789612163072,790675782569164820, 821787385636585513,1097579289223905370, 790675781789155329,1097580223895179364, 791426367362433066],
 				'Membres VIP': [790675782338740235, 790675782364037131, 790675783352975360],
 				'Membres +': [790675783549976579, 790675783693500456, 790675784120401932],
 				'Membres': [790675784225521734, 791066206437113897, 791066207418712094]}
@@ -934,7 +934,8 @@ async def effectif(user):
 	_embed = discord.Embed(
 		title='Voici notre effectif:',
 		description='',
-		color=discord.Color.magenta()
+		color=discord.Color.magenta(),
+		timestamp = datetime.now()
 	)
 	roles = {x: [] for x in role_ids}
 	for r_ids_obj in list(role_ids.items()):
@@ -959,16 +960,6 @@ class actueff(discord.ui.View):
     async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
         await effectif(interaction.user)
         await interaction.response.send_message("L'effectif à été actualisée",ephemeral=True) 
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def bloup(interaction: discord.Interaction):
-	channel = await bot.fetch_channel(937006102653071452)
-	message = await channel.fetch_message(937008348597997628)
-	await message.edit(view=actueff)
-	channel = await bot.fetch_channel(1075422356408909915)
-	message = await channel.fetch_message(1075436028644569129)
-	await message.edit(view=actueffrc)
 
 # =========== Recrutements ===========
 
@@ -1261,7 +1252,7 @@ async def listerecru(interaction: discord.Interaction):
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(manage_channels=True)
 async def resetlisterecru(interaction: discord.Interaction):
-	'''Reset la liste des recruteurs. Commande réservée aux membres du staff (hors Recruteurs)..'''
+	'''Reset la liste des recruteurs. Commande réservée aux membres du staff (hors Recruteurs).'''
 	await interaction.response.send_message(f"Confirmez-vous le reset de la liste recruteurs ?",ephemeral=True,view=confres())
 
 class confres(discord.ui.View):
@@ -1454,7 +1445,6 @@ async def inactivity():
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def majregl(interaction: discord.Interaction):
-	''''''
 	msg = await interaction.channel.fetch_message(965694400812441600)
 	await msg.edit(embed=discord.Embed(title="Bienvenue a tous.tes sur les serveur de la SweetDream, voici notre règlement :"
 										   ,description="__**Loi Française et règlement de discord**__\n"
@@ -1622,7 +1612,7 @@ async def effectif_rc(user):
 	channel = await bot.fetch_channel(1075422356408909915)
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
-	embed = discord.Embed(title="Effectif Recrutements")
+	embed = discord.Embed(title="Effectif Recrutements",timestamp = datetime.now())
 	a = ['CE','CA','ET',"En_attente_entree"]
 	for type in a:
 		embed.add_field(name=f'{type} ({len(list(RC[type].keys()))})',value='\n'.join([f'<@{t[0]}> : {t[1]}' for t in RC[type].items()]),inline=False)
@@ -3550,7 +3540,17 @@ async def blbl(interaction: discord.Interaction):
 					pt[str(mem.id)] = 3*(personne[1] - x[1])
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
-	await interaction.response.send_message('Finito') """
+	await interaction.response.send_message('Finito') 
+	
+	@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def bloup(interaction: discord.Interaction):
+	channel = await bot.fetch_channel(937006102653071452)
+	message = await channel.fetch_message(937008348597997628)
+	await message.edit(view=actueff())
+	channel = await bot.fetch_channel(1075422356408909915)
+	message = await channel.fetch_message(1075436028644569129)
+	await message.edit(view=actueffrc())"""
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
