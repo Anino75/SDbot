@@ -780,30 +780,20 @@ def create_small_embed(description=None, color=discord.Color.dark_gray()):
 async def editally(interaction: discord.Interaction):
 	'''Mettre a jour le #alliances-faction.'''
 	await edditally()
-	await interaction.response.send_message('Fait')
+	await interaction.response.send_message('Fait',ephemeral=True)
 
 async def edditally():
 	channel = bot.get_channel(797862044765388830)
 	message = await channel.fetch_message(967858924722196500)
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
-	ally = ''
-	truces = ''
-	pna = ''
-	for element in rela['ally'].items():
-		ally += f"\n{element[0]} - <@{''.join(list(element[1].keys()))}>"
-	if ally == '':
-		ally = "\nNous n'avons aucune alliance pour l'instant"
-	for element in rela['truce'].items():
-		truces += f"\n{element[0]} - <@{''.join(list(element[1].keys()))}>"
-	if truces == '':
-		truces = "\nNous n'avons aucune truces pour l'instant"
-	for element in rela['pna'].items():
-		pna += f"\n{element[0]} - <@{''.join(list(element[1].keys()))}>"
-	if pna == '':
-		pna = "\nNous n'avons aucun pacte de non agression pour l'instant"
-	await message.edit(embed=create_embed('Relations Factions',
-										f'Voici ici la liste de toutes nos relations :\n\n**Ally :**{ally}\n\n**Truces :**{truces}\n\n**Pacte de non agression :**{pna}',color=discord.Color.blue()))
+	msg = 'Voici ici la liste de toutes nos relations :'
+	l = ['Ally','Truce','PNA']
+	for x in l:
+		msg += f'\n\n**{x} :**'
+		for fac in rela[x.lower()].items():
+			msg += f"\n{fac[0]} - <@{fac[1][0]}>"
+	await message.edit(embed=create_embed(title='Relations Factions',description=msg,color=discord.Color.blue()))
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
@@ -1983,11 +1973,11 @@ class fermerticket(discord.ui.View):
 			io.BytesIO(transcript.encode()),
 			filename=f"transcript-{interaction.channel.name}.html",
 		)
-		ticket['auteurs'].pop(interaction.channel.name[-4:])
 		log = bot.get_channel(790721209305792553)
+		await log.send(f'ticket de <@{ticket["auteurs"][interaction.channel.name[-4:]]}>',embed=create_small_embed(f'Fermé par {interaction.user.mention}'),file=transcript_file)
+		ticket['auteurs'].pop(interaction.channel.name[-4:])
 		with open('tickets.json', 'w') as f:
 			json.dump(ticket, f, indent=6)
-		await log.send(file=transcript_file)
 		await interaction.channel.delete()
 
 @bot.tree.command()
@@ -2001,11 +1991,11 @@ async def close(interaction: discord.Interaction):
 		io.BytesIO(transcript.encode()),
 		filename=f"transcript-{interaction.channel.name}.html",
 	)
-	ticket['auteurs'].pop(interaction.channel.name[-4:])
 	log = bot.get_channel(790721209305792553)
+	await log.send(f'ticket de <@{ticket["auteurs"][interaction.channel.name[-4:]]}>',embed=create_small_embed(f'Fermé par {interaction.user.mention}'),file=transcript_file)
+	ticket['auteurs'].pop(interaction.channel.name[-4:])
 	with open('tickets.json', 'w') as f:
 		json.dump(ticket, f, indent=6)
-	await log.send(file=transcript_file)
 	await interaction.channel.delete()
 
 # =========== Economie ===========
@@ -2581,7 +2571,7 @@ class mis(discord.ui.Modal,title="Mise"):
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
 			await interaction.response.send_message(embed=embed,ephemeral=True)
 			changains = interaction.guild.get_channel(1075453615780663306)
-			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{mise}** DP à la roulette russe'))
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{mise}** DP au au premier tour de la roulette russe'))
 			return
 		else: #gain sans
 			embed = discord.Embed(
@@ -2626,7 +2616,7 @@ class contijouer(discord.ui.View):
 					)
 			embed.set_thumbnail(url='https://c.tenor.com/ZpBMkWyufhMAAAAC/dead.gif')
 			changains = interaction.guild.get_channel(1075453615780663306)
-			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{misedb}** DP à la roulette russe'))
+			await changains.send(embed=create_small_embed(f'Dommage... {interaction.user.mention} a perdu **{misedb}** DP au {nb} ieme tour de la roulette russe'))
 			await interaction.followup.edit_message(interaction.message.id,embed=embed,view=None)
 
 		elif nb == 5: #Max possible
@@ -2647,7 +2637,7 @@ class contijouer(discord.ui.View):
 				json.dump(cas, f, indent=6)
 			embed.set_thumbnail(url='https://tenor.com/view/wealthy-rich-money-rain-money-money-money-fan-gif-14057775')
 			changains = interaction.guild.get_channel(1075453615780663306)
-			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP à la roulette russe'))
+			await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP au {nb} ieme tour de la roulette russe'))
 			await interaction.followup.edit_message(interaction.message.id,embed=embed,view=None)
 
 		else: #gain sans 
@@ -2668,7 +2658,8 @@ class contijouer(discord.ui.View):
 		with open('casino.json', 'r') as f:
 			cas = json.load(f)
 		misedb = cas[str(interaction.message.id)][0]
-		mise = calculmiseroule(misedb,cas[str(interaction.message.id)][1])
+		nb = cas[str(interaction.message.id)][1]
+		mise = calculmiseroule(misedb,nb)
 		with open('casino.json', 'r') as f:
 			cas = json.load(f)
 		cas.pop(str(interaction.message.id))
@@ -2680,7 +2671,7 @@ class contijouer(discord.ui.View):
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
 		changains = interaction.guild.get_channel(1075453615780663306)
-		await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP à la roulette russe'))
+		await changains.send(embed=create_small_embed(f'Félicitation à {interaction.user.mention} qui a gagné **{mise-misedb}** DP au {nb} ieme tour de la roulette russe'))
 		await interaction.response.edit_message(embed=create_small_embed(f'Vous avez arrete la partie et avez gagné {mise} DP'),view=None)
 
 class Machineasous(discord.ui.View):
@@ -3023,6 +3014,16 @@ async def reset(interaction: discord.Interaction,res:str):
 	with open('economie.json', 'w') as f:
 		json.dump(Eco, f, indent=6)
 	await interaction.response.send_message("Tout s'est bien passé")
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def say(interaction: discord.Interaction,message:str,salon:discord.TextChannel=None,personne:discord.Member=None):
+	'''Faire parler le bot. Commande réservée aux HG.'''
+	if salon != None:
+		await salon.send(message)
+	if personne != None:
+		await personne.send(message)
+	await interaction.response.send_message("Tout s'est bien passé",ephemeral=True)
 
 # =========== Relation Faction ===========
 
@@ -3710,7 +3711,11 @@ class confach(discord.ui.View):
 		salon = interaction.guild.get_channel(1034854483911512115)
 		with open('Recrutements.json', 'r') as f:
 			RC = json.load(f)
-		await salon.send(f"{interaction.user.mention} veut un {self.voeu}. Date d'arrivée : {RC['Fait'][str(interaction.user.id)][0][8:10]}/{RC['Fait'][str(interaction.user.id)][0][5:7]}/{RC['Fait'][str(interaction.user.id)][0][0:4]}")
+		if str(interaction.user.id) in RC['Fait']:
+			await salon.send(f"{interaction.user.mention} veut un {self.voeu}. Date d'arrivée : {RC['Fait'][str(interaction.user.id)][0][8:10]}/{RC['Fait'][str(interaction.user.id)][0][5:7]}/{RC['Fait'][str(interaction.user.id)][0][0:4]}")
+		else:
+			await salon.send(f"{interaction.user.mention} veut un {self.voeu}. Aucune date d'arrivée dans la base de donnée.")
+
 		with open ('points.json','w') as f:
 			json.dump(pt,f,indent=6)
 		await interaction.response.send_message(f"Votre demande d'achat de {self.voeu} à été prise en compte. Sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\n- Vous demandez plus d'un rankup a la fois (Pour les rankups)\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n",ephemeral=True)
@@ -3743,7 +3748,7 @@ async def sleep(interaction: discord.Interaction) -> None:
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /sleep')
+	await logs.send(f'{interaction.user.mention} a gagné `{nombre}` points pour  avoir /sleep')
 	messages =[f"Félicitations ! Vous avez pris soin de vous en vous reposant bien et vous avez gagné {nombre} points.",
 f"Excellent travail ! Vous avez suivi les conseils de votre médecin et vous avez gagné {nombre} points pour votre temps de repos.",
 f"Bravo pour votre engagement envers votre santé mentale et physique ! Vous avez pris le temps de vous reposer et vous avez gagné {nombre} points.",
@@ -3797,7 +3802,7 @@ async def work(interaction: discord.Interaction) -> None:
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /work')
+	await logs.send(f'{interaction.user.mention} a gagné `{nombre}` points pour  avoir /work')
 	messages = [f"Bravo ! Vous avez terminé cette tâche avec succès et vous avez gagné {nombre} points.",
 		f"Félicitations ! Vous avez été très productif aujourd'hui et vous avez gagné {nombre} points supplémentaires.",
 		f"Excellente performance ! Vous avez mérité {nombre} points pour votre travail acharné.",
@@ -3851,7 +3856,7 @@ async def crime(interaction: discord.Interaction) -> None:
 	with open ('points.json','w') as f:
 		json.dump(pt,f,indent=6)
 	logs = interaction.guild.get_channel(1026567820311531550)
-	await logs.send(f'{interaction.user.mention} à gagné `{nombre}` points pour  avoir /crime')
+	await logs.send(f'{interaction.user.mention} a gagné `{nombre}` points pour  avoir /crime')
 	if nombre < 0:
 		messages = [f"Malheureusement, votre tentative de braquage a échoué et vous avez été capturé par la sécurité avant de pouvoir atteindre le coffre-fort. Vous laissez tomber {-nombre} points pendant votre fuite",
 f"Votre plan de vol à main armée a été découvert avant même que vous ne puissiez entrer dans la banque, et vous avez dû fuir les lieux en catastrophe. Dans une fusillade, la police vous touche mais la balle est arrétée par le lingot de {-nombre} points dans votre poche, le détruisant mais vous laissant en vie.",
@@ -4357,9 +4362,7 @@ async def on_message(message):
 		return
 	if isinstance(message.channel, discord.DMChannel): # dont allow dm channel
 		anino = await bot.fetch_user(790574682294190091)
-		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message.content}')
-		if message.content.startswith('SD'):
-			await message.author.send("Vous ne pouvez pas m'utiliser en message privé !")
+		await anino.send(f'message de {message.author.mention} ({message.author.name}) : {message.content}\n\nLien : {message.jump_url}',files=[await x.to_file() for x in message.attachments])
 		return
 	bonj = bot.get_channel(811653900611354704)
 	if message.channel == bonj:
@@ -4385,7 +4388,7 @@ async def on_message(message):
 				json.dump(pt,f,indent=6)
 			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
 			logs = bot.get_channel(1026567820311531550)
-			await logs.send(f'{message.author.mention} à gagné `20` points pour bonjour tlm ')
+			await logs.send(f'{message.author.mention} a gagné `20` points pour bonjour tlm ')
 	await bot.process_commands(message)
 '''if str(message.author.id) in list(interviews['Wait']):
 			interviews['Wait'].pop(str(message.author.id))
