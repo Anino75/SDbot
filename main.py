@@ -32,7 +32,7 @@ class PersistentViewBot(commands.Bot):
 		super().__init__(command_prefix=commands.when_mentioned_or('SD'), help_command=None, case_insensitive=True, intents=intents)
 	async def setup_hook(self) -> None:
 		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
-	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),IsAlly(),candid(0),page(),
+	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),candid(0),page(),
 	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview(),actueff(),actueffrc()]
 		for element in views:
 			self.add_view(element)
@@ -199,7 +199,7 @@ async def voc():
 	for channel in guild.voice_channels:
 		role_fac = guild.get_role(ID_role_fac)
 		touriste = guild.get_role(ID_role_touriste)
-		if len(channel.members)-1 > [mem.bot for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_deaf for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.deaf for mem in channel.members].count(True) and channel.user_limit > 3 and (channel.permissions_for(touriste).connect or channel.permissions_for(role_fac).connect):
+		if len(channel.members)-1 > [await infac(mem) for mem in channel.members].count(False) and len(channel.members)-1 > [mem.bot for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_mute for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.self_deaf for mem in channel.members].count(True) and len(channel.members)-1 > [mem.voice.deaf for mem in channel.members].count(True) and channel.user_limit > 3 and (channel.permissions_for(touriste).connect or channel.permissions_for(role_fac).connect):
 			for member in channel.members:
 				if len(channel.members)>1 and member.voice.mute == False and member.voice.self_mute == False and member.voice.deaf == False and member.voice.self_deaf == False and member.bot == False:
 					if str(member.id) in voc["total"].keys():
@@ -1364,19 +1364,26 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member,parra
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(move_members=True)
-async def oralno(interaction: discord.Interaction, member: discord.Member):
+async def oralno(interaction: discord.Interaction, member: discord.Member,raison:str,ban_en_jours:int,parrain:discord.Member=None):
 	'''Refuser un oral. Commande réservée aux recruteurs.'''
+	interaction.response.defer()
 	with open('Recrutements.json', 'r') as f:
 		RC = json.load(f)
+	if parrain != None:
+		with open('points.json', 'r') as f:
+			pt = json.load(f)
+		pt[str(parrain.id)] += 1500
+		with open('points.json', 'w') as f:
+			json.dump(pt, f, indent=6)
 	_embed = discord.Embed(title = "Recrutements",
-							description ="Bonjour,\nMalheureusement ton entretien oral n'a pas été accepté mais tu "
-										 "pourras refaire une candidature écrite dans 2 semaines. \nCordialement,\n"
+							description =f"Bonjour,\nMalheureusement ton entretien oral n'a pas été accepté pour la raison suivante : {raison}. Tu "
+										 f"pourras refaire une candidature écrite dans {ban_en_jours} jours. \nCordialement,\n"
 										 "Le staff Recrutement SweetDream."
 							)
 	role = interaction.guild.get_role(790675784901197905)
 	await member.remove_roles(role, reason=f'Fait par {interaction.user.nick}')
 	if str(member.id) not in RC['CA']:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
+		await interaction.followup.send(embed=create_small_embed(":warning: Cet utilisateur n'est pas en attente d'entretien !"))
 		return
 	RC['CA'].pop(str(member.id))
 	try:
@@ -1409,9 +1416,9 @@ async def oralno(interaction: discord.Interaction, member: discord.Member):
 		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralno pour ' + member.mention))
-	await ban.send(embed=create_small_embed(member.mention + 'est banni pendant deux semaines car iel à été refusé.e en entretien',discord.Color.red()))
+	await ban.send(embed=create_small_embed(f'{member.mention} est banni pendant {ban_en_jours} jours car iel à été refusé.e en entretien pour {raison}',discord.Color.red()))
 
 @tasks.loop(seconds = 86400)
 async def inactivity():
@@ -2491,8 +2498,9 @@ async def removeitem(interaction: discord.Interaction,id:str,):
 @discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
 async def claim(interaction: discord.Interaction):
 	'''Claim une commande. Commande réservée aux vendeurs.'''
+	await interaction.response.defer()
 	if interaction.channel.name[:8] != "commande":
-		await interaction.response.send_message(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
+		await interaction.followup.send(embed=create_small_embed(":warning: Cette commande ne peut etre utilisée que dans une commande !", discord.Color.red()))
 		return
 	await compte(interaction.user)
 	vendeur = interaction.guild.get_role(960180290683293766)
@@ -2501,7 +2509,7 @@ async def claim(interaction: discord.Interaction):
 	await interaction.channel.set_permissions(resp,read_messages=True, send_messages=True)
 	await interaction.channel.set_permissions(vendeur,overwrite= None)
 	await interaction.channel.edit(name="✅"+interaction.channel.name)
-	await interaction.response.send_message("Vous avez bien pris en charge cette commande")
+	await interaction.followup.send("Vous avez bien pris en charge cette commande")
 
 @bot.tree.command()
 @discord.app_commands.checks.has_any_role(960180290683293766,821787385636585513,790675782569164820)
@@ -3020,59 +3028,18 @@ async def reset(interaction: discord.Interaction,res:str):
 
 @bot.tree.command()
 @discord.app_commands.checks.has_permissions(administrator=True)
-async def addpna(interaction: discord.Interaction,faction:str,member:discord.Member):
-	'''Ajouter un pna. Commande réservée aux HG.'''
-	if not faction:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
-		return
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
-		return
-	with open('rela.json', 'r') as f:
-		rela = json.load(f)
-	rela["pna"][faction] = {member.id:[]}
-	with open('rela.json', 'w') as f:
-		json.dump(rela, f, indent=6)
-	await edditally()
-	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def addtruce(interaction: discord.Interaction,faction:str,member:discord.Member):
-	'''Ajouter une truce. Commande réservée aux HG.'''
-	if not faction:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
-		return
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
-		return
-	with open('rela.json', 'r') as f:
-		rela = json.load(f)
-	rela["truce"][faction] = {member.id:[]}
-	with open('rela.json', 'w') as f:
-		json.dump(rela, f, indent=6)
-	role = interaction.guild.get_role(790675785412640768)
-	await member.add_roles(role)
-	await edditally()
-	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
-
-@bot.tree.command()
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def addally(interaction: discord.Interaction,faction:str,member:discord.Member):
+async def addrela(interaction: discord.Interaction,relation:str,faction:str,ambassadeur:discord.Member):
 	'''Ajouter une ally. Commande réservée aux HG.'''
-	if not faction:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de faction !",discord.Color.red()))
-		return
-	if not member:
-		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié d'Ambassadeur !",discord.Color.red()))
-		return
 	with open('rela.json', 'r') as f:
 		rela = json.load(f)
-	rela["ally"][faction] = {member.id:[]}
+	if relation not in rela.keys():
+		await interaction.response.send_message("Merci d'indiquer comme relation 'pna','truce' ou 'ally'",ephemeral=True)
+		return
+	rela[relation][faction] = [ambassadeur.id]
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
 	role = interaction.guild.get_role(790675785412640768)
-	await member.add_roles(role)
+	await ambassadeur.add_roles(role)
 	await edditally()
 	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
 
@@ -3089,23 +3056,14 @@ async def endally(interaction: discord.Interaction,faction:str):
 		for fac in type[1].items():
 			if faction == fac[0]:
 				typ = type[0]
-				for id in fac[1].keys():
-					memberid = id
-	mem = interaction.guild.get_member(memberid)
-	try:
-		ally = interaction.guild.get_role(790675785412640768)
-		await mem.remove_roles(ally)
-		await mem.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
-	except:
-		pass
-	for personne in rela[typ][faction][memberid]:
-		try:
-			member = interaction.guild.get_member(int(personne))
-			ally = interaction.guild.get_role(790675785412640768)
-			await member.remove_roles(ally)
-			await member.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
-		except:
-			pass
+				for id in fac[1]:
+					try:
+						mem = interaction.guild.get_member(id)
+						ally = interaction.guild.get_role(790675785412640768)
+						await mem.remove_roles(ally)
+						await mem.send(f'Notre alliance étant terminée votre grade {ally.mention} vous a été retiré')
+					except:
+						pass
 	rela[typ].pop(faction)
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
@@ -3113,7 +3071,30 @@ async def endally(interaction: discord.Interaction,faction:str):
 	await interaction.response.send_message(embed=create_small_embed('Vous avez retiré cette faction de la liste avec succès'))
 
 @bot.tree.command()
-async def addmember(interaction: discord.Interaction,member:discord.Member,faction:str):
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def editambassadeur(interaction: discord.Interaction,relation:str,faction:str,ambassadeur:discord.Member):
+	'''modifier l'ambassadeur d'une alliance, quelle qu'elle soit. Commande réservée aux HG.'''
+	with open('rela.json', 'r') as f:
+		rela = json.load(f)
+	if relation not in rela.keys():
+		await interaction.response.send_message("Merci d'indiquer comme relation 'pna','truce' ou 'ally'",ephemeral=True)
+		return
+	if faction not in rela[relation].keys():
+		await interaction.response.send_message("La faction précisée n'a pas la relation précisée",ephemeral=True)
+		return
+	while ambassadeur.id in rela[relation][faction]:
+		rela[relation][faction].remove(ambassadeur.id)
+	rela[relation][faction] = [ambassadeur.id]+rela[relation][faction]
+	
+	with open('rela.json', 'w') as f:
+		json.dump(rela, f, indent=6)
+	role = interaction.guild.get_role(790675785412640768)
+	await ambassadeur.add_roles(role)
+	await edditally()
+	await interaction.response.send_message(embed=create_small_embed('Vous avez ajouté cette faction à la liste avec succès'))
+
+@bot.tree.command()
+async def addmember(interaction: discord.Interaction,member:discord.Member):
 	'''Ajouter un membre à votre faction pour leur donner le role "Ally/Truces". Commande réservée aux chefs de faction alliées.'''
 	if not member:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'avez pas spécifié de membre à ajouter !",discord.Color.red()))
@@ -3122,24 +3103,24 @@ async def addmember(interaction: discord.Interaction,member:discord.Member,facti
 		rela = json.load(f)
 	for type in rela.items():
 		for fac in type[1].items():
-			if str(interaction.user.id) in fac[1].keys():
-				faction = fac[0]
+			if interaction.user.id == fac[1][0]:
 				typ = type[0]
+				faction = fac[0]
 	try:
-		if not typ or not faction:
+		if not typ:
 			await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
 			return
 	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
 		return
-	if member.id in rela[typ][faction][str(interaction.user.id)]:
-		await interaction.response.send_message('Cette personne est déjà dans notre base de donnée.')
-	else:
-		rela[typ][faction][str(interaction.user.id)].append(member.id)
-	with open('rela.json', 'w') as f:
-		json.dump(rela, f, indent=6)
 	role = interaction.guild.get_role(790675785412640768)
 	await member.add_roles(role)
+	if member.id in rela[typ][faction]:
+		await interaction.response.send_message('Cette personne est déjà dans notre base de donnée.')
+	else:
+		rela[typ][faction].append(member.id)
+	with open('rela.json', 'w') as f:
+		json.dump(rela, f, indent=6)
 	await interaction.response.send_message(embed=create_small_embed(f'Vous avez ajouté {member.mention} à votre faction avec succès'))
 
 @bot.tree.command()
@@ -3152,23 +3133,29 @@ async def removemember(interaction: discord.Interaction,member:discord.Member,fa
 		rela = json.load(f)
 	for type in rela.items():
 		for fac in type[1].items():
-			if str(interaction.user.id) in fac[1].keys():
-				faction = fac[0]
+			if interaction.user.id == fac[1][0]:
 				typ = type[0]
-	if not typ or not faction:
+				faction = fac[0]
+	try:
+		if not typ:
+			await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
+			return
+	except:
 		await interaction.response.send_message(embed=create_small_embed(":warning: Vous n'etes pas un Ambassadeur !",discord.Color.red()))
 		return
-	if member.id in rela[typ][faction][str(interaction.user.id)]:
-		rela[typ][faction][str(interaction.user.id)].remove(member.id)
+	
+	if member.id not in rela[typ][faction]:
+		await interaction.response.send_message("Cette personne n'est pas dans votre faction.")
+		return
 	else:
-		await interaction.response.send_message("Cette personne n'est pas dans notre base de donnée.")
+		rela[typ][faction].remove(member.id)
+		role = interaction.guild.get_role(790675785412640768)
+		await member.remove_roles(role)
 	with open('rela.json', 'w') as f:
 		json.dump(rela, f, indent=6)
-	role = interaction.guild.get_role(790675785412640768)
-	await member.remove_roles(role)
-	await interaction.response.send_message(embed=create_small_embed(f'Vous avez enlevé {member.mention} de votre faction avec succès'))
+	await interaction.response.send_message(embed=create_small_embed(f'Vous avez retiré {member.mention} de votre faction avec succès'))
 
-@bot.tree.command()
+"""@bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 86400)
 async def askally(interaction: discord.Interaction,faction:str):
 	'''Demander à votre chef de faction le role "Ally/Truces". Cooldown de 4 heures pour eviter le spam.'''
@@ -3234,7 +3221,7 @@ class IsAlly(discord.ui.View):
 		member = guild.get_member(int(interaction.message.content[2:20]))
 		await member.send("Votre demande de grade \"ally\" n'a pas pu aboutir car votre chef n'a pas confirmé que vous etiez de la faction")
 		await interaction.response.send_message(f"{member.mention} n'a pas été ajouté")
-		await interaction.message.delete()
+		await interaction.message.delete()"""
 
 """ @bot.event
 async def on_member_join(member):
@@ -3721,7 +3708,9 @@ class confach(discord.ui.View):
 			await interaction.response.send_message("Vous n'avez pas assez de points pour cela !",ephemeral=True)
 			return
 		salon = interaction.guild.get_channel(1034854483911512115)
-		await salon.send(f"{interaction.user.mention} veut un {self.voeu}")
+		with open('Recrutements.json', 'r') as f:
+			RC = json.load(f)
+		await salon.send(f"{interaction.user.mention} veut un {self.voeu}. Date d'arrivée : {RC['Fait'][str(interaction.user.id)][0][8:10]}/{RC['Fait'][str(interaction.user.id)][0][5:7]}/{RC['Fait'][str(interaction.user.id)][0][0:4]}")
 		with open ('points.json','w') as f:
 			json.dump(pt,f,indent=6)
 		await interaction.response.send_message(f"Votre demande d'achat de {self.voeu} à été prise en compte. Sachez qu'elle peut etre rejetée si :\n- Vous avez récemment enfreint le règlement\n- un hg à mis son véto sur votre demande\n- Vous demandez plus d'un rankup a la fois (Pour les rankups)\n\nSi votre demande est refusée vous en serez avertis et vos points seront remboursés, sinon vous serez rankup lors de la prochaine vague.\n\n",ephemeral=True)
