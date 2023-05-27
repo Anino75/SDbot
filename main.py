@@ -33,7 +33,7 @@ class PersistentViewBot(commands.Bot):
 	async def setup_hook(self) -> None:
 		views = [PersistentView(),fermerticket(),PvPView(),farmView(),mineraisView(),alchimisteView(),livresView(),machinesView(),outilsView(),
 	   servicesView(),pillagesView(),basesclaimView(),RouleR(),contijouer(),roulette(),rouleView({},0),regl(),candid(0),page(),
-	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview(),actueff(),actueffrc()]
+	   NombreView(0),ench(),vend(),pagecl(),actu(),boutonform(),boutonform2(),autoview([],[]),blackjackview(),actueff(),actueffrc(),vubcview()]
 		for element in views:
 			self.add_view(element)
 
@@ -944,12 +944,36 @@ async def effectif(user):
 	await message.edit(embed=_embed)
 
 class actueff(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-    @discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actueff',emoji='\U0001f504')
-    async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await effectif(interaction.user)
-        await interaction.response.send_message("L'effectif à été actualisée",ephemeral=True) 
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Actualiser", style=discord.ButtonStyle.green, custom_id='actueff',emoji='\U0001f504')
+	async def actu(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await effectif(interaction.user)
+		await interaction.response.send_message("L'effectif à été actualisée",ephemeral=True) 
+
+
+@bot.tree.command()
+@discord.app_commands.checks.has_permissions(manage_channels=True)
+async def vubc(interaction: discord.Interaction,projet:str):
+	'''Ajouter un système de passage dans une BC. Commande réservée aux membres du staff (hors Recruteurs).'''
+	await interaction.response.send_message(embed=discord.Embed(title=f'BC projet {projet}',description=f"**Dernier passage :** {interaction.user.mention}\n\n**État :** Personne autour de la base",timestamp=datetime.now(),color=discord.Color.green()),view=vubcview())
+
+class vubcview(discord.ui.View):
+	def __init__(self):
+		super().__init__(timeout=None)
+	@discord.ui.button(label="Personne", style=discord.ButtonStyle.green, custom_id='personneautourbase')#,emoji='\U0001f504'
+	async def personnautourbase(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for emb in interaction.message.embeds:
+			await interaction.response.edit_message(embed=discord.Embed(title=f'{emb.title}',description=f"**Dernier passage :** {interaction.user.mention}\n\n**État :** Personne autour de la base",timestamp=datetime.now(),color=discord.Color.green()))
+	@discord.ui.button(label="Des gens autour", style=discord.ButtonStyle.gray, custom_id='gensautourbase')
+	async def gensautourbas(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for emb in interaction.message.embeds:
+			await interaction.response.edit_message(embed=discord.Embed(title=f'{emb.title}',description=f"**Dernier passage :** {interaction.user.mention}\n\n**État :** Des gens autour de la base",timestamp=datetime.now(),color=discord.Color.orange())) 
+	@discord.ui.button(label="Assaut en cours", style=discord.ButtonStyle.red, custom_id='assauttttt')
+	async def assautttt(self, interaction: discord.Interaction, button: discord.ui.Button):
+		for emb in interaction.message.embeds:
+			await interaction.channel.send(f'@everyone {interaction.user.mention} à signalé un assaut en cours sur le projet {emb.title}')
+			await interaction.response.edit_message(embed=discord.Embed(title=f'{emb.title}',description=f"**Dernier passage :** {interaction.user.mention}\n\n**État :** Personne autour de la base",timestamp=datetime.now(),color=discord.Color.red())) 
 
 # =========== Recrutements ===========
 
@@ -1269,7 +1293,7 @@ async def refuse(interaction: discord.Interaction, member: discord.Member, *, ra
 		await interaction.response.send_message(embed=create_small_embed(":warning: Ce membre n'est pas sur le discord !",discord.Color.red()))
 		return
 	log = bot.get_channel(831615469134938112)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(await refcandid(member,interaction.user,raison))
 
 @bot.tree.command()
@@ -1314,6 +1338,12 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member,parra
 		pt[str(parrain.id)] += 1500
 		with open('points.json', 'w') as f:
 			json.dump(pt, f, indent=6)
+		logs = interaction.guild.get_channel(1026567820311531550)
+		await logs.send(f'{parrain.mention} à gagné `1.500` points à pour le parrainage de {member.mention}')
+		try:
+			await parrain.send(f'Vous avez reçu 1.500 DP pour la parrainage de {member.mention}')
+		except:
+			pass
 	RC['CA'].pop(str(member.id))
 	RC["ET"][str(member.id)] = datetime.now().strftime('%d/%m/%Y')
 	try:
@@ -1349,7 +1379,7 @@ async def oralyes(interaction: discord.Interaction, member: discord.Member,parra
 	log = bot.get_channel(831615469134938112)
 	files_ = [discord.File(fp) for fp in ['DreamPoints.png','liste_quotas.png','pointphases.png','liste_rankup.png']]
 	await member.send(embed=_embed,files=files_)
-	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralyes pour ' + member.mention))
 
 @bot.tree.command()
@@ -1406,7 +1436,7 @@ async def oralno(interaction: discord.Interaction, member: discord.Member,raison
 		json.dump(RC, f, indent=6)
 	log = bot.get_channel(831615469134938112)
 	ban = bot.get_channel(801163722650419200)
-	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.followup.send(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(interaction.user.mention + ' à éxécuté la commande oralno pour ' + member.mention))
 	await ban.send(embed=create_small_embed(f'{member.mention} est banni pendant {ban_en_jours} jours car iel à été refusé.e en entretien pour {raison}',discord.Color.red()))
 
@@ -1681,7 +1711,7 @@ async def warn(interaction: discord.Interaction, member : discord.Member, *, rai
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(f"{member.mention} à été warn par {interaction.user.mention} pour {raison}"))
 
 @bot.tree.command()
@@ -1716,7 +1746,7 @@ async def unwarn(interaction: discord.Interaction, member : discord.Member, nbw:
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(f"{member.mention} à été unwarn par {interaction.user.mention} pour {raison}"))
 
 @bot.tree.command()
@@ -1730,11 +1760,9 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 	_embed = discord.Embed(title="Blame",
 						   description="Vous venez de recevoir un blâme sur le serveur SweetDream pour la raison "
 									   f"suivante : {raison}\nLes blames sont de très lourdes sanctions, pour vous "
-										"racheter vous devrez donc payer :\n__Au premier :__ 100.000 obsidian, 128 "
-										"blocs de paladium, 100.000$ et un dérank faction.\n__Pour le second blâme__ vous vous verrez "
-										"**triple derank** de la faction ainsi qu'une punition de 200.000 "
-										"obsidian, quatre stacks de blocs de pala et 200.000$\n__Au "
-										"bout de 3 blâmes__ vous serez **banni** de la faction**")
+										"racheter vous devrez donc payer :\n__Au premier :__ 25 000 hardened\n50 000 sables\n64 spikes en paladium\n128 spikes en titane\n128 spikes en améthyste\n200 Big Obsi\n200 Slime Obsi\n250 slime pad\n64 Enclume pala\n128 Enclume titane\n192 Enclume amé\n64 Bloc de pala\n64 Bloc de titane\n64 Bloc amé\n300 fake water (dans un drawer)\n50 000$ et un **dérank faction.**\n__Pour le second blâme__ vous vous verrez "
+										"**triple derank** de la faction et vous devrez farmer le double du catalogue du dessus.\n__Au "
+										"bout de 3 blâmes,__ vous serez **banni** de la faction**")
 	with open('warnblame.json', 'r') as f:
 		wb = json.load(f)
 	try:
@@ -1745,7 +1773,7 @@ async def blame(interaction: discord.Interaction, member : discord.Member, *, ra
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(member.mention+ ' à été blamé par ' +interaction.user.mention+" pour "+raison))
 
 @bot.tree.command()
@@ -1779,7 +1807,7 @@ async def unblame(interaction: discord.Interaction, member : discord.Member, nbw
 		json.dump(wb, f, indent=6)
 	await member.send(embed=_embed)
 	log = bot.get_channel(944296375007477811)
-	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à' + member.mention))
+	await interaction.response.send_message(embed=create_small_embed('Le message a bien été envoyé à ' + member.mention))
 	await log.send(embed=create_small_embed(member.mention+ ' à été unblame par ' +interaction.user.mention+" pour "+raison))
 
 @bot.tree.command()
@@ -3629,6 +3657,7 @@ class achadp(discord.ui.Select):
 				discord.SelectOption(label='Emoji perso',description='20.000 DP',value='Emoji perso',emoji='<:derp:804803664824238080>'),
 				discord.SelectOption(label='Rôle lien',description='10.000 DP',value='Rôle lien',emoji='\U0001f517'),
 				discord.SelectOption(label='Rôle citations',description='10.000 DP',value='Rôle citations',emoji='\U0001fab6'),
+				discord.SelectOption(label='Rôle soundboard',description='50.000 DP',value='Rôle soundboard',emoji='\U0001f4e2'),
 				discord.SelectOption(label='Histoire perso',description='10.000 DP',value='Histoire perso',emoji='\U0001f4dc')]
 		super().__init__(placeholder='Achats', min_values=1, max_values=1, options=options, custom_id='achdp')
 	async def callback(self, interaction: discord.Interaction):
@@ -3655,6 +3684,8 @@ class achadp(discord.ui.Select):
 			await interaction.response.send_modal(emojgr(self.values[0]))
 		elif self.values[0] == 'Rôle lien' or self.values[0] == 'Rôle citations' or self.values[0] == 'Histoire perso':
 			await interaction.response.send_message(f"Confirmez-vous l'achat d'un {self.values[0]} pour 10.000 DP ?",ephemeral=True,view=confach(self.values[0],10000))
+		elif self.values[0] == 'Rôle soundboard':
+			await interaction.response.send_message(f"Confirmez-vous l'achat d'un {self.values[0]} pour 50.000 DP ?",ephemeral=True,view=confach(self.values[0],50000))
 
 
 class emojgr(discord.ui.Modal, title='Demande de recompense personalisée'):
@@ -3727,6 +3758,10 @@ async def sleep(interaction: discord.Interaction) -> None:
 	if not await infac(interaction.user):
 		await interaction.response.send_message('Il faut etre dans la fac pour utiliser cette commande !',ephemeral=True)
 		return
+	if interaction.channel.name[:3] == '『🍺』':
+		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
+		return
+	await interaction.response.defer()
 	nombre = random.randint(100,200)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3769,7 +3804,7 @@ f"Félicitations pour avoir pris soin de vous ! Vous avez gagné {nombre} points
 f"Excellent travail ! Vous avez été proactif en prenant le temps de vous reposer et vous avez gagné {nombre} points supplémentaires.",
 f"Super ! Vous avez été sage en prenant le temps de vous reposer et vous avez gagné {nombre} points.",
 f"Bravo pour votre engagement envers une vie équilibrée ! Vous avez gagné {nombre} points pour votre choix de vous reposer."]
-	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
+	await interaction.followup.send(messages[random.randint(0,len(messages)-1)])
 
 @bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 86400)
@@ -3781,6 +3816,7 @@ async def work(interaction: discord.Interaction) -> None:
 	if interaction.channel.name[:3] == '『🍺』':
 		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
 		return
+	await interaction.response.defer()
 	nombre = random.randint(5,25)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3823,7 +3859,7 @@ async def work(interaction: discord.Interaction) -> None:
 		f"Excellent travail ! Vous avez été très efficace aujourd'hui et vous avez gagné {nombre} points supplémentaires.",
 		f"Super ! Vous avez surmonté un obstacle difficile avec succès et vous avez gagné {nombre} points.",
 		f"Bravo pour votre persévérance ! Vous avez travaillé dur malgré les défis et vous avez gagné {nombre} points."]
-	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
+	await interaction.followup.send(messages[random.randint(0,len(messages)-1)])
 
 @bot.tree.command()
 @discord.app_commands.checks.cooldown(1, 3600)
@@ -3835,6 +3871,7 @@ async def crime(interaction: discord.Interaction) -> None:
 	if interaction.channel.name[:3] == '『🍺』':
 		await interaction.response.send_message('Vous ne pouvez pas utiliser cette commande dans ce channel',ephemeral=True)
 		return
+	await interaction.response.defer()
 	nombre = random.randint(-10,15)
 	with open ('points.json','r') as f:
 		pt = json.load(f)
@@ -3892,7 +3929,7 @@ f"Vous avez réussi votre casse avec succès et vous avez obtenu les information
 f"Le cambriolage s'est déroulé sans accroc et vous avez réussi à voler l'ordinateur contenant les données sensibles ! Vous les revendez sur le dark net pour {nombre} points",
 f"Vous avez brillamment mené à bien votre braquage de supérette et vous êtes reparti avec des provisions pour plusieurs semaines valant {nombre} points !",
 f"Le hold-up de la galerie d'art a été un véritable succès et vous avez pu repartir avec des tableaux de maître d'une valeur de {nombre} points !"]
-	await interaction.response.send_message(messages[random.randint(0,len(messages)-1)])
+	await interaction.followup.send(messages[random.randint(0,len(messages)-1)])
 
 @bot.tree.command()
 async def histoires(interaction: discord.Interaction,personne:str):
@@ -4389,6 +4426,13 @@ async def on_message(message):
 			await message.author.send('Vous avez gagné 20 points de bonjour tlm')
 			logs = bot.get_channel(1026567820311531550)
 			await logs.send(f'{message.author.mention} a gagné `20` points pour bonjour tlm ')
+	elif message.channel.id == 790705879056908320:
+		if len(message.attachments) == 0:
+			a = await message.channel.send('Merci de ne mettre que des photos dans ce channel, pour ecrire vous pouvez utiliser les fils')
+			await discord.utils.sleep_until(datetime.now()+timedelta(seconds=10))
+			await a.delete()
+			await message.delete()
+
 	await bot.process_commands(message)
 '''if str(message.author.id) in list(interviews['Wait']):
 			interviews['Wait'].pop(str(message.author.id))
