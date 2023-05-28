@@ -2214,7 +2214,7 @@ class Formula2(discord.ui.Modal,title="Formulaire de candidature SD Shop"):
 	async def on_submit(self, interaction: discord.Interaction) -> None:
 		await interaction.response.defer()
 		env = bot.get_channel(1112077567156031600)
-		await env.send(f'Experience : {self.pseudo}\nRichesse : {self.anpseudo}\nMétiers : {self.pbo}\nMotivation : {self.description}\nQualités : {self.quest}',view=candidrrr(interaction.user.id))
+		await env.send(f'Pseudo : {interaction.user.mention}\nExperience : {self.pseudo}\nRichesse : {self.anpseudo}\nMétiers : {self.pbo}\nMotivation : {self.description}\nQualités : {self.quest}',view=candidrrr(interaction.user.id))
 		try:
 			await interaction.user.add_roles(bot.get_guild(1111169684872642662).get_role(1112041856746926142))
 			await interaction.user.send('Nous avons bien reçu votre candidature')
@@ -2235,8 +2235,8 @@ class candidrrr(discord.ui.View):
 Maintenant tu vas devoir passer un entretien oral. Pour le passer il faudra aller dans le <#1112078518419988581> et ping un staff. Tu auras deux semaine pour venir dans passer ton entretien, si tu n'es pas disponible dans ce delai le bot t'enverra un message pour te demander la raison, et nous verrons si elle est acceptable.
 Cordialement,
 Le Staff du SD Shop.""")
-		await interaction.user.remove_roles(bot.get_guild(1111169684872642662).get_role(1112041856746926142))
-		await interaction.user.add_roles(bot.get_guild(1111169684872642662).get_role(1112041930054971392))
+		await member.remove_roles(bot.get_guild(1111169684872642662).get_role(1112041856746926142))
+		await member.add_roles(bot.get_guild(1111169684872642662).get_role(1112041930054971392))
 		try:
 			await member.send(embed=_embed)
 		except:
@@ -2244,9 +2244,9 @@ Le Staff du SD Shop.""")
 		return f'Le message a bien été envoyé à {member.mention}'
 	@discord.ui.button(label='Refuser', style=discord.ButtonStyle.red, custom_id='refuserrrrrrr')
 	async def refuserrrr(self,interaction: discord.Interaction, button: discord.ui.Button):
-		await interaction.user.remove_roles(bot.get_guild(1111169684872642662).get_role(1112041856746926142))
-		await interaction.message.edit(view=None)
 		member = interaction.guild.get_member(self.member)
+		await member.remove_roles(bot.get_guild(1111169684872642662).get_role(1112041856746926142))
+		await interaction.message.edit(view=None)
 		_embed = discord.Embed(title = "Recrutements",
 							description =f"""Bonjour, malheureusement ta candidature pour rejoindre la SweetDream n'a pas 
 										été acceptée.\nCordialement,\nLe Staff SD Shop"""
